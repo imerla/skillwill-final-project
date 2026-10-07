@@ -2,12 +2,15 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../../../shared/ui/Button'
 import { FormField } from '../../../shared/ui/FormField'
 import { Input } from '../../../shared/ui/Input'
 import { PasswordInput } from '../../../shared/ui/PasswordInput'
 import { Alert } from '../../../shared/ui/Alert'
+import { setAccessToken } from '../../../shared/auth'
+import { register as registerApi } from '../api/register'
+import { ApiErrorClass } from '../../../shared/api'
 import './RegisterPage.css'
 
 const registerSchema = z
@@ -41,13 +44,15 @@ export function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [hasSubmitted, setHasSubmitted] = useState(false)
+  const navigate = useNavigate()
 
   const {
-    register,
+    register: registerField,
     handleSubmit,
     formState: { errors },
     setFocus,
     trigger,
+    setError,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     mode: 'onSubmit',
@@ -59,10 +64,29 @@ export function RegisterPage() {
     setIsLoading(true)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800))
-      console.log(values)
-    } catch {
-      setSubmitError('An error occurred. Please try again.')
+      const response = await registerApi({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      })
+      setAccessToken(response.accessToken)
+      navigate('/', { replace: true })
+    } catch (error) {
+      if (error instanceof ApiErrorClass) {
+        if (error.code === 'EMAIL_TAKEN') {
+          setError('email', { message: 'ეს ელფოსტა უკვე რეგისტრირებულია' })
+        } else if (error.status === 422 && error.errors) {
+          Object.entries(error.errors).forEach(([field, messages]) => {
+            if (Array.isArray(messages) && messages.length > 0) {
+              setError(field as keyof RegisterFormData, { message: messages[0] })
+            }
+          })
+        } else {
+          setSubmitError('An error occurred. Please try again.')
+        }
+      } else {
+        setSubmitError('Network error. Please check your connection.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -109,7 +133,8 @@ export function RegisterPage() {
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.name}
-                {...register('name', { onChange: () => handleChange('name') })}
+                disabled={isLoading}
+                {...registerField('name', { onChange: () => handleChange('name') })}
               />
             )}
           </FormField>
@@ -126,7 +151,8 @@ export function RegisterPage() {
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.email}
-                {...register('email', { onChange: () => handleChange('email') })}
+                disabled={isLoading}
+                {...registerField('email', { onChange: () => handleChange('email') })}
               />
             )}
           </FormField>
@@ -142,7 +168,8 @@ export function RegisterPage() {
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.password}
-                {...register('password', { onChange: () => handleChange('password') })}
+                disabled={isLoading}
+                {...registerField('password', { onChange: () => handleChange('password') })}
               />
             )}
           </FormField>
@@ -158,7 +185,8 @@ export function RegisterPage() {
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.confirmPassword}
-                {...register('confirmPassword', { onChange: () => handleChange('confirmPassword') })}
+                disabled={isLoading}
+                {...registerField('confirmPassword', { onChange: () => handleChange('confirmPassword') })}
               />
             )}
           </FormField>

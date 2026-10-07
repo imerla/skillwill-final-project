@@ -2,12 +2,15 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '../../../shared/ui/Button'
 import { FormField } from '../../../shared/ui/FormField'
 import { Input } from '../../../shared/ui/Input'
 import { PasswordInput } from '../../../shared/ui/PasswordInput'
 import { Alert } from '../../../shared/ui/Alert'
+import { setAccessToken } from '../../../shared/auth'
+import { login } from '../api/login'
+import { ApiErrorClass } from '../../../shared/api'
 import './LoginPage.css'
 
 const loginSchema = z.object({
@@ -26,6 +29,8 @@ export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [hasSubmitted, setHasSubmitted] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const {
     register,
@@ -44,10 +49,21 @@ export function LoginPage() {
     setIsLoading(true)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800))
-      console.log(values)
-    } catch {
-      setSubmitError('An error occurred. Please try again.')
+      const response = await login(values)
+      setAccessToken(response.accessToken)
+      
+      const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/'
+      navigate(from, { replace: true })
+    } catch (error) {
+      if (error instanceof ApiErrorClass) {
+        if (error.code === 'INVALID_CREDENTIALS') {
+          setSubmitError('არასწორი ელფოსტა ან პაროლი')
+        } else {
+          setSubmitError('An error occurred. Please try again.')
+        }
+      } else {
+        setSubmitError('Network error. Please check your connection.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -90,6 +106,7 @@ export function LoginPage() {
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.email}
+                disabled={isLoading}
                 {...register('email', { onChange: () => handleChange('email') })}
               />
             )}
@@ -106,6 +123,7 @@ export function LoginPage() {
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.password}
+                disabled={isLoading}
                 {...register('password', { onChange: () => handleChange('password') })}
               />
             )}
