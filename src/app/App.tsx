@@ -1,16 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-
-function LoginPage() {
-  return <div>Login Page</div>
-}
-
-function RegisterPage() {
-  return <div>Register Page</div>
-}
-
-function ForgotPasswordPage() {
-  return <div>Forgot Password Page</div>
-}
+import { LoginPage } from '../features/auth/pages/LoginPage'
+import { RegisterPage } from '../features/auth/pages/RegisterPage'
+import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage'
 
 function App() {
   return (
