@@ -13,7 +13,7 @@
   padding: var(--spacing-8);
   background-color: var(--bg-color-primary);
   border-radius: var(--radius-lg);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .register-page__title {
@@ -103,6 +103,6 @@
   }
 
   .register-page__title {
-    font-size: 2rem;
+    font-size: var(--font-size-3xl);
   }
 }

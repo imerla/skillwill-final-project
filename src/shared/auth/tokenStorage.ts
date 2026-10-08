@@ -11,7 +11,3 @@ export function setAccessToken(token: string): void {
 export function removeAccessToken(): void {
   localStorage.removeItem(TOKEN_KEY)
 }
-
-export function logout(): void {
-  removeAccessToken()
-}

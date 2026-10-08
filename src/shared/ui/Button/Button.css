@@ -68,8 +68,8 @@
 }
 
 .button--danger:hover:not(:disabled) {
-  background-color: #dc2626;
-  border-color: #dc2626;
+  background-color: var(--color-error-hover);
+  border-color: var(--color-error-hover);
 }
 
 .button--danger:focus-visible {

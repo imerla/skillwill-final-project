@@ -9,6 +9,7 @@
   --font-size-lg: 1.125rem;
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.75rem;
 
   /* Font Weights */
   --font-weight-normal: 400;
@@ -79,4 +80,7 @@
   /* Disabled State Color */
   --color-disabled: #d1d5db;
   --color-disabled-bg: #f3f4f6;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
 }

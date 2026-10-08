@@ -8,7 +8,7 @@ import { FormField } from '../../../shared/ui/FormField'
 import { Input } from '../../../shared/ui/Input'
 import { PasswordInput } from '../../../shared/ui/PasswordInput'
 import { Alert } from '../../../shared/ui/Alert'
-import { setAccessToken } from '../../../shared/auth'
+import { setAccessToken, useSession } from '../../../shared/auth'
 import { login } from '../api/login'
 import { ApiErrorClass } from '../../../shared/api'
 import './LoginPage.css'
@@ -31,6 +31,7 @@ export function LoginPage() {
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
+  const { setUser } = useSession()
 
   const {
     register,
@@ -51,6 +52,7 @@ export function LoginPage() {
     try {
       const response = await login(values)
       setAccessToken(response.accessToken)
+      setUser(response.user)
       
       const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/'
       navigate(from, { replace: true })

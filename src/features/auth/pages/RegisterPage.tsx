@@ -8,7 +8,7 @@ import { FormField } from '../../../shared/ui/FormField'
 import { Input } from '../../../shared/ui/Input'
 import { PasswordInput } from '../../../shared/ui/PasswordInput'
 import { Alert } from '../../../shared/ui/Alert'
-import { setAccessToken } from '../../../shared/auth'
+import { setAccessToken, useSession } from '../../../shared/auth'
 import { register as registerApi } from '../api/register'
 import { ApiErrorClass } from '../../../shared/api'
 import './RegisterPage.css'
@@ -45,6 +45,7 @@ export function RegisterPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const navigate = useNavigate()
+  const { setUser } = useSession()
 
   const {
     register: registerField,
@@ -70,6 +71,7 @@ export function RegisterPage() {
         password: values.password,
       })
       setAccessToken(response.accessToken)
+      setUser(response.user)
       navigate('/', { replace: true })
     } catch (error) {
       if (error instanceof ApiErrorClass) {
@@ -108,6 +110,9 @@ export function RegisterPage() {
   const handleChange = async (field: keyof RegisterFormData) => {
     if (hasSubmitted) {
       await trigger(field)
+      if (field === 'password') {
+        await trigger('confirmPassword')
+      }
     }
   }
 

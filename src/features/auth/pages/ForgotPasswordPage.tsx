@@ -49,15 +49,22 @@ export function ForgotPasswordPage() {
   const [step, setStep] = useState<Step>('email')
   const [isLoading, setIsLoading] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [errorCode, setErrorCode] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [resetToken, setResetToken] = useState<string | null>(null)
+
+  const [emailHasSubmitted, setEmailHasSubmitted] = useState(false)
+  const [codeHasSubmitted, setCodeHasSubmitted] = useState(false)
+  const [passwordHasSubmitted, setPasswordHasSubmitted] = useState(false)
 
   const emailForm = useForm({ resolver: zodResolver(emailSchema), mode: 'onSubmit' })
   const codeForm = useForm({ resolver: zodResolver(codeSchema), mode: 'onSubmit' })
   const passwordForm = useForm({ resolver: zodResolver(newPasswordSchema), mode: 'onSubmit' })
 
   const onEmailSubmit = async (values: z.infer<typeof emailSchema>) => {
+    setEmailHasSubmitted(true)
     setSubmitError(null)
+    setErrorCode(null)
     setIsLoading(true)
     setEmail(values.email)
 
@@ -72,7 +79,9 @@ export function ForgotPasswordPage() {
   }
 
   const onCodeSubmit = async (values: z.infer<typeof codeSchema>) => {
+    setCodeHasSubmitted(true)
     setSubmitError(null)
+    setErrorCode(null)
     setIsLoading(true)
 
     try {
@@ -82,9 +91,10 @@ export function ForgotPasswordPage() {
     } catch (error) {
       if (error instanceof ApiErrorClass) {
         if (error.code === 'INVALID_RESET_CODE') {
-          setSubmitError('კოდი არასწორია ან ვადაგასულია')
+          codeForm.setError('code', { message: 'კოდი არასწორია ან ვადაგასულია' })
         } else if (error.code === 'TOO_MANY_ATTEMPTS') {
           setSubmitError('Too many attempts. Please request a new code.')
+          setErrorCode('TOO_MANY_ATTEMPTS')
         } else {
           setSubmitError('An error occurred. Please try again.')
         }
@@ -97,7 +107,9 @@ export function ForgotPasswordPage() {
   }
 
   const onPasswordSubmit = async (values: z.infer<typeof newPasswordSchema>) => {
+    setPasswordHasSubmitted(true)
     setSubmitError(null)
+    setErrorCode(null)
     setIsLoading(true)
 
     try {
@@ -119,6 +131,34 @@ export function ForgotPasswordPage() {
   const handleRequestNewCode = () => {
     setStep('email')
     setSubmitError(null)
+    setErrorCode(null)
+    codeForm.reset()
+    setCodeHasSubmitted(false)
+  }
+
+  const handleEmailChange = async () => {
+    if (emailHasSubmitted) {
+      await emailForm.trigger('email')
+    }
+  }
+
+  const handleCodeChange = async () => {
+    if (codeHasSubmitted) {
+      await codeForm.trigger('code')
+    }
+  }
+
+  const handleNewPasswordChange = async () => {
+    if (passwordHasSubmitted) {
+      await passwordForm.trigger('newPassword')
+      await passwordForm.trigger('confirmPassword')
+    }
+  }
+
+  const handleConfirmPasswordChange = async () => {
+    if (passwordHasSubmitted) {
+      await passwordForm.trigger('confirmPassword')
+    }
   }
 
   if (step === 'success') {
@@ -180,7 +220,7 @@ export function ForgotPasswordPage() {
                   aria-invalid={ariaInvalid}
                   error={!!emailForm.formState.errors.email}
                   disabled={isLoading}
-                  {...emailForm.register('email')}
+                  {...emailForm.register('email', { onChange: handleEmailChange })}
                 />
               )}
             </FormField>
@@ -212,7 +252,7 @@ export function ForgotPasswordPage() {
                   aria-invalid={ariaInvalid}
                   error={!!codeForm.formState.errors.code}
                   disabled={isLoading}
-                  {...codeForm.register('code')}
+                  {...codeForm.register('code', { onChange: handleCodeChange })}
                 />
               )}
             </FormField>
@@ -227,7 +267,7 @@ export function ForgotPasswordPage() {
               </Button>
             </div>
 
-            {submitError && submitError.includes('Too many attempts') && (
+            {errorCode === 'TOO_MANY_ATTEMPTS' && (
               <div className="forgot-password-page__links">
                 <button
                   type="button"
@@ -256,7 +296,7 @@ export function ForgotPasswordPage() {
                   aria-invalid={ariaInvalid}
                   error={!!passwordForm.formState.errors.newPassword}
                   disabled={isLoading}
-                  {...passwordForm.register('newPassword')}
+                  {...passwordForm.register('newPassword', { onChange: handleNewPasswordChange })}
                 />
               )}
             </FormField>
@@ -273,7 +313,7 @@ export function ForgotPasswordPage() {
                   aria-invalid={ariaInvalid}
                   error={!!passwordForm.formState.errors.confirmPassword}
                   disabled={isLoading}
-                  {...passwordForm.register('confirmPassword')}
+                  {...passwordForm.register('confirmPassword', { onChange: handleConfirmPasswordChange })}
                 />
               )}
             </FormField>

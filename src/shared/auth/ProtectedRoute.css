@@ -1,0 +1,31 @@
+.protected-route__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--spacing-4);
+}
+
+.protected-route__spinner {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid var(--color-disabled);
+  border-right-color: var(--color-primary);
+  border-radius: 50%;
+  animation: protected-route-spin 0.6s linear infinite;
+}
+
+@keyframes protected-route-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .protected-route__spinner {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-width: 2.5px;
+  }
+}

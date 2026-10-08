@@ -4,6 +4,12 @@ import { getAccessToken } from '../auth/tokenStorage'
 
 const API_URL = import.meta.env.VITE_API_URL
 
+let onUnauthorized: (() => void) | null = null
+
+export function setUnauthorizedHandler(handler: () => void): void {
+  onUnauthorized = handler
+}
+
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -40,6 +46,10 @@ async function request<T>(
       } catch {
         // Use default error data if JSON parsing fails
       }
+    }
+
+    if (response.status === 401 && onUnauthorized) {
+      onUnauthorized()
     }
 
     throw new ApiErrorClass(

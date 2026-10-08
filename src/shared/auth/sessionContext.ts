@@ -6,6 +6,7 @@ export interface SessionContextValue {
   isLoading: boolean
   isAuthenticated: boolean
   logout: () => void
+  setUser: (user: User) => void
 }
 
 export const SessionContext = createContext<SessionContextValue | undefined>(undefined)
