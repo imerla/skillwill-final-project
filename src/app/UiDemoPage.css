@@ -1,0 +1,42 @@
+.ui-demo {
+  padding: var(--spacing-8) 0;
+}
+
+.ui-demo__instruction {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-8);
+}
+
+.ui-demo__section {
+  margin-bottom: var(--spacing-12);
+}
+
+.ui-demo__section-title {
+  font-family: var(--font-family);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin-bottom: var(--spacing-4);
+}
+
+.ui-demo__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--grid-min-width), 1fr));
+  gap: var(--spacing-6);
+}
+
+.ui-demo__grid h3 {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-2);
+}
+
+.ui-demo__grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}

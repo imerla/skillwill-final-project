@@ -17,3 +17,4 @@ export interface LoginResponse {
 export async function login(data: LoginRequest): Promise<LoginResponse> {
   return api.post<LoginResponse>('/auth/login', data)
 }
+

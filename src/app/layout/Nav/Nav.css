@@ -1,0 +1,109 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+  transition: all var(--duration-base) ease;
+}
+
+.nav__container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--container-page);
+  height: 72px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-6);
+}
+
+.nav__brand {
+  font-family: var(--font-family);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  text-decoration: none;
+  letter-spacing: -0.025em;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.nav__brand:hover {
+  opacity: 0.8;
+}
+
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+}
+
+.nav__link {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  position: relative;
+  padding: var(--spacing-2) 0;
+  transition: color var(--duration-fast) ease;
+}
+
+.nav__link:hover {
+  color: var(--color-text);
+}
+
+.nav__link[aria-current='page'] {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.nav__link[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+.nav__button {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  background: none;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) ease;
+}
+
+.nav__button:hover {
+  color: var(--color-text);
+  background-color: var(--color-surface-muted);
+  border-color: var(--color-border-control);
+}
+
+.nav__skeleton {
+  width: 4rem;
+  height: var(--size-control-sm);
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 768px) {
+  .nav__container {
+    padding: 0 var(--spacing-4);
+    height: 64px;
+  }
+  .nav__links {
+    gap: var(--spacing-4);
+  }
+}

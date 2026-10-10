@@ -1,0 +1,49 @@
+.price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+  font-family: var(--font-family);
+}
+
+.price--sm {
+  font-size: var(--font-size-sm);
+}
+
+.price--md {
+  font-size: var(--font-size-base);
+}
+
+.price--lg {
+  font-size: var(--font-size-lg);
+}
+
+.price__current {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.price__old {
+  color: var(--color-text-secondary);
+}
+
+.price__discount {
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-on-accent);
+  background-color: var(--color-accent);
+  border-radius: var(--radius-full);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+

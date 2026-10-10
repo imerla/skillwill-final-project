@@ -1,0 +1,111 @@
+.filter {
+  margin-bottom: var(--spacing-4)
+  border: none
+  padding: 0
+}
+
+.filter__legend {
+  font-family: var(--font-family)
+  font-size: var(--font-size-sm)
+  font-weight: var(--font-weight-semibold)
+  color: var(--color-text)
+  display: flex
+  align-items: center
+  justify-content: space-between
+  margin-bottom: var(--spacing-2)
+  padding: 0
+}
+
+.filter__clear {
+  font-size: var(--font-size-xs)
+  padding: var(--spacing-1) var(--spacing-2)
+}
+
+.filter__options {
+  display: flex
+  flex-direction: column
+  gap: var(--spacing-2)
+}
+
+.filter__colors {
+  display: flex
+  flex-wrap: wrap
+  gap: var(--spacing-2)
+}
+
+.filter__color-option {
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: var(--spacing-1)
+  cursor: pointer
+}
+
+.filter__color-checkbox {
+  position: absolute
+  width: 0
+  height: 0
+  opacity: 0
+}
+
+.filter__color-swatch {
+  width: var(--size-swatch)
+  height: var(--size-swatch)
+  border-radius: var(--radius-full)
+  border: var(--border-width) solid var(--color-border)
+  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease
+}
+
+.filter__color-checkbox:focus-visible + .filter__color-swatch {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring)
+  outline-offset: var(--focus-ring-offset)
+}
+
+.filter__color-checkbox:checked + .filter__color-swatch {
+  border-color: var(--color-primary)
+  box-shadow: 0 0 0 var(--border-width) var(--color-surface), 0 0 0 calc(var(--border-width) * 2) var(--color-primary)
+}
+
+.filter__color-label {
+  font-family: var(--font-family)
+  font-size: var(--font-size-xs)
+  color: var(--color-text-secondary)
+}
+
+.filter__range {
+  display: flex
+  flex-direction: column
+  gap: var(--spacing-3)
+}
+
+.filter__range-inputs {
+  display: flex
+  flex-direction: column
+  gap: var(--spacing-2)
+}
+
+.filter__range-field {
+  display: flex
+  align-items: center
+  gap: var(--spacing-2)
+}
+
+.filter__range-label {
+  font-family: var(--font-family)
+  font-size: var(--font-size-xs)
+  font-weight: var(--font-weight-medium)
+  color: var(--color-text-secondary)
+  min-width: var(--size-swatch)
+}
+
+.filter__range-input {
+  flex: 1
+}
+
+.filter__range-unit {
+  font-family: var(--font-family)
+  font-size: var(--font-size-xs)
+  color: var(--color-text-secondary)
+  min-width: var(--size-xs)
+}
+

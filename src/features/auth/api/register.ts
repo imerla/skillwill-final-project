@@ -18,3 +18,4 @@ export interface RegisterResponse {
 export async function register(data: RegisterRequest): Promise<RegisterResponse> {
   return api.post<RegisterResponse>('/auth/register', data)
 }
+

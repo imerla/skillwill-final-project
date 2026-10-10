@@ -10,3 +10,4 @@ export interface SessionContextValue {
 }
 
 export const SessionContext = createContext<SessionContextValue | undefined>(undefined)
+

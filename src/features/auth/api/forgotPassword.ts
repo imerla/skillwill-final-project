@@ -29,3 +29,4 @@ export async function verifyResetCode(data: VerifyResetCodeRequest): Promise<Ver
 export async function resetPassword(data: ResetPasswordRequest): Promise<void> {
   return api.post<void>('/auth/reset-password', data)
 }
+

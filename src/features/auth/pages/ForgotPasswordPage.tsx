@@ -1,163 +1,122 @@
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Button } from '../../../shared/ui/Button'
-import { FormField } from '../../../shared/ui/FormField'
-import { Input } from '../../../shared/ui/Input'
-import { PasswordInput } from '../../../shared/ui/PasswordInput'
 import { Alert } from '../../../shared/ui/Alert'
 import { forgotPassword, verifyResetCode, resetPassword } from '../api/forgotPassword'
 import { ApiErrorClass } from '../../../shared/api'
+import { ka } from '../../../shared/i18n/ka'
+import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
+import { EmailStep } from '../components/forgot-password/EmailStep'
+import { CodeStep } from '../components/forgot-password/CodeStep'
+import { NewPasswordStep } from '../components/forgot-password/NewPasswordStep'
 import './ForgotPasswordPage.css'
 
 type Step = 'email' | 'code' | 'newPassword' | 'success'
+type Banner = { variant: 'error' | 'info'; message: string } | null
 
-const emailSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Invalid email address'),
-})
-
-const codeSchema = z.object({
-  code: z
-    .string()
-    .min(1, 'Code is required')
-    .min(6, 'Code must be at least 6 characters'),
-})
-
-const newPasswordSchema = z
-  .object({
-    newPassword: z
-      .string()
-      .min(1, 'Password is required')
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
-      .regex(/\d/, 'Password must contain at least one digit'),
-    confirmPassword: z
-      .string()
-      .min(1, 'Please confirm your password'),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  })
+const getMsg = (e: Record<string, string | string[]>): string => {
+  const v = Object.values(e)[0]
+  return typeof v === 'string' ? v : Array.isArray(v) ? v[0] : ka.common.genericError
+}
 
 export function ForgotPasswordPage() {
   const [step, setStep] = useState<Step>('email')
-  const [isLoading, setIsLoading] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
-  const [errorCode, setErrorCode] = useState<string | null>(null)
   const [email, setEmail] = useState('')
   const [resetToken, setResetToken] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [banner, setBanner] = useState<Banner>(null)
+  const [codeFieldError, setCodeFieldError] = useState<string | null>(null)
+  const [passwordFieldErrors, setPasswordFieldErrors] = useState<{ newPassword?: string } | undefined>(undefined)
+  const [tooManyAttempts, setTooManyAttempts] = useState(false)
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  const isInitialMount = useRef(true)
 
-  const [emailHasSubmitted, setEmailHasSubmitted] = useState(false)
-  const [codeHasSubmitted, setCodeHasSubmitted] = useState(false)
-  const [passwordHasSubmitted, setPasswordHasSubmitted] = useState(false)
+  useDocumentTitle(ka.auth.forgot.titleEmail)
 
-  const emailForm = useForm({ resolver: zodResolver(emailSchema), mode: 'onSubmit' })
-  const codeForm = useForm({ resolver: zodResolver(codeSchema), mode: 'onSubmit' })
-  const passwordForm = useForm({ resolver: zodResolver(newPasswordSchema), mode: 'onSubmit' })
+  useEffect(() => {
+    if (!isInitialMount.current) headingRef.current?.focus()
+    isInitialMount.current = false
+  }, [step])
 
-  const onEmailSubmit = async (values: z.infer<typeof emailSchema>) => {
-    setEmailHasSubmitted(true)
-    setSubmitError(null)
-    setErrorCode(null)
+  const resetToEmail = () => {
+    setStep('email')
+    setResetToken(null)
+    setTooManyAttempts(false)
+    setBanner(null)
+    setCodeFieldError(null)
+  }
+
+  const submitEmail = async (emailValue: string) => {
+    if (isLoading) return
+    setBanner(null)
     setIsLoading(true)
-    setEmail(values.email)
-
+    setEmail(emailValue)
     try {
-      await forgotPassword({ email: values.email })
+      await forgotPassword({ email: emailValue })
       setStep('code')
-    } catch {
-      setSubmitError('An error occurred. Please try again.')
+      setBanner({ variant: 'info', message: ka.auth.forgot.codeSent })
+    } catch (error) {
+      if (error instanceof ApiErrorClass) {
+        if (error.status === 422 && error.errors) setBanner({ variant: 'error', message: getMsg(error.errors) })
+        else setBanner({ variant: 'error', message: ka.common.genericError })
+      } else setBanner({ variant: 'error', message: ka.common.networkError })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const onCodeSubmit = async (values: z.infer<typeof codeSchema>) => {
-    setCodeHasSubmitted(true)
-    setSubmitError(null)
-    setErrorCode(null)
+  const submitCode = async (code: string) => {
+    if (isLoading) return
+    setBanner(null)
+    setCodeFieldError(null)
     setIsLoading(true)
-
     try {
-      const response = await verifyResetCode({ email, code: values.code })
+      const response = await verifyResetCode({ email, code })
       setResetToken(response.resetToken)
       setStep('newPassword')
     } catch (error) {
       if (error instanceof ApiErrorClass) {
-        if (error.code === 'INVALID_RESET_CODE') {
-          codeForm.setError('code', { message: 'კოდი არასწორია ან ვადაგასულია' })
-        } else if (error.code === 'TOO_MANY_ATTEMPTS') {
-          setSubmitError('Too many attempts. Please request a new code.')
-          setErrorCode('TOO_MANY_ATTEMPTS')
-        } else {
-          setSubmitError('An error occurred. Please try again.')
-        }
-      } else {
-        setSubmitError('Network error. Please check your connection.')
-      }
+        if (error.code === 'INVALID_RESET_CODE') setCodeFieldError(ka.auth.forgot.codeWrong)
+        else if (error.code === 'TOO_MANY_ATTEMPTS') {
+          setTooManyAttempts(true)
+          setBanner({ variant: 'error', message: ka.auth.forgot.tooManyAttempts })
+        } else if (error.status === 422 && error.errors) setCodeFieldError(getMsg(error.errors))
+        else setBanner({ variant: 'error', message: ka.common.genericError })
+      } else setBanner({ variant: 'error', message: ka.common.networkError })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const onPasswordSubmit = async (values: z.infer<typeof newPasswordSchema>) => {
-    setPasswordHasSubmitted(true)
-    setSubmitError(null)
-    setErrorCode(null)
+  const submitNewPassword = async (newPassword: string) => {
+    if (isLoading) return
+    setBanner(null)
+    setPasswordFieldErrors(undefined)
     setIsLoading(true)
-
     try {
       if (!resetToken) {
-        setSubmitError('Invalid session. Please start over.')
+        setBanner({ variant: 'error', message: ka.auth.forgot.invalidSession })
         setStep('email')
         return
       }
-
-      await resetPassword({ resetToken, newPassword: values.newPassword })
+      await resetPassword({ resetToken, newPassword })
+      setResetToken(null)
       setStep('success')
-    } catch {
-      setSubmitError('An error occurred. Please try again.')
+    } catch (error) {
+      if (error instanceof ApiErrorClass) {
+        if (error.code === 'INVALID_RESET_TOKEN') {
+          setResetToken(null)
+          setStep('email')
+          setBanner({ variant: 'error', message: ka.auth.forgot.resetTokenExpired })
+        } else if (error.status === 422 && error.errors) {
+          if (error.errors.newPassword) {
+            const msg = typeof error.errors.newPassword === 'string' ? error.errors.newPassword : Array.isArray(error.errors.newPassword) ? error.errors.newPassword[0] : undefined
+            if (msg) setPasswordFieldErrors({ newPassword: msg })
+            else setBanner({ variant: 'error', message: getMsg(error.errors) })
+          } else setBanner({ variant: 'error', message: getMsg(error.errors) })
+        } else setBanner({ variant: 'error', message: ka.common.genericError })
+      } else setBanner({ variant: 'error', message: ka.common.networkError })
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleRequestNewCode = () => {
-    setStep('email')
-    setSubmitError(null)
-    setErrorCode(null)
-    codeForm.reset()
-    setCodeHasSubmitted(false)
-  }
-
-  const handleEmailChange = async () => {
-    if (emailHasSubmitted) {
-      await emailForm.trigger('email')
-    }
-  }
-
-  const handleCodeChange = async () => {
-    if (codeHasSubmitted) {
-      await codeForm.trigger('code')
-    }
-  }
-
-  const handleNewPasswordChange = async () => {
-    if (passwordHasSubmitted) {
-      await passwordForm.trigger('newPassword')
-      await passwordForm.trigger('confirmPassword')
-    }
-  }
-
-  const handleConfirmPasswordChange = async () => {
-    if (passwordHasSubmitted) {
-      await passwordForm.trigger('confirmPassword')
     }
   }
 
@@ -165,15 +124,9 @@ export function ForgotPasswordPage() {
     return (
       <div className="forgot-password-page">
         <div className="forgot-password-page__container">
-          <Alert 
-            variant="success" 
-            message="Password reset successful. You can now sign in with your new password." 
-            className="forgot-password-page__success"
-          />
+          <Alert variant="success" message={ka.auth.forgot.resetSuccess} className="forgot-password-page__success" />
           <div className="forgot-password-page__links">
-            <Link to="/login" className="forgot-password-page__link">
-              Back to sign in
-            </Link>
+            <Link to="/login" className="forgot-password-page__link">{ka.auth.forgot.backToSignIn}</Link>
           </div>
         </div>
       </div>
@@ -183,159 +136,22 @@ export function ForgotPasswordPage() {
   return (
     <div className="forgot-password-page">
       <div className="forgot-password-page__container">
-        <h1 className="forgot-password-page__title">
-          {step === 'email' && 'Reset password'}
-          {step === 'code' && 'Enter verification code'}
-          {step === 'newPassword' && 'Create new password'}
+        <h1 ref={headingRef} tabIndex={-1} className="forgot-password-page__title">
+          {step === 'email' && ka.auth.forgot.titleEmail}
+          {step === 'code' && ka.auth.forgot.titleCode}
+          {step === 'newPassword' && ka.auth.forgot.titleNewPassword}
         </h1>
-        
-        {step === 'email' && (
-          <p className="forgot-password-page__subtitle">
-            Enter your email address and we'll send you a code to reset your password.
-          </p>
-        )}
-
-        {step === 'code' && (
-          <p className="forgot-password-page__subtitle">
-            Enter the 6-digit code sent to {email}
-          </p>
-        )}
-
-        {submitError && (
-          <Alert variant="error" message={submitError} className="forgot-password-page__alert" />
-        )}
-
-        {step === 'email' && (
-          <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="forgot-password-page__form" noValidate>
-            <FormField
-              label="Email"
-              error={emailForm.formState.errors.email?.message}
-            >
-              {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
-                <Input
-                  id={id}
-                  type="email"
-                  placeholder="you@example.com"
-                  aria-describedby={ariaDescribedby}
-                  aria-invalid={ariaInvalid}
-                  error={!!emailForm.formState.errors.email}
-                  disabled={isLoading}
-                  {...emailForm.register('email', { onChange: handleEmailChange })}
-                />
-              )}
-            </FormField>
-
-            <div className="forgot-password-page__actions">
-              <Button
-                type="submit"
-                loading={isLoading}
-                className="forgot-password-page__submit"
-              >
-                Send code
-              </Button>
-            </div>
-          </form>
-        )}
-
-        {step === 'code' && (
-          <form onSubmit={codeForm.handleSubmit(onCodeSubmit)} className="forgot-password-page__form" noValidate>
-            <FormField
-              label="Verification code"
-              error={codeForm.formState.errors.code?.message}
-            >
-              {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
-                <Input
-                  id={id}
-                  type="text"
-                  placeholder="123456"
-                  aria-describedby={ariaDescribedby}
-                  aria-invalid={ariaInvalid}
-                  error={!!codeForm.formState.errors.code}
-                  disabled={isLoading}
-                  {...codeForm.register('code', { onChange: handleCodeChange })}
-                />
-              )}
-            </FormField>
-
-            <div className="forgot-password-page__actions">
-              <Button
-                type="submit"
-                loading={isLoading}
-                className="forgot-password-page__submit"
-              >
-                Verify code
-              </Button>
-            </div>
-
-            {errorCode === 'TOO_MANY_ATTEMPTS' && (
-              <div className="forgot-password-page__links">
-                <button
-                  type="button"
-                  onClick={handleRequestNewCode}
-                  className="forgot-password-page__link"
-                  disabled={isLoading}
-                >
-                  ახალი კოდის მოთხოვნა
-                </button>
-              </div>
-            )}
-          </form>
-        )}
-
-        {step === 'newPassword' && (
-          <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="forgot-password-page__form" noValidate>
-            <FormField
-              label="New password"
-              error={passwordForm.formState.errors.newPassword?.message}
-            >
-              {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
-                <PasswordInput
-                  id={id}
-                  placeholder="••••••••"
-                  aria-describedby={ariaDescribedby}
-                  aria-invalid={ariaInvalid}
-                  error={!!passwordForm.formState.errors.newPassword}
-                  disabled={isLoading}
-                  {...passwordForm.register('newPassword', { onChange: handleNewPasswordChange })}
-                />
-              )}
-            </FormField>
-
-            <FormField
-              label="Confirm new password"
-              error={passwordForm.formState.errors.confirmPassword?.message}
-            >
-              {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
-                <PasswordInput
-                  id={id}
-                  placeholder="••••••••"
-                  aria-describedby={ariaDescribedby}
-                  aria-invalid={ariaInvalid}
-                  error={!!passwordForm.formState.errors.confirmPassword}
-                  disabled={isLoading}
-                  {...passwordForm.register('confirmPassword', { onChange: handleConfirmPasswordChange })}
-                />
-              )}
-            </FormField>
-
-            <div className="forgot-password-page__actions">
-              <Button
-                type="submit"
-                loading={isLoading}
-                className="forgot-password-page__submit"
-              >
-                Reset password
-              </Button>
-            </div>
-          </form>
-        )}
-
+        {step === 'email' && <p className="forgot-password-page__subtitle">{ka.auth.forgot.subtitleEmail}</p>}
+        {step === 'code' && <p className="forgot-password-page__subtitle">{ka.auth.forgot.subtitleCode(email)}</p>}
+        {banner && <Alert variant={banner.variant} message={banner.message} className="forgot-password-page__alert" />}
+        {step === 'email' && <EmailStep defaultEmail={email} isLoading={isLoading} onSubmit={submitEmail} />}
+        {step === 'code' && <CodeStep isLoading={isLoading} onSubmit={submitCode} onChangeEmail={resetToEmail} onRequestNewCode={resetToEmail} tooManyAttempts={tooManyAttempts} fieldError={codeFieldError} />}
+        {step === 'newPassword' && <NewPasswordStep isLoading={isLoading} onSubmit={submitNewPassword} fieldErrors={passwordFieldErrors} />}
         <div className="forgot-password-page__links">
-          <Link to="/login" className="forgot-password-page__link">
-            Back to sign in
-          </Link>
+          <Link to="/login" className="forgot-password-page__link">{ka.auth.forgot.backToSignIn}</Link>
         </div>
       </div>
     </div>
   )
 }
+

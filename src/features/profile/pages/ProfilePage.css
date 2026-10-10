@@ -1,0 +1,53 @@
+.profile-page__title {
+  font-family: var(--font-family);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-6) 0;
+}
+
+.profile-page__alert {
+  margin-bottom: var(--spacing-6);
+}
+
+.profile-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.profile-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.profile-page__section-title {
+  font-family: var(--font-family);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.profile-page__note {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  padding: var(--spacing-3);
+  background-color: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+}
+
+.profile-page__hint {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.profile-page__submit {
+  margin-top: var(--spacing-4);
+}
+

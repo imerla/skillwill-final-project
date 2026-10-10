@@ -1,0 +1,126 @@
+.catalog-page__header {
+  margin-bottom: var(--spacing-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.catalog-page__title {
+  font-family: var(--font-family);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.catalog-page__search {
+  max-width: 480px;
+}
+
+.catalog-page__sorting {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--spacing-6);
+}
+
+.catalog-page__sort {
+  width: 220px;
+}
+
+.catalog-page__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.catalog-page__filters {
+  padding: var(--spacing-6);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.catalog-page__filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.catalog-page__filter-title {
+  font-family: var(--font-family);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.catalog-page__products {
+  margin-bottom: var(--spacing-8);
+  flex: 1;
+}
+
+.catalog-page__products--fetching {
+  opacity: var(--opacity-fetching);
+  transition: opacity var(--duration-base) ease;
+}
+
+.catalog-page__results {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--spacing-4) 0;
+}
+
+.catalog-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--grid-gap);
+}
+
+.catalog-page__skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  background: var(--color-surface);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.catalog-page__skeleton-image {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-md);
+}
+
+.catalog-page__skeleton-title {
+  width: 80%;
+  height: 1.25rem;
+}
+
+.catalog-page__skeleton-brand {
+  width: 40%;
+  height: 0.875rem;
+}
+
+.catalog-page__skeleton-price {
+  width: 30%;
+  height: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .catalog-page__content {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .catalog-page__filters {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    position: sticky;
+    top: 5rem;
+  }
+}

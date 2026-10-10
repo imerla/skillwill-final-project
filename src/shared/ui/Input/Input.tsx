@@ -13,3 +13,4 @@ export function Input({ error = false, className = '', ...props }: InputProps) {
     />
   )
 }
+

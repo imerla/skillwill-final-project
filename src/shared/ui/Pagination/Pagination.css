@@ -1,0 +1,76 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.pagination__button {
+  height: var(--size-control-md);
+  min-width: var(--size-control-md);
+  padding: 0 var(--spacing-4);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) ease, background-color var(--duration-fast) ease;
+}
+
+.pagination__button:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface-muted);
+}
+
+.pagination__button:disabled {
+  background-color: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+.pagination__pages {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.pagination__page {
+  width: var(--size-control-md);
+  height: var(--size-control-md);
+  min-width: var(--size-control-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) ease, background-color var(--duration-fast) ease;
+}
+
+.pagination__page:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface-muted);
+}
+
+.pagination__page--current {
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  border-color: var(--color-accent);
+}
+
+.pagination__page--current:hover:not(:disabled) {
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.pagination__ellipsis {
+  padding: 0 var(--spacing-2);
+  color: var(--color-text-secondary);
+}
+

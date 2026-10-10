@@ -1,0 +1,27 @@
+.skeleton {
+  background-color: var(--color-surface-muted);
+  animation: skeleton-shimmer var(--duration-base) ease-in-out infinite;
+}
+
+.skeleton--text {
+  height: var(--font-size-base);
+  border-radius: var(--radius-sm);
+}
+
+.skeleton--rect {
+  border-radius: var(--radius-md);
+}
+
+.skeleton--circle {
+  border-radius: 50%;
+}
+
+@keyframes skeleton-shimmer {
+  0%, 100% {
+    background-color: var(--color-surface-muted);
+  }
+  50% {
+    background-color: var(--color-gray-200);
+  }
+}
+

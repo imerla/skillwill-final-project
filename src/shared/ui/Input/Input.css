@@ -1,14 +1,16 @@
 .input {
   width: 100%;
-  padding: var(--spacing-3) var(--spacing-4);
-  font-family: var(--font-family-base);
+  height: var(--size-control-md);
+  padding: 0 var(--spacing-4);
+  font-family: var(--font-family);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
-  color: var(--text-color-primary);
-  background-color: var(--bg-color-primary);
-  border: 1px solid var(--border-color-base);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-md);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-fast) ease;
 }
 
 .password-input .input {
@@ -19,35 +21,24 @@
   background-color: var(--color-disabled-bg);
   color: var(--color-disabled);
   cursor: not-allowed;
+  box-shadow: none;
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--color-border-control);
 }
 
 .input:focus-visible {
-  outline: 2px solid var(--focus-ring-color);
-  outline-offset: 2px;
-  border-color: var(--border-color-focus);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  outline: none;
 }
 
-.input--error {
+.input[aria-invalid='true'] {
   border-color: var(--color-error);
-}
-
-.input--error:focus-visible {
-  border-color: var(--color-error);
-  outline-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
 }
 
 .input::placeholder {
-  color: var(--text-color-tertiary);
-}
-
-/* Mobile Responsive */
-@media (max-width: 640px) {
-  .input {
-    padding: var(--spacing-3);
-    font-size: var(--font-size-sm);
-  }
-
-  .password-input .input {
-    padding-right: var(--spacing-10);
-  }
+  color: var(--color-text-secondary);
 }

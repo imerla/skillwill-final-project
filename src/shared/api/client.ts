@@ -4,9 +4,9 @@ import { getAccessToken } from '../auth/tokenStorage'
 
 const API_URL = import.meta.env.VITE_API_URL
 
-let onUnauthorized: (() => void) | null = null
+let onUnauthorized: ((code?: string) => void) | null = null
 
-export function setUnauthorizedHandler(handler: () => void): void {
+export function setUnauthorizedHandler(handler: (code?: string) => void): void {
   onUnauthorized = handler
 }
 
@@ -29,6 +29,7 @@ async function request<T>(
   const response = await fetch(url, {
     ...options,
     headers,
+    signal: options.signal,
   })
 
   const contentType = response.headers.get('content-type')
@@ -48,15 +49,16 @@ async function request<T>(
       }
     }
 
-    if (response.status === 401 && onUnauthorized) {
-      onUnauthorized()
+    if (response.status === 401 && token && errorData.code !== 'INVALID_CREDENTIALS' && onUnauthorized) {
+      onUnauthorized(errorData.code)
     }
 
     throw new ApiErrorClass(
       errorData.message,
       errorData.code,
       response.status,
-      errorData.errors
+      errorData.errors,
+      errorData as unknown as Record<string, unknown>
     )
   }
 
@@ -68,21 +70,25 @@ async function request<T>(
 }
 
 export const api = {
-  get: <T>(endpoint: string) => request<T>(endpoint, { method: 'GET' }),
-  post: <T>(endpoint: string, data?: unknown) =>
+  get: <T>(endpoint: string, options?: RequestInit) => request<T>(endpoint, { method: 'GET', ...options }),
+  post: <T>(endpoint: string, data?: unknown, options?: RequestInit) =>
     request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
+      ...options,
     }),
-  put: <T>(endpoint: string, data?: unknown) =>
+  put: <T>(endpoint: string, data?: unknown, options?: RequestInit) =>
     request<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
+      ...options,
     }),
-  patch: <T>(endpoint: string, data?: unknown) =>
+  patch: <T>(endpoint: string, data?: unknown, options?: RequestInit) =>
     request<T>(endpoint, {
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
+      ...options,
     }),
-  delete: <T>(endpoint: string) => request<T>(endpoint, { method: 'DELETE' }),
+  delete: <T>(endpoint: string, options?: RequestInit) => request<T>(endpoint, { method: 'DELETE', ...options }),
 }
+

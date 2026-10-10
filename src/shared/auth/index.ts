@@ -2,4 +2,6 @@ export { getAccessToken, setAccessToken, removeAccessToken } from './tokenStorag
 export { SessionProvider } from './session'
 export { useSession } from './useSession'
 export { ProtectedRoute } from './ProtectedRoute'
+export { setSessionExpiredNotice, hasSessionExpiredNotice, clearSessionExpiredNotice } from './sessionNotice'
 export type { User } from './types'
+

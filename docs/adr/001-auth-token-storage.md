@@ -126,3 +126,4 @@ This ensures that invalid tokens are not retained, but legitimate tokens are pre
 - Tokens are not shared across different browsers or devices
 - Incognito/private browsing modes clear localStorage when the session ends
 - The application must handle the case where localStorage is disabled or unavailable
+

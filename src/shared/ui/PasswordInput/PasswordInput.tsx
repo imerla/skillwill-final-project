@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Input } from '../Input'
+import { ka } from '../../i18n/ka'
 import './PasswordInput.css'
 
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -26,11 +27,11 @@ export function PasswordInput({ error = false, disabled, className = '', ...prop
         className="password-input__toggle"
         onClick={toggleVisibility}
         disabled={disabled}
-        aria-label={isVisible ? 'Hide password' : 'Show password'}
-        aria-pressed={isVisible}
+        aria-label={isVisible ? ka.common.hidePassword : ka.common.showPassword}
       >
-        {isVisible ? 'Hide' : 'Show'}
+        {isVisible ? ka.common.hide : ka.common.show}
       </button>
     </div>
   )
 }
+

@@ -1,51 +1,68 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '../../../shared/ui/Button'
 import { FormField } from '../../../shared/ui/FormField'
 import { Input } from '../../../shared/ui/Input'
 import { PasswordInput } from '../../../shared/ui/PasswordInput'
 import { Alert } from '../../../shared/ui/Alert'
-import { setAccessToken, useSession } from '../../../shared/auth'
+import { setAccessToken, useSession, hasSessionExpiredNotice, clearSessionExpiredNotice } from '../../../shared/auth'
 import { login } from '../api/login'
-import { ApiErrorClass } from '../../../shared/api'
+import { ApiErrorClass, applyServerErrors } from '../../../shared/api'
+import { ka } from '../../../shared/i18n/ka'
+import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
+import { ROUTES } from '../../../app/routes'
 import './LoginPage.css'
 
 const loginSchema = z.object({
   email: z
     .string()
-    .min(1, 'Email is required')
-    .email('Invalid email address'),
+    .min(1, ka.validation.emailRequired)
+    .email(ka.validation.emailInvalid),
   password: z
     .string()
-    .min(1, 'Password is required'),
+    .min(1, ka.validation.passwordRequired),
 })
 
 type LoginFormData = z.infer<typeof loginSchema>
 
+type LocationState = {
+  from?: {
+    pathname: string
+    search?: string
+    hash?: string
+  }
+}
+
 export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [hasSubmitted, setHasSubmitted] = useState(false)
+  const [showExpiredNotice] = useState(() => hasSessionExpiredNotice())
   const navigate = useNavigate()
   const location = useLocation()
   const { setUser } = useSession()
+
+  useDocumentTitle(ka.auth.login.title)
+
+  useEffect(() => {
+    clearSessionExpiredNotice()
+  }, [])
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setFocus,
-    trigger,
+    setError,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: 'onSubmit',
+    reValidateMode: 'onChange',
   })
 
   const onSubmit = async (values: LoginFormData) => {
-    setHasSubmitted(true)
+    if (isLoading) return
     setSubmitError(null)
     setIsLoading(true)
 
@@ -53,51 +70,48 @@ export function LoginPage() {
       const response = await login(values)
       setAccessToken(response.accessToken)
       setUser(response.user)
-      
-      const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/'
-      navigate(from, { replace: true })
+
+      const from = (location.state as LocationState)?.from
+      const to = from ? from.pathname + (from.search ?? '') + (from.hash ?? '') : ROUTES.catalog
+      navigate(to, { replace: true })
     } catch (error) {
       if (error instanceof ApiErrorClass) {
         if (error.code === 'INVALID_CREDENTIALS') {
-          setSubmitError('არასწორი ელფოსტა ან პაროლი')
+          setSubmitError(ka.auth.login.invalidCredentials)
+        } else if (error.status === 422) {
+          const result = applyServerErrors(error, setError, ['email', 'password'])
+          if (result.formError) {
+            setSubmitError(result.formError)
+          } else if (!result.fieldErrorsSet) {
+            setSubmitError(ka.common.genericError)
+          }
         } else {
-          setSubmitError('An error occurred. Please try again.')
+          setSubmitError(ka.common.genericError)
         }
       } else {
-        setSubmitError('Network error. Please check your connection.')
+        setSubmitError(ka.common.networkError)
       }
     } finally {
       setIsLoading(false)
     }
   }
 
-  const onError = () => {
-    setHasSubmitted(true)
-    if (errors.email) {
-      setFocus('email')
-    } else if (errors.password) {
-      setFocus('password')
-    }
-  }
-
-  const handleChange = async (field: keyof LoginFormData) => {
-    if (hasSubmitted) {
-      await trigger(field)
-    }
-  }
-
   return (
     <div className="login-page">
       <div className="login-page__container">
-        <h1 className="login-page__title">Sign in</h1>
-        
+        <h1 className="login-page__title">{ka.auth.login.title}</h1>
+
+        {showExpiredNotice && (
+          <Alert variant="info" message={ka.auth.login.sessionExpired} />
+        )}
+
         {submitError && (
           <Alert variant="error" message={submitError} className="login-page__alert" />
         )}
 
-        <form onSubmit={handleSubmit(onSubmit, onError)} className="login-page__form" noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} className="login-page__form" noValidate>
           <FormField
-            label="Email"
+            label={ka.auth.emailLabel}
             error={errors.email?.message}
           >
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
@@ -105,28 +119,28 @@ export function LoginPage() {
                 id={id}
                 type="email"
                 placeholder="you@example.com"
+                autoComplete="email"
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.email}
-                disabled={isLoading}
-                {...register('email', { onChange: () => handleChange('email') })}
+                {...register('email')}
               />
             )}
           </FormField>
 
           <FormField
-            label="Password"
+            label={ka.auth.passwordLabel}
             error={errors.password?.message}
           >
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <PasswordInput
                 id={id}
                 placeholder="••••••••"
+                autoComplete="current-password"
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.password}
-                disabled={isLoading}
-                {...register('password', { onChange: () => handleChange('password') })}
+                {...register('password')}
               />
             )}
           </FormField>
@@ -137,19 +151,19 @@ export function LoginPage() {
               loading={isLoading}
               className="login-page__submit"
             >
-              Sign in
+              {ka.auth.login.submit}
             </Button>
           </div>
         </form>
 
         <div className="login-page__links">
           <Link to="/forgot-password" className="login-page__link">
-            Forgot password?
+            {ka.auth.login.forgot}
           </Link>
           <div className="login-page__register">
-            Don't have an account?{' '}
+            {ka.auth.login.noAccount}{' '}
             <Link to="/register" className="login-page__link">
-              Sign up
+              {ka.auth.login.createAccount}
             </Link>
           </div>
         </div>
@@ -157,3 +171,4 @@ export function LoginPage() {
     </div>
   )
 }
+
