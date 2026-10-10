@@ -1,0 +1,179 @@
+.about-page__hero {
+  background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-50) 100%);
+  padding: var(--spacing-16) 0;
+  text-align: center;
+}
+
+.about-page__hero-title {
+  font-family: var(--font-family);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-4) 0;
+}
+
+.about-page__hero-subtitle {
+  font-family: var(--font-family);
+  font-size: var(--font-size-xl);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+.about-page__mission {
+  text-align: center;
+  padding: var(--spacing-12) 0;
+}
+
+.about-page__section-title {
+  font-family: var(--font-family);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-6) 0;
+}
+
+.about-page__section-text {
+  font-family: var(--font-family);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.about-page__values {
+  padding: var(--spacing-12) 0;
+}
+
+.about-page__values-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-8);
+}
+
+.about-page__value-card {
+  text-align: center;
+  padding: var(--spacing-8);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  transition: all var(--duration-base) var(--ease-out);
+}
+
+.about-page__value-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
+
+.about-page__value-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background-color: var(--color-surface-muted);
+  color: var(--color-primary);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--spacing-4);
+}
+
+.about-page__value-title {
+  font-family: var(--font-family);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+.about-page__value-description {
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+
+.about-page__stats {
+  background-color: var(--color-gray-900);
+  color: var(--color-white);
+  padding: var(--spacing-16) 0;
+}
+
+.about-page__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-8);
+  text-align: center;
+}
+
+.about-page__stat-number {
+  font-family: var(--font-family);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.about-page__stat-label {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--color-gray-300);
+}
+
+@media (max-width: 768px) {
+  .about-page__hero {
+    padding: var(--spacing-12) 0;
+  }
+
+  .about-page__hero-title {
+    font-size: var(--font-size-3xl);
+  }
+
+  .about-page__hero-subtitle {
+    font-size: var(--font-size-lg);
+  }
+
+  .about-page__section-title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .about-page__section-text {
+    font-size: var(--font-size-base);
+  }
+
+  .about-page__values-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-6);
+  }
+
+  .about-page__stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-6);
+  }
+
+  .about-page__stat-number {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+@media (max-width: 480px) {
+  .about-page__hero-title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .about-page__value-card {
+    padding: var(--spacing-6);
+  }
+
+  .about-page__value-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .about-page__stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-6);
+  }
+}

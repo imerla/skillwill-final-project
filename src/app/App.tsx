@@ -1,8 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { SessionProvider, ProtectedRoute } from '../shared/auth'
 import { LoginPage } from '../features/auth/pages/LoginPage'
 import { RegisterPage } from '../features/auth/pages/RegisterPage'
 import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage'
+import { HomePage } from '../features/home/pages/HomePage'
+import { AboutUsPage } from '../features/about/pages/AboutUsPage'
 import { CatalogPage } from '../features/catalog/pages/CatalogPage'
 import { ProductDetailsPage } from '../features/catalog/pages/ProductDetailsPage'
 import { CartPage } from '../features/cart/pages/CartPage'
@@ -23,6 +25,8 @@ function App() {
       <BrowserRouter>
         <Nav />
         <Routes>
+          <Route path={ROUTES.home} element={<HomePage />} />
+          <Route path={ROUTES.about} element={<AboutUsPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -69,7 +73,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/" element={<Navigate to={ROUTES.catalog} replace />} />
           {import.meta.env.DEV && <Route path="/ui" element={<UiDemoPage />} />}
         </Routes>
         <Footer />

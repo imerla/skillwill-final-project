@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Menu, X, ShoppingBag, ShoppingCart, Package, User, LogIn, UserPlus, LogOut } from 'lucide-react'
+import { Menu, X, Home, ShoppingBag, ShoppingCart, Package, User, LogIn, UserPlus, LogOut, Info } from 'lucide-react'
 import { useSession } from '../../../shared/auth'
 import { useCart } from '../../../features/cart/hooks'
 import { Badge } from '../../../shared/ui/Badge/Badge'
@@ -36,7 +36,7 @@ export function Nav() {
           <button
             type="button"
             className="nav__brand"
-            onClick={() => navigate(ROUTES.catalog)}
+            onClick={() => navigate(ROUTES.home)}
             aria-label={ka.nav.brand}
           >
             <img src="/image_75788823.png" alt={ka.nav.brand} className="nav__logo" />
@@ -53,9 +53,17 @@ export function Nav() {
           </button>
           
           <div className={`nav__links ${isMobileMenuOpen ? 'nav__links--open' : ''}`}>
+            <NavLink to={ROUTES.home} className="nav__link" onClick={closeMobileMenu}>
+              <Home size={18} className="nav__link-icon" />
+              <span>მთავარი</span>
+            </NavLink>
             <NavLink to={ROUTES.catalog} className="nav__link" onClick={closeMobileMenu}>
               <ShoppingBag size={18} className="nav__link-icon" />
               <span>{ka.nav.products}</span>
+            </NavLink>
+            <NavLink to={ROUTES.about} className="nav__link" onClick={closeMobileMenu}>
+              <Info size={18} className="nav__link-icon" />
+              <span>ჩვენს შესახებ</span>
             </NavLink>
             <NavLink
               to={ROUTES.cart}
