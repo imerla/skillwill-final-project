@@ -16,6 +16,7 @@
 
 .catalog-page__search {
   max-width: 480px;
+  width: 100%;
 }
 
 .catalog-page__sorting {
@@ -81,6 +82,35 @@
   gap: var(--grid-gap);
 }
 
+.catalog-page__grid .product-card {
+  opacity: 0;
+  animation: fadeInUp var(--duration-slow) var(--ease-out) forwards;
+}
+
+.catalog-page__grid .product-card:nth-child(1) { animation-delay: 0ms; }
+.catalog-page__grid .product-card:nth-child(2) { animation-delay: 50ms; }
+.catalog-page__grid .product-card:nth-child(3) { animation-delay: 100ms; }
+.catalog-page__grid .product-card:nth-child(4) { animation-delay: 150ms; }
+.catalog-page__grid .product-card:nth-child(5) { animation-delay: 200ms; }
+.catalog-page__grid .product-card:nth-child(6) { animation-delay: 250ms; }
+.catalog-page__grid .product-card:nth-child(7) { animation-delay: 300ms; }
+.catalog-page__grid .product-card:nth-child(8) { animation-delay: 350ms; }
+.catalog-page__grid .product-card:nth-child(9) { animation-delay: 400ms; }
+.catalog-page__grid .product-card:nth-child(10) { animation-delay: 450ms; }
+.catalog-page__grid .product-card:nth-child(11) { animation-delay: 500ms; }
+.catalog-page__grid .product-card:nth-child(12) { animation-delay: 550ms; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .catalog-page__skeleton-card {
   display: flex;
   flex-direction: column;
@@ -122,5 +152,43 @@
     flex-shrink: 0;
     position: sticky;
     top: 5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .catalog-page__header {
+    margin-bottom: var(--spacing-6);
+  }
+
+  .catalog-page__title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .catalog-page__sort {
+    width: 100%;
+  }
+
+  .catalog-page__grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--spacing-4);
+  }
+
+  .catalog-page__filters {
+    padding: var(--spacing-4);
+  }
+
+  .catalog-page__filter-section {
+    gap: var(--spacing-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .catalog-page__grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--spacing-3);
+  }
+
+  .catalog-page__sorting {
+    margin-bottom: var(--spacing-4);
   }
 }

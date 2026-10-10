@@ -10,6 +10,7 @@ import { CheckoutPage } from '../features/checkout/pages/CheckoutPage'
 import { OrdersPage } from '../features/orders/pages/OrdersPage'
 import { ProfilePage } from '../features/profile/pages/ProfilePage'
 import { Nav } from './layout/Nav/Nav'
+import { Footer } from '../shared/ui/Footer/Footer'
 import { LegacyCatalogRedirect } from './LegacyCatalogRedirect'
 import { ROUTES } from './routes'
 
@@ -71,6 +72,7 @@ function App() {
           <Route path="/" element={<Navigate to={ROUTES.catalog} replace />} />
           {import.meta.env.DEV && <Route path="/ui" element={<UiDemoPage />} />}
         </Routes>
+        <Footer />
       </BrowserRouter>
     </SessionProvider>
   )

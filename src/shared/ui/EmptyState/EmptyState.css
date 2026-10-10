@@ -8,6 +8,21 @@
   text-align: center;
 }
 
+.empty-state__illustration {
+  color: var(--color-gray-300);
+  margin-bottom: var(--spacing-2);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
 .empty-state__title {
   font-family: var(--font-family);
   font-size: var(--font-size-xl);

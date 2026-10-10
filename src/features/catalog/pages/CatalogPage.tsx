@@ -6,6 +6,7 @@ import { parseUrlParams, serializeUrlParams, updateUrlParams } from '../urlState
 import type { ProductSort } from '../types'
 import { ProductCard } from '../components/ProductCard'
 import { Filter } from '../components/Filter'
+import { CategoryBanner } from '../components/CategoryBanner'
 import { PageContainer } from '../../../shared/ui/PageContainer/PageContainer'
 import { Input } from '../../../shared/ui/Input/Input'
 import { Select } from '../../../shared/ui/Select/Select'
@@ -114,11 +115,18 @@ export function CatalogPage() {
 
   return (
     <PageContainer size="page" as="section">
+      {/* Category Banner */}
+      {!categoryLoading && category && (
+        <CategoryBanner category={category} />
+      )}
+
       {/* Header/Search Area */}
       <div className="catalog-page__header">
-        <h1 className="catalog-page__title">
-          {categoryLoading ? ka.common.loading : category?.name || ka.catalog.titleFallback}
-        </h1>
+        {categoryLoading && (
+          <h1 className="catalog-page__title">
+            {ka.common.loading}
+          </h1>
+        )}
         <Input
           type="search"
           placeholder={ka.catalog.searchPlaceholder}
@@ -192,8 +200,10 @@ export function CatalogPage() {
           ) : productsData?.items && productsData.items.length === 0 ? (
             <EmptyState
               title={ka.catalog.empty}
+              description={params.q ? 'სცადეთ სხვა საძიებო სიტყვა ან გაასუფთავეთ ფილტრები' : undefined}
               actionLabel={ka.catalog.clearAll}
               onAction={handleClearAll}
+              illustration={params.q ? 'search' : 'package'}
             />
           ) : (
             <>

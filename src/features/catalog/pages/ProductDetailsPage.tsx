@@ -7,6 +7,7 @@ import { getCartErrorMessage } from '../../cart/errors'
 import { CATALOG_CATEGORY_SLUG } from '../config'
 import { ProductCard } from '../components/ProductCard'
 import { PageContainer } from '../../../shared/ui/PageContainer/PageContainer'
+import { Breadcrumbs } from '../../../shared/ui/Breadcrumbs/Breadcrumbs'
 import { Button } from '../../../shared/ui/Button/Button'
 import { Alert } from '../../../shared/ui/Alert/Alert'
 import { Badge } from '../../../shared/ui/Badge/Badge'
@@ -162,6 +163,13 @@ export function ProductDetailsPage() {
 
   return (
     <PageContainer size="page" as="section">
+      <Breadcrumbs
+        items={[
+          { label: ka.nav.products, href: ROUTES.catalog },
+          { label: product.category.name, href: ROUTES.catalog },
+          { label: product.title }
+        ]}
+      />
       <div className="product-details-page">
         {/* Gallery */}
         <div className="product-details-page__gallery">

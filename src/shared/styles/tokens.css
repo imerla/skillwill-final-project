@@ -3,7 +3,7 @@
   --font-family: 'Poppins', 'Nunito', system-ui, -apple-system, sans-serif;
   --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Font Sizes */
+  /* Font Sizes - Enhanced Hierarchy */
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -11,6 +11,9 @@
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 2.25rem;
+  --font-size-4xl: 3rem;
+  --font-size-5xl: 3.75rem;
+  --font-size-display: 4.5rem;
 
   /* Font Weights */
   --font-weight-normal: 400;
@@ -74,11 +77,19 @@
   --width-skeleton-total: 5rem;
   --width-total-column: 7rem;
 
-  /* Durations & Motion */
-  --duration-fast: 200ms;
-  --duration-base: 300ms;
+  /* Durations & Motion - Subtle Transitions */
+  --duration-instant: 100ms;
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 400ms;
   --spinner-duration: 600ms;
   --opacity-fetching: 0.5;
+  
+  /* Easing Functions */
+  --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-in-out: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
   /* Z-Index */
   --z-nav: 100;
