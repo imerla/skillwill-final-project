@@ -137,7 +137,6 @@ function OrderDetail({ order, isLoading, error, onBack }: { order?: Order; isLoa
 
       <div className="orders-page__detail">
         <h1 className="orders-page__detail-title">{ka.orders.orderDetails}</h1>
-
         <div className="orders-page__detail-header">
           <div className="orders-page__detail-info">
             <div className="orders-page__detail-label">{ka.orders.orderId}</div>

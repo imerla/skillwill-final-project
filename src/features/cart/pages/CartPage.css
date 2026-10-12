@@ -1,10 +1,9 @@
-.cart-page__title {
+.cart-page__page-title {
   font-family: var(--font-family);
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
-  margin-bottom: var(--spacing-8);
-  letter-spacing: -0.02em;
+  margin: 0 0 var(--spacing-8) 0;
 }
 
 .cart-page__alert {

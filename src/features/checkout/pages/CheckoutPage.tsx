@@ -201,7 +201,7 @@ export function CheckoutPage() {
   if (step === 'form') {
     return (
       <PageContainer size="page" as="section">
-        <h1 className="checkout-page__title">{ka.checkout.title}</h1>
+        <h1 className="checkout-page__page-title">{ka.checkout.title}</h1>
 
         <div className="checkout-page__content">
           <div className="checkout-page__summary">
@@ -397,7 +397,7 @@ export function CheckoutPage() {
   if (step === 'confirm') {
     return (
       <PageContainer size="page" as="section">
-        <h1 className="checkout-page__title">{ka.checkout.confirmTitle}</h1>
+        <h1 className="checkout-page__page-title">{ka.checkout.confirmTitle}</h1>
         <div className="checkout-page__confirm-section">
           <p className="checkout-page__confirm-message">{ka.checkout.confirmMessage}</p>
           <p className="checkout-page__confirm-total">

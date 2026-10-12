@@ -163,6 +163,7 @@ export function ProductDetailsPage() {
 
   return (
     <PageContainer size="page" as="section">
+
       <Breadcrumbs
         items={[
           { label: ka.nav.products, href: ROUTES.catalog },

@@ -1,4 +1,5 @@
 import { PageContainer } from '../../../shared/ui/PageContainer/PageContainer'
+import { HeroBanner } from '../../../shared/ui/HeroBanner/HeroBanner'
 import { Target, Users, Award, Globe } from 'lucide-react'
 import './AboutUsPage.css'
 
@@ -6,14 +7,14 @@ export function AboutUsPage() {
   return (
     <div className="about-page">
       {/* Hero Section */}
-      <section className="about-page__hero">
-        <PageContainer size="narrow">
-          <h1 className="about-page__hero-title">ჩვენს შესახებ</h1>
-          <p className="about-page__hero-subtitle">
-            ჩვენ ვართ თქვენი საყვარელი პროდუქტების საიმედო მაღაზია
-          </p>
-        </PageContainer>
-      </section>
+      <PageContainer size="page" as="section">
+        <HeroBanner
+          title="ჩვენს შესახებ"
+          subtitle="ჩვენ ვართ თქვენი საყვარელი პროდუქტების საიმედო მაღაზია"
+          image="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80"
+          height="medium"
+        />
+      </PageContainer>
 
       {/* Mission Section */}
       <PageContainer size="page" as="section">

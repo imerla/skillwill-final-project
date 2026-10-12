@@ -64,7 +64,7 @@ export function CartPage() {
   if (isLoading) {
     return (
       <PageContainer size="page" as="section">
-        <h1 className="cart-page__title">{ka.cart.title}</h1>
+        <h1 className="cart-page__page-title">{ka.cart.title}</h1>
         <ul className="cart-page__list">
           {[1, 2, 3].map((i) => (
             <li key={i} className="cart-page__item-skeleton">
@@ -104,7 +104,7 @@ export function CartPage() {
 
   return (
     <PageContainer size="page" as="section">
-      <h1 className="cart-page__title">{ka.cart.title}</h1>
+      <h1 className="cart-page__page-title">{ka.cart.title}</h1>
 
       {actionError && <Alert variant="error" message={actionError} className="cart-page__alert" />}
 
