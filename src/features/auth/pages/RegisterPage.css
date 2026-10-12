@@ -83,6 +83,20 @@
   }
 }
 
+@media (max-width: 480px) {
+  .register-page {
+    padding: var(--spacing-3);
+  }
+
+  .register-page__container {
+    padding: var(--spacing-5);
+  }
+
+  .register-page__title {
+    font-size: var(--font-size-xl);
+  }
+}
+
 /* 768px breakpoint */
 @media (min-width: 768px) {
   .register-page__container {

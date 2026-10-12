@@ -15,6 +15,13 @@ body {
   background-color: var(--color-gray-50); /* Warm Cream Pet Shop BG */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
 }
 
 ::selection {
@@ -38,4 +45,17 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  body {
+    font-size: 0.9375rem;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 0.875rem;
+  }
 }

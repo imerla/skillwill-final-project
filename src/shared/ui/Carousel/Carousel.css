@@ -1,0 +1,78 @@
+.carousel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  position: relative;
+}
+
+.carousel__container {
+  flex: 1;
+  overflow: hidden;
+  padding: var(--spacing-2) 0;
+}
+
+.carousel__track {
+  display: flex;
+  transition: transform var(--duration-base) var(--ease-out);
+  will-change: transform;
+}
+
+.carousel__item {
+  flex-shrink: 0;
+}
+
+.carousel__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.carousel__nav:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  transform: scale(1.05);
+}
+
+.carousel__nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.carousel__nav:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+@media (max-width: 768px) {
+  .carousel__nav {
+    width: 40px;
+    height: 40px;
+  }
+
+  .carousel__nav svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel__nav {
+    width: 36px;
+    height: 36px;
+  }
+
+  .carousel__nav svg {
+    width: 18px;
+    height: 18px;
+  }
+}

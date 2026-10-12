@@ -1,3 +1,8 @@
+.about-page {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 .about-page__mission {
   text-align: center;
   padding: var(--spacing-12) 0;

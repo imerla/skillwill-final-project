@@ -77,6 +77,10 @@
   --width-skeleton-total: 5rem;
   --width-total-column: 7rem;
 
+  /* Mobile Container Adjustments */
+  --container-mobile: 100%;
+  --container-mobile-padding: var(--spacing-4);
+
   /* Durations & Motion - Subtle Transitions */
   --duration-instant: 100ms;
   --duration-fast: 150ms;
@@ -155,4 +159,28 @@
   --shadow-md: 0 6px 16px rgba(45, 38, 33, 0.07);
   --shadow-lg: 0 12px 32px rgba(45, 38, 33, 0.1);
   --shadow-xl: 0 20px 40px rgba(45, 38, 33, 0.12);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --container-page: 100%;
+    --sidebar-width: 100%;
+    --grid-gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --container-page: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --grid-gap: 1rem;
+    --spacing-8: 1.5rem;
+    --spacing-10: 2rem;
+    --spacing-12: 2.5rem;
+    --spacing-16: 3rem;
+  }
 }

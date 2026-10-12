@@ -60,7 +60,7 @@ export function Footer() {
 
           {/* Social Links */}
           <div className="footer__section">
-            <h3 className="footer__title">გაყველას მოგწონს</h3>
+            <h3 className="footer__title">სოციალური ქსელები</h3>
             <div className="footer__social">
               <a href="#" className="footer__social-link" aria-label="Facebook">
                 <Facebook size={24} />

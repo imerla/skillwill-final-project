@@ -51,3 +51,28 @@
   margin-top: var(--spacing-4);
 }
 
+@media (max-width: 768px) {
+  .profile-page__title {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-5);
+  }
+
+  .profile-page__form {
+    gap: var(--spacing-5);
+  }
+
+  .profile-page__section {
+    gap: var(--spacing-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-page__title {
+    font-size: var(--font-size-lg);
+  }
+
+  .profile-page__form {
+    gap: var(--spacing-4);
+  }
+}
+

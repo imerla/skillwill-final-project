@@ -82,7 +82,7 @@ export function ProductCard({ product, onQuickAdd }: ProductCardProps) {
           oldValue={oldPrice ?? undefined}
           discountPercent={discountPercent ?? undefined}
           currency={currency}
-          size="sm"
+          size="lg"
         />
 
         {rating > 0 && (

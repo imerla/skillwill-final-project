@@ -15,14 +15,18 @@ export function Price({ value, oldValue, currency = 'GEL', discountPercent, size
     <div className={`price price--${size}`}>
       <span className="visually-hidden">{ka.common.currentPrice}</span>
       <span className="price__current">{formatPrice(value, currency)}</span>
-      {oldValue !== undefined && (
-        <>
-          <span className="visually-hidden">{ka.common.oldPrice}</span>
-          <del className="price__old">{formatPrice(oldValue, currency)}</del>
-        </>
-      )}
-      {discountPercent !== undefined && (
-        <span className="price__discount">{ka.common.discount(discountPercent)}</span>
+      {(oldValue !== undefined || discountPercent !== undefined) && (
+        <div className="price__details">
+          {oldValue !== undefined && (
+            <>
+              <span className="visually-hidden">{ka.common.oldPrice}</span>
+              <del className="price__old">{formatPrice(oldValue, currency)}</del>
+            </>
+          )}
+          {discountPercent !== undefined && (
+            <span className="price__discount">{ka.common.discount(discountPercent)}</span>
+          )}
+        </div>
       )}
     </div>
   )

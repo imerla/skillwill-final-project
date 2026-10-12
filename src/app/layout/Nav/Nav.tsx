@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Menu, X, Home, ShoppingBag, ShoppingCart, Package, User, LogIn, UserPlus, LogOut, Info } from 'lucide-react'
 import { useSession } from '../../../shared/auth'
@@ -16,6 +16,18 @@ export function Nav() {
   const totalQty = cart?.totalQty || 0
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.classList.add('nav__menu-open')
+    } else {
+      document.body.classList.remove('nav__menu-open')
+    }
+
+    return () => {
+      document.body.classList.remove('nav__menu-open')
+    }
+  }, [isMobileMenuOpen])
+
   const handleLogout = () => {
     logout()
     navigate(ROUTES.login, { replace: true })
@@ -30,7 +42,7 @@ export function Nav() {
   }
 
   return (
-    <header className="nav">
+    <header className={`nav ${isMobileMenuOpen ? 'nav--menu-open' : ''}`}>
       <nav aria-label={ka.nav.primaryNav}>
         <div className="nav__container">
           <button
@@ -51,7 +63,13 @@ export function Nav() {
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          
+
+          <div
+            className={`nav__overlay ${isMobileMenuOpen ? 'nav__overlay--open' : ''}`}
+            onClick={closeMobileMenu}
+            aria-hidden="true"
+          />
+
           <div className={`nav__links ${isMobileMenuOpen ? 'nav__links--open' : ''}`}>
             <NavLink to={ROUTES.home} className="nav__link" onClick={closeMobileMenu}>
               <Home size={18} className="nav__link-icon" />

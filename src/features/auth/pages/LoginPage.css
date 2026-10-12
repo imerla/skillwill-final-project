@@ -86,6 +86,20 @@
   }
 }
 
+@media (max-width: 480px) {
+  .login-page {
+    padding: var(--spacing-3);
+  }
+
+  .login-page__container {
+    padding: var(--spacing-5);
+  }
+
+  .login-page__title {
+    font-size: var(--font-size-xl);
+  }
+}
+
 /* 768px breakpoint */
 @media (min-width: 768px) {
   .login-page__container {

@@ -2,6 +2,9 @@
   max-width: var(--container-page);
   margin-inline: auto;
   padding-inline: var(--spacing-4);
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .page-container--form {
@@ -15,6 +18,12 @@
 @media (min-width: 768px) {
   .page-container {
     padding-inline: var(--spacing-6);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container {
+    padding-inline: var(--spacing-3);
   }
 }
 

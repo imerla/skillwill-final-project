@@ -4,14 +4,15 @@ import { PageContainer } from '../../../shared/ui/PageContainer/PageContainer'
 import { HeroBanner } from '../../../shared/ui/HeroBanner/HeroBanner'
 import { Button } from '../../../shared/ui/Button/Button'
 import { ProductCard } from '../../../features/catalog/components/ProductCard'
+import { Carousel } from '../../../shared/ui/Carousel/Carousel'
 import { ROUTES } from '../../../app/routes'
 import { useProducts } from '../../../features/catalog/hooks'
 import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import './HomePage.css'
 
 export function HomePage() {
-  const { data: popularProducts, isLoading: popularLoading } = useProducts({ sort: 'popular', limit: 4 })
-  const { data: topRatedProducts, isLoading: topRatedLoading } = useProducts({ sort: 'rating-desc', limit: 4 })
+  const { data: popularProducts, isLoading: popularLoading } = useProducts({ sort: 'popular', limit: 8 })
+  const { data: topRatedProducts, isLoading: topRatedLoading } = useProducts({ sort: 'rating-desc', limit: 8 })
 
   const popularLink = `${ROUTES.catalog}?sort=popular`
   const topRatedLink = `${ROUTES.catalog}?sort=rating-desc`
@@ -42,7 +43,7 @@ export function HomePage() {
             </div>
             <h3 className="home-page__feature-title">ფართო არჩევანი</h3>
             <p className="home-page__feature-description">
-              ათასობით პროდუქტი ყველა გემოვნებისთვის
+              პროდუქტი ყველა გემოვნებისთვის
             </p>
           </div>
           <div className="home-page__feature">
@@ -51,7 +52,7 @@ export function HomePage() {
             </div>
             <h3 className="home-page__feature-title">სწრაფი მიწოდება</h3>
             <p className="home-page__feature-description">
-              მიწოდება მთელ საქართველოში 1-3 დღეში
+              მიწოდება მთელ საქართველოში 1-3 სამუშაო დღეში
             </p>
           </div>
           <div className="home-page__feature">
@@ -60,7 +61,7 @@ export function HomePage() {
             </div>
             <h3 className="home-page__feature-title">ხარისხის გარანტია</h3>
             <p className="home-page__feature-description">
-              მხოლოდ ორიგინალური პროდუქტები
+              მხოლოდ ორიგინალი პროდუქტები
             </p>
           </div>
           <div className="home-page__feature">
@@ -69,7 +70,7 @@ export function HomePage() {
             </div>
             <h3 className="home-page__feature-title">მომხმარებლის მხარდაჭერა</h3>
             <p className="home-page__feature-description">
-              24/7 დახმარება ყველა კითხვაზე
+              დახმარება ნებისმიერ კითხვაზე
             </p>
           </div>
         </div>
@@ -87,9 +88,9 @@ export function HomePage() {
             <ArrowRight size={16} />
           </Link>
         </div>
-        <div className="home-page__products-grid">
+        <Carousel itemsPerView={4} gap={24}>
           {popularLoading
-            ? Array.from({ length: 4 }).map((_, i) => (
+            ? Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="home-page__product-skeleton">
                   <Skeleton variant="rect" className="home-page__product-skeleton-image" />
                   <Skeleton variant="rect" className="home-page__product-skeleton-title" />
@@ -99,7 +100,7 @@ export function HomePage() {
             : popularProducts?.items.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
-        </div>
+        </Carousel>
       </PageContainer>
 
       {/* Top Rated Products Section */}
@@ -114,9 +115,9 @@ export function HomePage() {
             <ArrowRight size={16} />
           </Link>
         </div>
-        <div className="home-page__products-grid">
+        <Carousel itemsPerView={4} gap={24}>
           {topRatedLoading
-            ? Array.from({ length: 4 }).map((_, i) => (
+            ? Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="home-page__product-skeleton">
                   <Skeleton variant="rect" className="home-page__product-skeleton-image" />
                   <Skeleton variant="rect" className="home-page__product-skeleton-title" />
@@ -126,7 +127,7 @@ export function HomePage() {
             : topRatedProducts?.items.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
-        </div>
+        </Carousel>
       </PageContainer>
     </div>
   )

@@ -7,6 +7,11 @@
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border);
   transition: all var(--duration-base) ease;
+  width: 100%;
+}
+
+.nav--menu-open {
+  z-index: 1000;
 }
 
 .nav__container {
@@ -16,7 +21,10 @@
   max-width: var(--container-page);
   height: 72px;
   margin: 0 auto;
-  padding: 0 var(--spacing-6);
+  padding: 0 var(--spacing-8);
+  width: 100%;
+  box-sizing: border-box;
+  position: relative; /* overflow: hidden წაიშალა, რათა მობილური მენიუ გამოჩნდეს */
 }
 
 .nav__brand {
@@ -27,6 +35,8 @@
   display: flex;
   align-items: center;
   transition: opacity var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+  max-width: calc(100% - 60px);
 }
 
 .nav__brand:hover {
@@ -41,6 +51,8 @@
   height: 100px;
   width: auto;
   display: block;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 .nav__burger {
@@ -51,16 +63,36 @@
   cursor: pointer;
   color: var(--color-text);
   transition: color var(--duration-fast) var(--ease-out);
+  z-index: 102;
+  position: relative;
+  flex-shrink: 0;
 }
 
 .nav__burger:hover {
   color: var(--color-primary);
 }
 
+.nav__overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--duration-base) var(--ease-out), visibility var(--duration-base) var(--ease-out);
+  z-index: 98;
+}
+
+.nav__overlay--open {
+  opacity: 1;
+  visibility: visible;
+}
+
 .nav__links {
   display: flex;
   align-items: center;
   gap: var(--spacing-6);
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .nav__link {
@@ -133,10 +165,10 @@
   border-radius: var(--radius-md);
 }
 
-@media (max-width: 768px) {
-  .nav__container {
-    padding: 0 var(--spacing-4);
-    height: 64px;
+/* მობილური ვერსია და მენიუს ანიმაცია/განლაგება */
+@media (max-width: 1024px) {
+  .nav__logo {
+    height: 80px;
   }
 
   .nav__burger {
@@ -146,25 +178,35 @@
   }
 
   .nav__links {
-    position: fixed;
-    top: 64px;
+    position: absolute;
+    top: 100%;
     left: 0;
     right: 0;
-    bottom: 0;
     background-color: var(--color-surface);
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: var(--spacing-6);
-    padding: var(--spacing-8);
-    transform: translateX(100%);
-    transition: transform var(--duration-base) var(--ease-out);
-    z-index: var(--z-nav);
+    gap: var(--spacing-4);
+    padding: 0 var(--spacing-6); /* ფედინგი ზედა/ქვედა მხრიდან 0 გახდა, რათა დაკეცილზე სიმაღლე 0 იყოს */
+    opacity: 0;
+    visibility: hidden;
+    max-height: 0;
+    overflow: hidden; /* აუცილებელია, რომ max-height-მა და დამალვამ სწორად იმუშაოს */
+    transition: opacity var(--duration-base) ease, 
+                visibility var(--duration-base) ease, 
+                max-height var(--duration-base) ease,
+                padding var(--duration-base) ease;
+    z-index: 999;
+    box-sizing: border-box;
     border-top: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
+    display: flex;
   }
 
-  .nav__links--open {
-    transform: translateX(0);
+  .nav__links.nav__links--open {
+    opacity: 1;
+    visibility: visible;
+    max-height: 500px;
+    padding: var(--spacing-6); /* გახსნისას ბრუნდება შიდა დაშორებები */
   }
 
   .nav__link {
@@ -178,30 +220,35 @@
     width: 100%;
     max-width: 200px;
   }
+}
+
+@media (max-width: 768px) {
+  .nav__container {
+    padding: 0 var(--spacing-4);
+    height: 64px;
+  }
 
   .nav__logo {
-    height: 48px;
+    height: 70px;
   }
 }
 
 @media (max-width: 480px) {
   .nav__container {
     padding: 0 var(--spacing-3);
-    height: 60px;
-  }
-
-  .nav__links {
-    top: 60px;
-    gap: var(--spacing-4);
-    padding: var(--spacing-6);
+    height: 56px;
   }
 
   .nav__logo {
-    height: 40px;
+    height: 36px;
   }
 
   .nav__link {
     font-size: var(--font-size-base);
+  }
+
+  .nav__button {
+    max-width: 100%;
   }
 
   .badge {
