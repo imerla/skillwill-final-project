@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useCategory, useProducts } from '../hooks'
 import { CATALOG_CATEGORY_SLUG } from '../config'
@@ -7,8 +7,8 @@ import type { ProductSort } from '../types'
 import { ProductCard } from '../components/ProductCard'
 import { Filter } from '../components/Filter'
 import { CategoryBanner } from '../components/CategoryBanner'
+import { ActiveFilters } from '../components/ActiveFilters'
 import { PageContainer } from '../../../shared/ui/PageContainer/PageContainer'
-import { Input } from '../../../shared/ui/Input/Input'
 import { Select } from '../../../shared/ui/Select/Select'
 import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { EmptyState } from '../../../shared/ui/EmptyState/EmptyState'
@@ -31,17 +31,11 @@ export function CatalogPage() {
   // Use server response page as authoritative current page
   const currentPage = productsData?.page ?? 1
 
-  // Initialize search input from URL params
-  const [searchInput, setSearchInput] = useState(params.q || '')
-
   // Use ref to store current params to avoid callback dependency in debounce
   const paramsRef = useRef(params)
   useEffect(() => {
     paramsRef.current = params
   }, [params])
-
-  // Track whether update is from user typing vs URL navigation
-  const isUserTypingRef = useRef(false)
 
   // Ref for results wrapper to scroll on page change
   const resultsRef = useRef<HTMLDivElement>(null)
@@ -50,22 +44,6 @@ export function CatalogPage() {
     const newParams = updateUrlParams(paramsRef.current, updates, resetPage)
     setSearchParams(serializeUrlParams(newParams))
   }, [setSearchParams])
-
-  // Sync search input with URL when params change (e.g., Back/Forward)
-  useEffect(() => {
-    if (!isUserTypingRef.current) {
-      setSearchInput(params.q || '')
-    }
-  }, [params.q])
-
-  // Debounced search update - capture current params at time of typing
-  useEffect(() => {
-    if (searchInput === (paramsRef.current.q ?? '')) return
-    const timer = setTimeout(() => {
-      handleUpdateParams({ q: searchInput || undefined })
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [searchInput, handleUpdateParams])
 
   const handlePageChange = (page: number) => {
     handleUpdateParams({ page }, false)
@@ -76,10 +54,24 @@ export function CatalogPage() {
     handleUpdateParams({ [key]: value || undefined })
   }
 
-  const handleFilterClear = (key: string) => {
+  const handleFilterClear = (key: string, value?: string) => {
+    // Special handling for removing individual checkbox value
+    if (value) {
+      const currentValue = params[key] as string
+      const currentSet = new Set(currentValue.split(',').filter(Boolean))
+      currentSet.delete(value)
+      const newValue = Array.from(currentSet).join(',')
+      handleUpdateParams({ [key]: newValue || undefined })
+      return
+    }
+
     // Special handling for price filter - clear both minPrice and maxPrice
     if (key === 'price') {
       handleUpdateParams({ minPrice: undefined, maxPrice: undefined })
+    } else if (key === 'q') {
+      handleUpdateParams({ q: undefined })
+    } else if (key === 'sort') {
+      handleUpdateParams({ sort: undefined })
     } else {
       handleUpdateParams({ [key]: undefined })
     }
@@ -117,28 +109,19 @@ export function CatalogPage() {
     <PageContainer size="page" as="section">
       {/* Category Banner */}
       {!categoryLoading && category && (
-        <CategoryBanner category={category} />
+        <CategoryBanner
+          category={category}
+        />
       )}
 
-      {/* Header/Search Area */}
-      <div className="catalog-page__header">
-        {categoryLoading && (
+      {/* Header Area */}
+      {categoryLoading && (
+        <div className="catalog-page__header">
           <h1 className="catalog-page__title">
             {ka.common.loading}
           </h1>
-        )}
-        <Input
-          type="search"
-          placeholder={ka.catalog.searchPlaceholder}
-          value={searchInput}
-          onChange={(e) => {
-            isUserTypingRef.current = true
-            setSearchInput(e.target.value)
-          }}
-          aria-label={ka.catalog.searchLabel}
-          className="catalog-page__search"
-        />
-      </div>
+        </div>
+      )}
 
       {/* Sorting Area */}
       <div className="catalog-page__sorting">
@@ -158,6 +141,14 @@ export function CatalogPage() {
           <option value="title-asc">{ka.catalog.sort['title-asc']}</option>
         </Select>
       </div>
+
+      {/* Active Filters */}
+      <ActiveFilters
+        category={category}
+        params={params}
+        onClearFilter={(key, value) => handleFilterClear(key, value)}
+        onClearAll={handleClearAll}
+      />
 
       {/* Filters and Products Container */}
       <div className="catalog-page__content">
@@ -217,20 +208,21 @@ export function CatalogPage() {
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
+              {/* Pagination Area */}
+              {productsData && productsData.totalPages > 1 && (
+                <div className="catalog-page__pagination">
+                  <Pagination
+                    page={currentPage}
+                    totalPages={productsData.totalPages}
+                    onPageChange={handlePageChange}
+                    disabled={productsFetching}
+                  />
+                </div>
+              )}
             </>
           )}
         </div>
       </div>
-
-      {/* Pagination Area */}
-      {productsData && productsData.totalPages > 1 && (
-        <Pagination
-          page={currentPage}
-          totalPages={productsData.totalPages}
-          onPageChange={handlePageChange}
-          disabled={productsFetching}
-        />
-      )}
     </PageContainer>
   )
 }

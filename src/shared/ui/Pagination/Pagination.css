@@ -1,6 +1,7 @@
 .pagination {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-2);
 }
 
@@ -72,5 +73,37 @@
 .pagination__ellipsis {
   padding: 0 var(--spacing-2);
   color: var(--color-text-secondary);
+}
+
+@media (max-width: 768px) {
+  .pagination__button {
+    height: 36px;
+    min-width: 36px;
+    padding: 0 var(--spacing-3);
+    font-size: var(--font-size-sm);
+  }
+
+  .pagination__page {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination__button {
+    height: 32px;
+    min-width: 32px;
+    padding: 0 var(--spacing-2);
+    font-size: var(--font-size-xs);
+  }
+
+  .pagination__page {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    font-size: var(--font-size-xs);
+  }
 }
 

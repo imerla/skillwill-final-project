@@ -58,12 +58,18 @@
   position: absolute;
   top: 50%;
   right: var(--spacing-4);
-  width: 0;
-  height: 0;
-  transform: translateY(-50%);
-  border: solid currentColor;
-  border-width: 0 var(--border-width) var(--border-width) 0;
+  width: 8px;
+  height: 8px;
+  transform: translateY(-50%) rotate(45deg);
+  border-right: 2px solid var(--color-text-secondary);
+  border-bottom: 2px solid var(--color-text-secondary);
   pointer-events: none;
+  transition: transform var(--duration-fast) ease;
+}
+
+.select:hover + .select__container::after,
+.select:focus-visible + .select__container::after {
+  border-color: var(--color-primary);
 }
 
 .select__error {

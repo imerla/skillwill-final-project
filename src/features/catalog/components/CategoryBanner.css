@@ -47,7 +47,7 @@
   font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
-  margin: 0 0 var(--spacing-3) 0;
+  margin: 0 0 var(--spacing-4) 0;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 

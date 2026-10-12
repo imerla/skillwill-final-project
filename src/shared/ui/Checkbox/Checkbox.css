@@ -41,7 +41,7 @@
   height: calc(var(--size-icon-sm) * 0.3);
   transform: translate(-50%, -50%) rotate(-45deg);
   border: solid var(--color-on-primary);
-  border-width: 0 var(--border-width) var(--border-width) 0;
+  border-width: 0 0 2px 2px;
 }
 
 .checkbox__input:disabled + .checkbox__box {

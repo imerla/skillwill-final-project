@@ -25,6 +25,20 @@
   width: 100%;
   box-sizing: border-box;
   position: relative; /* overflow: hidden წაიშალა, რათა მობილური მენიუ გამოჩნდეს */
+  gap: var(--spacing-6);
+}
+
+.nav__search {
+  flex: 1;
+  max-width: 400px;
+}
+
+.nav__search-input {
+  width: 100%;
+}
+
+.nav__mobile-search {
+  display: none;
 }
 
 .nav__brand {
@@ -171,6 +185,10 @@
     height: 80px;
   }
 
+  .nav__search {
+    max-width: 280px;
+  }
+
   .nav__burger {
     display: flex;
     align-items: center;
@@ -231,6 +249,10 @@
   .nav__logo {
     height: 70px;
   }
+
+  .nav__search {
+    max-width: 200px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -241,6 +263,10 @@
 
   .nav__logo {
     height: 36px;
+  }
+
+  .nav__search {
+    max-width: 150px;
   }
 
   .nav__link {

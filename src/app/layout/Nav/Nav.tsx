@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { Menu, X, Home, ShoppingBag, ShoppingCart, Package, User, LogIn, UserPlus, LogOut, Info } from 'lucide-react'
 import { useSession } from '../../../shared/auth'
 import { useCart } from '../../../features/cart/hooks'
 import { Badge } from '../../../shared/ui/Badge/Badge'
 import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
+import { Input } from '../../../shared/ui/Input/Input'
 import { ka } from '../../../shared/i18n/ka'
 import { ROUTES } from '../../routes'
 import './Nav.css'
@@ -13,8 +14,48 @@ export function Nav() {
   const { isAuthenticated, isLoading, logout } = useSession()
   const { data: cart } = useCart()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
   const totalQty = cart?.totalQty || 0
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  // Search functionality - only show on catalog page
+  const isCatalogPage = location.pathname === ROUTES.catalog
+  const [searchInput, setSearchInput] = useState(searchParams.get('q') || '')
+  const isUserTypingRef = useRef(false)
+
+  // Sync search input with URL params
+  useEffect(() => {
+    if (!isUserTypingRef.current) {
+      setSearchInput(searchParams.get('q') || '')
+    }
+  }, [searchParams.toString()])
+
+  // Debounced search update
+  useEffect(() => {
+    if (!isCatalogPage) return
+    const timer = setTimeout(() => {
+      const currentQuery = searchParams.get('q') || ''
+      if (searchInput !== currentQuery) {
+        const newParams = new URLSearchParams(searchParams)
+        if (searchInput) {
+          newParams.set('q', searchInput)
+        } else {
+          newParams.delete('q')
+        }
+        newParams.delete('page') // Reset to page 1 on search
+        setSearchParams(newParams)
+      }
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [searchInput, searchParams, setSearchParams, isCatalogPage])
+
+  // Reset search when leaving catalog page
+  useEffect(() => {
+    if (!isCatalogPage) {
+      setSearchInput('')
+    }
+  }, [isCatalogPage])
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -53,7 +94,24 @@ export function Nav() {
           >
             <img src="/image_75788823.png" alt={ka.nav.brand} className="nav__logo" />
           </button>
-          
+
+          {/* Search input - only show on catalog page */}
+          {isCatalogPage && (
+            <div className="nav__search">
+              <Input
+                type="search"
+                placeholder={ka.catalog.searchPlaceholder}
+                value={searchInput}
+                onChange={(e) => {
+                  isUserTypingRef.current = true
+                  setSearchInput(e.target.value)
+                }}
+                aria-label={ka.catalog.searchLabel}
+                className="nav__search-input"
+              />
+            </div>
+          )}
+
           <button
             type="button"
             className="nav__burger"

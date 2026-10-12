@@ -110,6 +110,7 @@ export const ka = {
   catalog: {
     searchLabel: 'პროდუქტების ძებნა',
     searchPlaceholder: 'ძებნა...',
+    search: 'ძებნა',
     sortLabel: 'დახარისხება',
     sortPlaceholder: 'დახარისხება',
     sort: {
@@ -126,9 +127,11 @@ export const ka = {
     clear: 'გასუფთავება',
     clearFilterAria: (label: string) => `ფილტრის გასუფთავება: ${label}`,
     clearAll: 'ფილტრების გასუფთავება',
+    removeFilter: 'ფილტრის წაშლა',
     empty: 'ვერაფერი მოიძებნა',
     min: 'მინ.',
     max: 'მაქს.',
+    price: 'ფასი',
     prev: 'წინა',
     next: 'შემდეგი',
     prevAria: 'წინა გვერდი',
