@@ -108,7 +108,7 @@ export function HomePage() {
         <div className="home-page__section-header">
           <h2 className="home-page__section-title">
             <Star size={24} />
-            საუკეთესო შეფასებული
+            საუკეთესო შეფასებები
           </h2>
           <Link to={topRatedLink} className="home-page__section-link">
             ყველას ნახვა
