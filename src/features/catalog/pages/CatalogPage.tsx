@@ -72,6 +72,10 @@ export function CatalogPage() {
       handleUpdateParams({ q: undefined })
     } else if (key === 'sort') {
       handleUpdateParams({ sort: undefined })
+    } else if (key === 'inStock') {
+      handleUpdateParams({ inStock: undefined })
+    } else if (key === 'onSale') {
+      handleUpdateParams({ onSale: undefined })
     } else {
       handleUpdateParams({ [key]: undefined })
     }

@@ -6,7 +6,7 @@ import './ActiveFilters.css'
 
 interface ActiveFiltersProps {
   category: Category | undefined
-  params: Record<string, string | number | undefined>
+  params: Record<string, string | number | boolean | undefined>
   onClearFilter: (key: string, value?: string) => void
   onClearAll: () => void
 }
@@ -50,6 +50,23 @@ export function ActiveFilters({ category, params, onClearFilter, onClearAll }: A
       key: 'price',
       label: ka.catalog.price,
       value: priceParts.join(' - ')
+    })
+  }
+
+  // Add boolean filters (inStock, onSale)
+  if (params.inStock === true) {
+    activeFilters.push({
+      key: 'inStock',
+      label: ka.catalog.inStock,
+      value: ka.catalog.inStock
+    })
+  }
+
+  if (params.onSale === true) {
+    activeFilters.push({
+      key: 'onSale',
+      label: ka.catalog.onSale,
+      value: ka.catalog.onSale
     })
   }
 

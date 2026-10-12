@@ -21,22 +21,22 @@ export function Nav() {
 
   // Search functionality - only show on catalog page
   const isCatalogPage = location.pathname === ROUTES.catalog
-  const [searchInput, setSearchInput] = useState(searchParams.get('q') || '')
+  const searchQuery = searchParams.get('q') || ''
+  const [searchInput, setSearchInput] = useState(searchQuery)
   const isUserTypingRef = useRef(false)
 
-  // Sync search input with URL params
+  // Sync search input with URL params when not typing
   useEffect(() => {
     if (!isUserTypingRef.current) {
-      setSearchInput(searchParams.get('q') || '')
+      setSearchInput(searchQuery)
     }
-  }, [searchParams.toString()])
+  }, [searchQuery])
 
   // Debounced search update
   useEffect(() => {
     if (!isCatalogPage) return
     const timer = setTimeout(() => {
-      const currentQuery = searchParams.get('q') || ''
-      if (searchInput !== currentQuery) {
+      if (searchInput !== searchQuery) {
         const newParams = new URLSearchParams(searchParams)
         if (searchInput) {
           newParams.set('q', searchInput)
@@ -48,14 +48,7 @@ export function Nav() {
       }
     }, 400)
     return () => clearTimeout(timer)
-  }, [searchInput, searchParams, setSearchParams, isCatalogPage])
-
-  // Reset search when leaving catalog page
-  useEffect(() => {
-    if (!isCatalogPage) {
-      setSearchInput('')
-    }
-  }, [isCatalogPage])
+  }, [searchInput, searchQuery, searchParams, setSearchParams, isCatalogPage])
 
   useEffect(() => {
     if (isMobileMenuOpen) {

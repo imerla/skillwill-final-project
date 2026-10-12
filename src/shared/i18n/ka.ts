@@ -139,6 +139,7 @@ export const ka = {
     pageRange: (from: number, to: number, total: number) => `ნაჩვენებია ${from}–${to}, სულ ${total}`,
     outOfStock: 'ამოწურულია',
     inStock: 'მარაგშია',
+    onSale: 'ფასდაკლება',
     reviews: (n: number) => `(${n} შეფასება)`,
   },
   product: {
