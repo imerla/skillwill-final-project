@@ -29,7 +29,7 @@ export const ka = {
     cart: 'კალათა',
     login: 'შესვლა',
     register: 'რეგისტრაცია',
-    logout: 'გამოსვლა',
+    logout: 'გასვლა',
     menu: 'მენიუ',
     closeMenu: 'მენიუს დახურვა',
     skipToContent: 'მთავარ შიგთავსზე გადასვლა',

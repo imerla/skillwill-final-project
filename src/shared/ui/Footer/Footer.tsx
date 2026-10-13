@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Mail, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react'
+import { Mail, Phone, MapPin, Facebook, Instagram, Youtube } from 'lucide-react'
 import { ka } from '../../../shared/i18n/ka'
 import { ROUTES } from '../../../app/routes'
 import './Footer.css'
@@ -68,8 +68,8 @@ export function Footer() {
               <a href="#" className="footer__social-link" aria-label="Instagram">
                 <Instagram size={24} />
               </a>
-              <a href="#" className="footer__social-link" aria-label="Twitter">
-                <Twitter size={24} />
+              <a href="#" className="footer__social-link" aria-label="YouTube">
+                <Youtube size={24} />
               </a>
             </div>
           </div>

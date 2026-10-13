@@ -9,9 +9,9 @@ export function AboutUsPage() {
       {/* Hero Section */}
       <PageContainer size="page" as="section">
         <HeroBanner
-          title="ჩვენს შესახებ"
+          title="ჩვენ შესახებ"
           subtitle="ჩვენ ვართ თქვენი საყვარელი პროდუქტების საიმედო მაღაზია"
-          image="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80"
+          image="https://images.unsplash.com/photo-1553614186-a373dedbb390?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D"
           height="medium"
         />
       </PageContainer>
@@ -22,7 +22,7 @@ export function AboutUsPage() {
           <div className="about-page__mission-content">
             <h2 className="about-page__section-title">ჩვენი მისია</h2>
             <p className="about-page__section-text">
-              ჩვენი მისიაა მომხმარებლებს მივაწოდოთ მაღალი ხარისხის პროდუქტები საუკეთესო ფასებში. ჩვენ ვისწრავთ სიახლეს, ვაფასებთ ხარისხს და ვქმნით საუკეთესო საყიდლო გამოცდას.
+              ჩვენი მისიაა მომხმარებლებს მივაწოდოთ მაღალი ხარისხის პროდუქტი საუკეთესო ფასად. ვისწრაფვით სიახლეებისკენ, ვაფასებთ ხარისხს და ვქმნით საუკეთესო გამოცდილებას.
             </p>
           </div>
         </div>
@@ -31,7 +31,7 @@ export function AboutUsPage() {
       {/* Values Section */}
       <PageContainer size="page" as="section">
         <div className="about-page__values">
-          <h2 className="about-page__section-title">ჩვენი ფასები</h2>
+          <h2 className="about-page__section-title">ჩვენი ღირებულებები</h2>
           <div className="about-page__values-grid">
             <div className="about-page__value-card">
               <div className="about-page__value-icon">
@@ -39,7 +39,7 @@ export function AboutUsPage() {
               </div>
               <h3 className="about-page__value-title">ხარისხი</h3>
               <p className="about-page__value-description">
-                მხოლოდ ორიგინალური პროდუქტები სერთიფიკატებით
+                მხოლოდ ორიგინალი პროდუქტები
               </p>
             </div>
             <div className="about-page__value-card">
@@ -48,7 +48,7 @@ export function AboutUsPage() {
               </div>
               <h3 className="about-page__value-title">მომხმარებელზე ორიენტირება</h3>
               <p className="about-page__value-description">
-                თითოეული მომხმარებლის კმაყოფილება ჩვენთვის პირველ პრიორიტეტი
+                თითოეული მომხმარებლის კმაყოფილება ჩვენთვის მთავარი პრიორიტეტია
               </p>
             </div>
             <div className="about-page__value-card">
@@ -57,7 +57,7 @@ export function AboutUsPage() {
               </div>
               <h3 className="about-page__value-title">სიახლე</h3>
               <p className="about-page__value-description">
-                მუდმივად ვახალებთ ჩვენს ასორტიმენტს ახალი პროდუქტებით
+                მუდმივად განახლებადი პროდუქცია
               </p>
             </div>
             <div className="about-page__value-card">
@@ -78,7 +78,7 @@ export function AboutUsPage() {
         <PageContainer size="page">
           <div className="about-page__stats-grid">
             <div className="about-page__stat">
-              <div className="about-page__stat-number">5000+</div>
+              <div className="about-page__stat-number">500+</div>
               <div className="about-page__stat-label">პროდუქტი</div>
             </div>
             <div className="about-page__stat">
@@ -88,10 +88,6 @@ export function AboutUsPage() {
             <div className="about-page__stat">
               <div className="about-page__stat-number">5</div>
               <div className="about-page__stat-label">წელი ბაზარზე</div>
-            </div>
-            <div className="about-page__stat">
-              <div className="about-page__stat-number">24/7</div>
-              <div className="about-page__stat-label">მხარდაჭერა</div>
             </div>
           </div>
         </PageContainer>

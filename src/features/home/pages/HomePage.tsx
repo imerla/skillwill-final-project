@@ -22,7 +22,7 @@ export function HomePage() {
       {/* Hero Section */}
       <PageContainer size="page" as="section">
         <HeroBanner
-          title="თქვენი საყვარელი პროდუქტები"
+          title="თქვენი საყვარელი პროდუქტები ერთ სივრცეში"
           subtitle="მაღალი ხარისხი, საუკეთესო ფასები და სწრაფი მიწოდება"
           image="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&q=80"
           height="large"

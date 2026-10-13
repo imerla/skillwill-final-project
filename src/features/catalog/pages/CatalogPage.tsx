@@ -162,7 +162,12 @@ export function CatalogPage() {
             <h3 className="catalog-page__filter-title">{ka.catalog.filters}</h3>
             {categoryError ? (
               <ErrorState onAction={() => refetchCategory()} />
-            ) : category?.filters?.map((filter) => (
+            ) : category?.filters?.sort((a, b) => {
+              // Put "ვისთვის" first
+              if (a.label === 'ვისთვის') return -1
+              if (b.label === 'ვისთვის') return 1
+              return 0
+            }).map((filter) => (
               <Filter
                 key={filter.key}
                 filter={filter}

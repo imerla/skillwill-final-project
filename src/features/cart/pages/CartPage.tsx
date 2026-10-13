@@ -11,6 +11,11 @@ import { EmptyState } from '../../../shared/ui/EmptyState/EmptyState'
 import { ErrorState } from '../../../shared/ui/ErrorState/ErrorState'
 import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { Price } from '../../../shared/ui/Price/Price'
+import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog/ConfirmDialog'
+import { ProductCard } from '../../../features/catalog/components/ProductCard'
+import { Carousel } from '../../../shared/ui/Carousel/Carousel'
+import { Checkbox } from '../../../shared/ui/Checkbox/Checkbox'
+import { useProducts } from '../../../features/catalog/hooks'
 import { ka } from '../../../shared/i18n/ka'
 import { formatPrice } from '../../../shared/lib/format'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
@@ -25,12 +30,19 @@ export function CartPage() {
   const clearCart = useClearCart()
   const navigate = useNavigate()
   const [actionError, setActionError] = useState<string | null>(null)
+  const [showClearConfirm, setShowClearConfirm] = useState(false)
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
+
+  // Get similar products based on first product's brand
+  const firstProductBrand = cart?.items[0]?.product.brand
+  const { data: similarProducts, isLoading: similarLoading } = useProducts(
+    firstProductBrand ? { brand: firstProductBrand, limit: 8 } : {},
+    { enabled: !!firstProductBrand && cart.items.length > 0 }
+  )
 
   useDocumentTitle(ka.cart.title)
 
   const isAnyMutationPending = updateQuantity.isPending || removeItem.isPending || clearCart.isPending
-
-  const hasStockIssue = cart?.items.some((item) => !item.product.inStock || item.product.stock < item.qty) ?? false
 
   const handleQuantityChange = (itemId: string, qty: number) => {
     setActionError(null)
@@ -52,14 +64,59 @@ export function CartPage() {
   }
 
   const handleClearCart = () => {
-    if (window.confirm(ka.cart.clearConfirm)) {
-      setActionError(null)
-      clearCart.mutate(undefined, {
-        onSuccess: () => setActionError(null),
-        onError: (e) => setActionError(getCartErrorMessage(e)),
-      })
+    setShowClearConfirm(true)
+  }
+
+  const handleClearCartConfirm = () => {
+    setShowClearConfirm(false)
+    setActionError(null)
+    clearCart.mutate(undefined, {
+      onSuccess: () => setActionError(null),
+      onError: (e) => setActionError(getCartErrorMessage(e)),
+    })
+  }
+
+  const handleClearCartCancel = () => {
+    setShowClearConfirm(false)
+  }
+
+  const handleSelectItem = (itemId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = event.target.checked
+    setSelectedItems((prev) => {
+      const next = new Set(prev)
+      if (checked) {
+        next.add(itemId)
+      } else {
+        next.delete(itemId)
+      }
+      return next
+    })
+  }
+
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = event.target.checked
+    if (checked) {
+      setSelectedItems(new Set(cart?.items.map((item) => item.id) ?? []))
+    } else {
+      setSelectedItems(new Set())
     }
   }
+
+  const getSelectedItemsTotal = () => {
+    return cart?.items
+      .filter((item) => selectedItems.has(item.id))
+      .reduce((sum, item) => sum + item.lineTotal, 0) ?? 0
+  }
+
+  const getSelectedItemsCount = () => {
+    return cart?.items
+      .filter((item) => selectedItems.has(item.id))
+      .reduce((sum, item) => sum + item.qty, 0) ?? 0
+  }
+
+  const hasSelectedStockIssue = cart?.items.some(
+    (item) => selectedItems.has(item.id) && (!item.product.inStock || item.product.stock < item.qty)
+  ) ?? false
 
   if (isLoading) {
     return (
@@ -110,12 +167,26 @@ export function CartPage() {
 
       <div className="cart-page__content">
         <ul className="cart-page__list">
+          <li className="cart-page__select-all">
+            <Checkbox
+              checked={selectedItems.size === cart?.items.length && cart.items.length > 0}
+              onChange={handleSelectAll}
+              label="ყველას მონიშვნა"
+            />
+          </li>
           {cart.items.map((item) => {
             const maxQty = Math.min(item.product.stock, 99)
             const hasStockIssue = !item.product.inStock || item.product.stock < item.qty
 
             return (
               <li key={item.id} className="cart-page__item">
+                <div className="cart-page__checkbox">
+                  <Checkbox
+                    checked={selectedItems.has(item.id)}
+                    onChange={(e) => handleSelectItem(item.id, e)}
+                    label=""
+                  />
+                </div>
                 <div className="cart-page__thumb">
                   <img
                     src={item.product.image}
@@ -145,27 +216,31 @@ export function CartPage() {
                     </div>
                   )}
                 </div>
-                <div className="cart-page__controls">
-                  <QuantityStepper
-                    value={item.qty}
-                    onChange={(qty) => handleQuantityChange(item.id, qty)}
-                    min={1}
-                    max={maxQty}
-                    disabled={isAnyMutationPending || !item.product.inStock}
-                  />
+                <div className="cart-page__item-actions">
+                  <div className="cart-page__controls">
+                    <QuantityStepper
+                      value={item.qty}
+                      onChange={(qty) => handleQuantityChange(item.id, qty)}
+                      min={1}
+                      max={maxQty}
+                      disabled={isAnyMutationPending || !item.product.inStock}
+                    />
+                  </div>
+                  <div className="cart-page__actions-wrapper">
+                    <div className="cart-page__total" aria-label={ka.cart.lineTotal}>
+                      {formatPrice(item.lineTotal, cart.currency)}
+                    </div>
+                    <Button
+                      variant="secondary"
+                      onClick={() => handleRemove(item)}
+                      disabled={isAnyMutationPending}
+                      aria-label={ka.cart.removeAria(item.product.title)}
+                      className="cart-page__remove"
+                    >
+                      {ka.cart.remove}
+                    </Button>
+                  </div>
                 </div>
-                <div className="cart-page__total" aria-label={ka.cart.lineTotal}>
-                  {formatPrice(item.lineTotal, cart.currency)}
-                </div>
-                <Button
-                  variant="secondary"
-                  onClick={() => handleRemove(item)}
-                  disabled={isAnyMutationPending}
-                  aria-label={ka.cart.removeAria(item.product.title)}
-                  className="cart-page__remove"
-                >
-                  {ka.cart.remove}
-                </Button>
               </li>
             )
           })}
@@ -174,25 +249,40 @@ export function CartPage() {
         <div className="cart-page__summary">
           <h2 className="cart-page__summary-title">{ka.cart.summary}</h2>
           <div className="cart-page__summary-row">
-            <span className="cart-page__summary-label">{ka.cart.itemsCount(cart.totalQty)}</span>
-            <span className="cart-page__summary-value">{formatPrice(cart.subtotal, cart.currency)}</span>
+            <span className="cart-page__summary-label">
+              {selectedItems.size > 0
+                ? ka.cart.itemsCount(getSelectedItemsCount())
+                : ka.cart.itemsCount(cart?.totalQty ?? 0)}
+            </span>
+            <span className="cart-page__summary-value">
+              {selectedItems.size > 0
+                ? formatPrice(getSelectedItemsTotal(), cart?.currency ?? 'GEL')
+                : formatPrice(cart?.subtotal ?? 0, cart?.currency ?? 'GEL')}
+            </span>
           </div>
           <div className="cart-page__summary-row cart-page__summary-row--total">
             <span className="cart-page__summary-label">{ka.cart.subtotal}</span>
             <span className="cart-page__summary-value cart-page__summary-value--total">
-              {formatPrice(cart.subtotal, cart.currency)}
+              {selectedItems.size > 0
+                ? formatPrice(getSelectedItemsTotal(), cart?.currency ?? 'GEL')
+                : formatPrice(cart?.subtotal ?? 0, cart?.currency ?? 'GEL')}
             </span>
           </div>
           <div className="cart-page__actions">
             <Button
               onClick={() => navigate(ROUTES.checkout)}
-              disabled={hasStockIssue || isAnyMutationPending || cart.items.length === 0}
-              aria-describedby={hasStockIssue ? 'cart-checkout-blocked' : undefined}
+              disabled={
+                selectedItems.size === 0 ||
+                hasSelectedStockIssue ||
+                isAnyMutationPending ||
+                (cart?.items.length ?? 0) === 0
+              }
+              aria-describedby={hasSelectedStockIssue ? 'cart-checkout-blocked' : undefined}
               className="cart-page__checkout"
             >
               {ka.cart.checkout}
             </Button>
-            {hasStockIssue && (
+            {hasSelectedStockIssue && (
               <p id="cart-checkout-blocked" className="cart-page__blocked-text">
                 {ka.cart.checkoutBlocked}
               </p>
@@ -208,6 +298,44 @@ export function CartPage() {
           </div>
         </div>
       </div>
+
+      {/* Similar Products Section */}
+      {similarProducts && similarProducts.items.length > 0 && (
+        <div className="cart-page__similar-section">
+          <PageContainer size="page" as="section">
+            <div className="cart-page__similar-header">
+            <h2 className="cart-page__similar-title">მსგავსი პროდუქტები</h2>
+            <Link to={ROUTES.catalog} className="cart-page__similar-link">
+              ყველას ნახვა
+            </Link>
+          </div>
+          <Carousel itemsPerView={4} gap={24}>
+            {similarLoading
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="cart-page__similar-skeleton">
+                    <Skeleton variant="rect" className="cart-page__similar-skeleton-image" />
+                    <Skeleton variant="rect" className="cart-page__similar-skeleton-title" />
+                    <Skeleton variant="rect" className="cart-page__similar-skeleton-price" />
+                  </div>
+                ))
+              : similarProducts.items.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+          </Carousel>
+        </PageContainer>
+        </div>
+      )}
+
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        title={ka.cart.clear}
+        message={ka.cart.clearConfirm}
+        confirmLabel={ka.cart.clear}
+        cancelLabel={ka.common.show}
+        onConfirm={handleClearCartConfirm}
+        onCancel={handleClearCartCancel}
+        variant="danger"
+      />
     </PageContainer>
   )
 }

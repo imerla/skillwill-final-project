@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { ka } from '../../i18n/ka'
 import './QuantityStepper.css'
 
@@ -10,7 +11,9 @@ interface QuantityStepperProps {
   label?: string
 }
 
-export function QuantityStepper({ value, onChange, min = 1, max = 99, disabled = false, label }: QuantityStepperProps) {
+export function QuantityStepper({ value, onChange, min = 1, max = 999, disabled = false, label }: QuantityStepperProps) {
+  const [inputValue, setInputValue] = useState(value.toString())
+
   const handleDecrease = () => {
     if (value > min) {
       onChange(value - 1)
@@ -20,6 +23,31 @@ export function QuantityStepper({ value, onChange, min = 1, max = 99, disabled =
   const handleIncrease = () => {
     if (value < max && !disabled) {
       onChange(value + 1)
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value
+    setInputValue(newValue)
+  }
+
+  const handleInputBlur = () => {
+    const numValue = parseInt(inputValue, 10)
+    if (isNaN(numValue) || numValue < min) {
+      setInputValue(min.toString())
+      onChange(min)
+    } else if (numValue > max) {
+      setInputValue(max.toString())
+      onChange(max)
+    } else {
+      setInputValue(numValue.toString())
+      onChange(numValue)
+    }
+  }
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.currentTarget.blur()
     }
   }
 
@@ -34,13 +62,19 @@ export function QuantityStepper({ value, onChange, min = 1, max = 99, disabled =
       >
         −
       </button>
-      <output
+      <input
+        key={value}
+        type="number"
         className="quantity-stepper__value"
-        aria-live="polite"
+        defaultValue={value}
+        onChange={handleInputChange}
+        onBlur={handleInputBlur}
+        onKeyDown={handleInputKeyDown}
+        min={min}
+        max={max}
+        disabled={disabled}
         aria-label={label ?? ka.common.quantity}
-      >
-        {value}
-      </output>
+      />
       <button
         type="button"
         className="quantity-stepper__button"

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useProduct } from '../hooks'
 import { useSession } from '../../../shared/auth'
-import { useAddToCart } from '../../cart/hooks'
+import { useAddToCart, useUpdateCartItemQuantity, useRemoveCartItem, useCart } from '../../cart/hooks'
 import { getCartErrorMessage } from '../../cart/errors'
 import { CATALOG_CATEGORY_SLUG } from '../config'
 import { ProductCard } from '../components/ProductCard'
@@ -16,6 +16,7 @@ import { Rating } from '../../../shared/ui/Rating/Rating'
 import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { EmptyState } from '../../../shared/ui/EmptyState/EmptyState'
 import { ErrorState } from '../../../shared/ui/ErrorState/ErrorState'
+import { QuantityStepper } from '../../../shared/ui/QuantityStepper/QuantityStepper'
 import { ka } from '../../../shared/i18n/ka'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
@@ -26,9 +27,18 @@ export function ProductDetailsPage() {
   const { data: product, isLoading, error, refetch } = useProduct(slug)
   const { isAuthenticated } = useSession()
   const addToCart = useAddToCart()
+  const updateQuantity = useUpdateCartItemQuantity()
+  const removeFromCart = useRemoveCartItem()
+  const { data: cart } = useCart()
   const navigate = useNavigate()
   const location = useLocation()
+
+  // Get cart item for this product if it exists
+  const cartItem = cart?.items.find((item) => item.productId === product?.id)
+  const cartQuantity = cartItem?.qty ?? 0
+
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [quantity, setQuantity] = useState(1)
   const [addToCartMessage, setAddToCartMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // Timer ref for auto-dismissing messages
@@ -41,6 +51,7 @@ export function ProductDetailsPage() {
   useEffect(() => {
     if (prevSlugRef.current !== slug) {
       setSelectedImageIndex(0)
+      setQuantity(1)
       prevSlugRef.current = slug
     }
   }, [slug])
@@ -75,11 +86,56 @@ export function ProductDetailsPage() {
       return
     }
 
+    if (quantity > product.stock) {
+      setAddToCartMessage({ type: 'error', text: ka.cart.onlyN(product.stock) })
+      // Clear previous timer
+      if (messageTimerRef.current !== null) {
+        clearTimeout(messageTimerRef.current)
+      }
+      // Set new timer
+      messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+      return
+    }
+
     addToCart.mutate(
-      { productId: product.id, qty: 1 },
+      { productId: product.id, qty: quantity },
       {
         onSuccess: () => {
           setAddToCartMessage({ type: 'success', text: ka.product.added })
+          setQuantity(1)
+          // Clear previous timer
+          if (messageTimerRef.current !== null) {
+            clearTimeout(messageTimerRef.current)
+          }
+          // Set new timer
+          messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+        },
+        onError: (error) => {
+          setAddToCartMessage({ type: 'error', text: getCartErrorMessage(error, { stock: product?.stock ?? 0 }) })
+          // Clear previous timer
+          if (messageTimerRef.current !== null) {
+            clearTimeout(messageTimerRef.current)
+          }
+          // Set new timer
+          messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+        }
+      }
+    )
+  }
+
+  const handleUpdateQuantity = (newQty: number) => {
+    if (!cartItem || !product) return
+
+    if (newQty === 0) {
+      handleRemoveFromCart()
+      return
+    }
+
+    updateQuantity.mutate(
+      { id: cartItem.id, data: { qty: newQty } },
+      {
+        onSuccess: () => {
+          setAddToCartMessage({ type: 'success', text: ka.cart.stockChanged })
           // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
@@ -98,6 +154,31 @@ export function ProductDetailsPage() {
         }
       }
     )
+  }
+
+  const handleRemoveFromCart = () => {
+    if (!cartItem) return
+
+    removeFromCart.mutate(cartItem.id, {
+      onSuccess: () => {
+        setAddToCartMessage({ type: 'success', text: ka.cart.itemGone })
+        // Clear previous timer
+        if (messageTimerRef.current !== null) {
+          clearTimeout(messageTimerRef.current)
+        }
+        // Set new timer
+        messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+      },
+      onError: () => {
+        setAddToCartMessage({ type: 'error', text: ka.cart.remove })
+        // Clear previous timer
+        if (messageTimerRef.current !== null) {
+          clearTimeout(messageTimerRef.current)
+        }
+        // Set new timer
+        messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+      }
+    })
   }
 
   if (!slug) {
@@ -155,7 +236,7 @@ export function ProductDetailsPage() {
     )
   }
 
-  const { images, title, brand, price, oldPrice, discountPercent, currency, rating, reviewsCount, stock, inStock, warrantyMonths, specs, attributes, related } = product
+  const { images, title, brand, price, oldPrice, discountPercent, currency, rating, reviewsCount, stock, inStock, warrantyMonths, specs, related } = product
 
   // Safety check for empty images array
   const hasImages = images && images.length > 0
@@ -230,15 +311,65 @@ export function ProductDetailsPage() {
             </Badge>
           </div>
 
-          {/* Add to Cart */}
-          <Button
-            loading={addToCart.isPending}
-            disabled={!inStock}
-            onClick={handleAddToCart}
-            className="product-details-page__add-to-cart"
-          >
-            {ka.product.addToCart}
-          </Button>
+          {/* Cart Status */}
+          {cartQuantity > 0 && (
+            <div className="product-details-page__cart-status">
+              <span className="product-details-page__cart-status-text">
+                {ka.cart.itemsCount(cartQuantity)}
+              </span>
+            </div>
+          )}
+
+          {/* Quantity Selector for Add to Cart */}
+          {inStock && cartQuantity === 0 && (
+            <div className="product-details-page__quantity">
+              <QuantityStepper
+                value={quantity}
+                onChange={setQuantity}
+                min={1}
+                max={stock}
+                disabled={addToCart.isPending}
+              />
+            </div>
+          )}
+
+          {/* Quantity Selector for Update Cart */}
+          {cartQuantity > 0 && (
+            <div className="product-details-page__quantity">
+              <QuantityStepper
+                value={cartQuantity}
+                onChange={handleUpdateQuantity}
+                min={0}
+                max={stock}
+                disabled={updateQuantity.isPending}
+              />
+            </div>
+          )}
+
+          {/* Add to Cart Button (only show if not in cart) */}
+          {cartQuantity === 0 && (
+            <Button
+              loading={addToCart.isPending}
+              disabled={!inStock}
+              onClick={handleAddToCart}
+              className="product-details-page__add-to-cart"
+            >
+              {ka.product.addToCart}
+            </Button>
+          )}
+
+          {/* Update in Cart Badge (only show if in cart) */}
+          {cartQuantity > 0 && (
+            <Button
+              loading={updateQuantity.isPending || removeFromCart.isPending}
+              disabled={!inStock}
+              onClick={() => navigate(ROUTES.cart)}
+              className="product-details-page__add-to-cart product-details-page__add-to-cart--secondary"
+              variant="secondary"
+            >
+              კალათაში გადასვლა
+            </Button>
+          )}
 
           {addToCartMessage && (
             <Alert
@@ -268,21 +399,6 @@ export function ProductDetailsPage() {
               </tbody>
             </table>
           )}
-
-          {/* Attributes */}
-          {attributes && Object.keys(attributes).length > 0 && (
-            <table className="product-details-page__table">
-              <caption className="visually-hidden">{ka.product.attributes}</caption>
-              <tbody>
-                {Object.entries(attributes).map(([key, value]) => (
-                  <tr key={key}>
-                    <th scope="row">{key}</th>
-                    <td>{value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
         </div>
 
         {/* Related Products */}
@@ -302,4 +418,3 @@ export function ProductDetailsPage() {
     </PageContainer>
   )
 }
-
