@@ -1,7 +1,8 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useUpdateProfile, useAddresses, useCreateAddress, useUpdateAddress, useDeleteAddress, useSetDefaultAddress } from '../hooks'
 import { useSession } from '../../../shared/auth'
 import { ApiErrorClass, applyServerErrors } from '../../../shared/api'
@@ -43,6 +44,7 @@ type PasswordFormData = z.infer<typeof passwordSchema>
 
 export function ProfilePage() {
   const { user, setUser } = useSession()
+  const queryClient = useQueryClient()
   const updateProfile = useUpdateProfile()
   const { data: addresses, isLoading: addressesLoading } = useAddresses()
   const createAddress = useCreateAddress()
@@ -54,6 +56,7 @@ export function ProfilePage() {
   const [editingAddress, setEditingAddress] = useState<Address | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<Address | null>(null)
   const [addressError, setAddressError] = useState<string | null>(null)
+  const [addressServerError, setAddressServerError] = useState<ApiErrorClass | null>(null)
   const [activeTab, setActiveTab] = useState<'profile' | 'addresses' | 'password'>('profile')
 
   useDocumentTitle(ka.profile.title)
@@ -272,7 +275,7 @@ export function ProfilePage() {
               <div className="profile-page__addresses">
                 <div className="profile-page__addresses-header">
                   <h2 className="profile-page__section-title">მისამართები</h2>
-                  <Button onClick={() => { setShowAddressForm(true); setAddressError(null) }} variant="secondary">
+                  <Button onClick={() => { setShowAddressForm(true); setAddressError(null); setAddressServerError(null) }} variant="secondary">
                     + დამატება
                   </Button>
                 </div>
@@ -308,7 +311,17 @@ export function ProfilePage() {
                           {!address.isDefault && (
                             <Button
                               variant="secondary"
-                              onClick={() => setDefaultAddress.mutate(address.id)}
+                              onClick={() => {
+                                setDefaultAddress.mutate(address.id, {
+                                  onSuccess: () => {
+                                    queryClient.invalidateQueries({ queryKey: ['addresses'] })
+                                  },
+                                  onSettled: () => {
+                                    setShowSuccess(true)
+                                    setTimeout(() => setShowSuccess(false), 3000)
+                                  }
+                                })
+                              }}
                               disabled={setDefaultAddress.isPending}
                             >
                               მთავარი
@@ -336,7 +349,7 @@ export function ProfilePage() {
                 ) : (
                   <div className="profile-page__addresses-empty">
                     <p>მისამართები არ არის</p>
-                    <Button onClick={() => { setShowAddressForm(true); setAddressError(null) }} variant="secondary">
+                    <Button onClick={() => { setShowAddressForm(true); setAddressError(null); setAddressServerError(null) }} variant="secondary">
                       პირველი მისამართის დამატება
                     </Button>
                   </div>
@@ -430,6 +443,7 @@ export function ProfilePage() {
                 setShowAddressForm(false)
                 setEditingAddress(null)
                 setAddressError(null)
+                setAddressServerError(null)
               }}
             >
               ✕
@@ -440,13 +454,16 @@ export function ProfilePage() {
             <AddressForm
               address={editingAddress}
               isLoading={createAddress.isPending || updateAddress.isPending}
+              serverError={addressServerError}
               onCancel={() => {
                 setShowAddressForm(false)
                 setEditingAddress(null)
                 setAddressError(null)
+                setAddressServerError(null)
               }}
               onSubmit={(data) => {
                 setAddressError(null)
+                setAddressServerError(null)
                 if (editingAddress) {
                   updateAddress.mutate(
                     { id: editingAddress.id, data },
@@ -458,7 +475,11 @@ export function ProfilePage() {
                       onError: (err) => {
                         console.error('Update address error:', err)
                         if (err instanceof ApiErrorClass) {
-                          setAddressError(err.message || 'მისამართის რედაქტირება ვერ მოხერხდა')
+                          if (err.status === 422) {
+                            setAddressServerError(err)
+                          } else {
+                            setAddressError(err.message || 'მისამართის რედაქტირება ვერ მოხერხდა')
+                          }
                         } else {
                           setAddressError('მისამართის რედაქტირება ვერ მოხერხდა')
                         }
@@ -472,7 +493,11 @@ export function ProfilePage() {
                     },
                     onError: (err) => {
                       if (err instanceof ApiErrorClass) {
-                        setAddressError(err.message || 'მისამართის დამატება ვერ მოხერხდა')
+                        if (err.status === 422) {
+                          setAddressServerError(err)
+                        } else {
+                          setAddressError(err.message || 'მისამართის დამატება ვერ მოხერხდა')
+                        }
                       } else {
                         setAddressError('მისამართის დამატება ვერ მოხერხდა')
                       }
@@ -509,10 +534,12 @@ export function ProfilePage() {
 }
 
 // Address Form Component
-function AddressForm({ address, onSubmit, isLoading, onCancel }: { address: Address | null; onSubmit: (data: { label: string; fullName: string; phone: string; city: string; address: string }) => void; isLoading: boolean; onCancel: () => void }) {
+function AddressForm({ address, onSubmit, isLoading, onCancel, serverError }: { address: Address | null; onSubmit: (data: { label: string; fullName: string; phone: string; city: string; address: string }) => void; isLoading: boolean; onCancel: () => void; serverError: ApiErrorClass | null }) {
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<{ label: string; fullName: string; phone: string; city: string; address: string }>({
     defaultValues: address
@@ -531,6 +558,20 @@ function AddressForm({ address, onSubmit, isLoading, onCancel }: { address: Addr
           address: '',
         },
   })
+
+  // Apply server errors when they change
+  useEffect(() => {
+    if (serverError && serverError.status === 422) {
+      const result = applyServerErrors(serverError, setError, ['label', 'fullName', 'phone', 'city', 'address'])
+      if (result.formError) {
+        console.error('Address form error:', result.formError)
+      }
+    }
+  }, [serverError, setError])
+
+  const handleFormChange = () => {
+    clearErrors()
+  }
 
   const formatPhone = (value: string) => {
     const cleaned = value.replace(/\D/g, '')
@@ -557,7 +598,7 @@ function AddressForm({ address, onSubmit, isLoading, onCancel }: { address: Addr
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="profile-page__address-form" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="profile-page__address-form" noValidate onChange={handleFormChange}>
       <FormField label="სახელწოდება" error={errors.label?.message}>
         {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
           <Input
@@ -567,7 +608,7 @@ function AddressForm({ address, onSubmit, isLoading, onCancel }: { address: Addr
             aria-describedby={ariaDescribedby}
             aria-invalid={ariaInvalid}
             error={!!errors.label}
-            {...register('label')}
+            {...register('label', { required: 'სახელწოდება სავალდებულოა' })}
           />
         )}
       </FormField>
@@ -581,7 +622,7 @@ function AddressForm({ address, onSubmit, isLoading, onCancel }: { address: Addr
             aria-describedby={ariaDescribedby}
             aria-invalid={ariaInvalid}
             error={!!errors.fullName}
-            {...register('fullName')}
+            {...register('fullName', { required: 'სრული სახელი სავალდებულოა' })}
           />
         )}
       </FormField>
@@ -596,6 +637,7 @@ function AddressForm({ address, onSubmit, isLoading, onCancel }: { address: Addr
             aria-invalid={ariaInvalid}
             error={!!errors.phone}
             {...register('phone', {
+              required: 'ტელეფონი სავალდებულოა',
               onChange: (e) => {
                 e.target.value = formatPhone(e.target.value)
               },
@@ -614,7 +656,7 @@ function AddressForm({ address, onSubmit, isLoading, onCancel }: { address: Addr
             aria-describedby={ariaDescribedby}
             aria-invalid={ariaInvalid}
             error={!!errors.city}
-            {...register('city')}
+            {...register('city', { required: 'ქალაქი სავალდებულოა' })}
           />
         )}
       </FormField>
@@ -628,7 +670,7 @@ function AddressForm({ address, onSubmit, isLoading, onCancel }: { address: Addr
             aria-describedby={ariaDescribedby}
             aria-invalid={ariaInvalid}
             error={!!errors.address}
-            {...register('address')}
+            {...register('address', { required: 'მისამართი სავალდებულოა' })}
           />
         )}
       </FormField>

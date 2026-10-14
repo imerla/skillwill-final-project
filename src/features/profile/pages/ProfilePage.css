@@ -156,6 +156,7 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   transition: all var(--duration-base) var(--ease-out);
+  overflow: hidden;
 }
 
 .profile-page__address-card:hover {
@@ -205,13 +206,50 @@
   margin: 0;
 }
 
+/* --- მოქმედების ღილაკების ძირითადი სტილები --- */
 .profile-page__address-actions {
   display: flex;
   flex-direction: row;
-  gap: var(--spacing-3);
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
   margin-top: var(--spacing-6);
   border-top: 1px solid var(--color-border);
   padding-top: var(--spacing-4);
+}
+
+.profile-page__address-actions .button {
+  /* white-space: normal აძლევს ტექსტს უფლებას გადავიდეს ახალ ხაზზე მხოლოდ სიტყვებს შორის */
+  white-space: normal;
+  text-align: center;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  /* flex: 1-ის ნაცვლად ვიყენებთ flex-grow-ს, რომ ღილაკები თანაბრად გაიზარდონ */
+  flex: 1 0 auto;
+  /* ვკრძალავთ სიტყვის შუაში გაწყვეტას */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* --- მედია რეზოლუციების კორექტირება --- */
+
+/* 768px-ზე დაბლა (ტაბლეტები და დიდი ტელეფონები) */
+@media (max-width: 768px) {
+  .profile-page__address-actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* 600px-დან და უფრო პატარა ეკრანებზე (სმარტფონები) */
+@media (max-width: 600px) {
+  .profile-page__address-actions {
+    flex-direction: column;
+  }
+
+  .profile-page__address-actions .button {
+    width: 100%;
+    flex: none;
+  }
 }
 
 .profile-page__addresses-empty {

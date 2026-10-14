@@ -22,6 +22,6 @@ export async function deleteAddress(id: string, signal?: AbortSignal) {
 }
 
 export async function setDefaultAddress(id: string, signal?: AbortSignal) {
-  return api.patch<Address>(`/addresses/${id}/default`, {}, { signal })
+  return api.patch<Address>(`/addresses/${id}`, { isDefault: true }, { signal })
 }
 

@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useCheckout, useCreateOrder, useConfirmOrder, useResendCode } from '../hooks'
+import { useUpdateCartItemQuantity, useRemoveCartItem } from '../../cart/hooks'
+import { useAddresses, useCreateAddress, useUpdateAddress, type Address, type CreateAddressRequest } from '../../profile/hooks'
 import { getCheckoutErrorMessage } from '../errors'
+import { getCartErrorMessage } from '../../cart/errors'
 import type { CreateOrderRequest, Order } from '../types'
 import { PageContainer } from '../../../shared/ui/PageContainer/PageContainer'
 import { Button } from '../../../shared/ui/Button/Button'
@@ -14,6 +17,7 @@ import { Alert } from '../../../shared/ui/Alert/Alert'
 import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { ErrorState } from '../../../shared/ui/ErrorState/ErrorState'
 import { EmptyState } from '../../../shared/ui/EmptyState/EmptyState'
+import { QuantityStepper } from '../../../shared/ui/QuantityStepper/QuantityStepper'
 import { formatPrice } from '../../../shared/lib/format'
 import { ka } from '../../../shared/i18n/ka'
 import { ROUTES } from '../../../app/routes'
@@ -21,6 +25,14 @@ import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import './CheckoutPage.css'
 
 const shippingSchema = z.object({
+  fullName: z.string().min(2, ka.validation.nameMin),
+  phone: z.string().min(9, ka.validation.phoneMin),
+  city: z.string().min(2, ka.validation.cityMin),
+  address: z.string().min(5, ka.validation.addressMin),
+})
+
+const addressFormSchema = z.object({
+  label: z.string().min(1, 'ლეიბლი აუცილებელია'),
   fullName: z.string().min(2, ka.validation.nameMin),
   phone: z.string().min(9, ka.validation.phoneMin),
   city: z.string().min(2, ka.validation.cityMin),
@@ -47,16 +59,140 @@ const codeSchema = z.object({
 
 type CodeFormData = z.infer<typeof codeSchema>
 
+function AddressFormModal({
+  show,
+  editingAddress,
+  onClose,
+  onSubmit,
+  form,
+  isPending,
+}: {
+  show: boolean
+  editingAddress: Address | null
+  onClose: () => void
+  onSubmit: (data: z.infer<typeof addressFormSchema>) => void
+  form: ReturnType<typeof useForm<z.infer<typeof addressFormSchema>>>
+  isPending: boolean
+}) {
+  if (!show) return null
+
+  return (
+    <div className="checkout-page__address-modal">
+      <div className="checkout-page__address-modal-content">
+        <h3 className="checkout-page__modal-title">
+          {editingAddress ? 'მისამართის რედაქტირება' : 'ახალი მისამართი'}
+        </h3>
+        <Button
+          variant="secondary"
+          onClick={onClose}
+          className="checkout-page__modal-close"
+        >
+          დახურვა
+        </Button>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="checkout-page__address-form" noValidate>
+          <FormField label="ლეიბლი" error={form.formState.errors.label?.message}>
+            {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
+              <Input
+                id={id}
+                type="text"
+                autoComplete="organization"
+                aria-describedby={ariaDescribedby}
+                aria-invalid={ariaInvalid}
+                error={!!form.formState.errors.label}
+                disabled={isPending}
+                {...form.register('label')}
+              />
+            )}
+          </FormField>
+
+          <FormField label={ka.checkout.fullName} error={form.formState.errors.fullName?.message}>
+            {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
+              <Input
+                id={id}
+                type="text"
+                autoComplete="name"
+                aria-describedby={ariaDescribedby}
+                aria-invalid={ariaInvalid}
+                error={!!form.formState.errors.fullName}
+                disabled={isPending}
+                {...form.register('fullName')}
+              />
+            )}
+          </FormField>
+
+          <FormField label={ka.checkout.phone} error={form.formState.errors.phone?.message}>
+            {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
+              <Input
+                id={id}
+                type="tel"
+                autoComplete="tel"
+                aria-describedby={ariaDescribedby}
+                aria-invalid={ariaInvalid}
+                error={!!form.formState.errors.phone}
+                disabled={isPending}
+                {...form.register('phone')}
+              />
+            )}
+          </FormField>
+
+          <FormField label={ka.checkout.city} error={form.formState.errors.city?.message}>
+            {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
+              <Input
+                id={id}
+                type="text"
+                autoComplete="address-level2"
+                aria-describedby={ariaDescribedby}
+                aria-invalid={ariaInvalid}
+                error={!!form.formState.errors.city}
+                disabled={isPending}
+                {...form.register('city')}
+              />
+            )}
+          </FormField>
+
+          <FormField label={ka.checkout.address} error={form.formState.errors.address?.message}>
+            {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
+              <Input
+                id={id}
+                type="text"
+                autoComplete="street-address"
+                aria-describedby={ariaDescribedby}
+                aria-invalid={ariaInvalid}
+                error={!!form.formState.errors.address}
+                disabled={isPending}
+                {...form.register('address')}
+              />
+            )}
+          </FormField>
+
+          <Button
+            type="submit"
+            loading={isPending}
+            disabled={isPending}
+          >
+            {isPending ? 'ინახება...' : 'შენახვა'}
+          </Button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export function CheckoutPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const itemsParam = searchParams.get('items')
   const selectedItemIds = itemsParam ? itemsParam.split(',').filter(Boolean) : undefined
 
-  const { data: checkout, isLoading, error, refetch } = useCheckout(selectedItemIds)
+  const { data: checkout, isLoading, error, refetch } = useCheckout()
+  const { data: addresses } = useAddresses()
   const createOrder = useCreateOrder()
   const confirmOrder = useConfirmOrder()
   const resendCode = useResendCode()
+  const updateQuantity = useUpdateCartItemQuantity()
+  const removeItem = useRemoveCartItem()
+  const createAddress = useCreateAddress()
+  const updateAddress = useUpdateAddress()
 
   const [step, setStep] = useState<'form' | 'confirm' | 'success'>('form')
   const [orderId, setOrderId] = useState<string | null>(null)
@@ -64,8 +200,71 @@ export function CheckoutPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [resendTimer, setResendTimer] = useState<number | null>(null)
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
+  const [showAddressSelector, setShowAddressSelector] = useState(false)
+  const [showAddressForm, setShowAddressForm] = useState(false)
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null)
+
+  const addressForm = useForm<z.infer<typeof addressFormSchema>>({
+    resolver: zodResolver(addressFormSchema),
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      label: '',
+      fullName: '',
+      phone: '',
+      city: '',
+      address: '',
+    },
+    values: editingAddress ? {
+      label: editingAddress.label,
+      fullName: editingAddress.fullName,
+      phone: editingAddress.phone,
+      city: editingAddress.city,
+      address: editingAddress.address,
+    } : undefined,
+  })
 
   useDocumentTitle(ka.checkout.title)
+
+  const isAnyMutationPending = updateQuantity.isPending || removeItem.isPending || createAddress.isPending || updateAddress.isPending
+
+  // Filter items client-side if specific items were selected
+  const filteredCheckout = useMemo(() => {
+    if (!checkout) return null
+    if (!selectedItemIds || selectedItemIds.length === 0) return checkout
+
+    const filteredItems = checkout.items.filter(item => selectedItemIds.includes(item.id))
+    return {
+      ...checkout,
+      items: filteredItems,
+      totalQty: filteredItems.reduce((sum, item) => sum + item.qty, 0),
+      subtotal: filteredItems.reduce((sum, item) => sum + item.lineTotal, 0),
+      total: filteredItems.reduce((sum, item) => sum + item.lineTotal, 0) + checkout.shippingFee,
+    }
+  }, [checkout, selectedItemIds])
+
+  // Prepare shipping data from either backend or selected address
+  const currentShippingValues = useMemo(() => {
+    if (selectedAddressId && addresses?.items) {
+      const addr = addresses.items.find((a: Address) => a.id === selectedAddressId)
+      if (addr) {
+        return {
+          fullName: addr.fullName,
+          phone: addr.phone,
+          city: addr.city,
+          address: addr.address,
+        }
+      }
+    }
+    return {
+      fullName: filteredCheckout?.shipping?.fullName || '',
+      phone: filteredCheckout?.shipping?.phone || '',
+      city: filteredCheckout?.shipping?.city || '',
+      address: filteredCheckout?.shipping?.address || '',
+    }
+  }, [filteredCheckout, selectedAddressId, addresses])
 
   const form = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -85,20 +284,15 @@ export function CheckoutPage() {
         cvc: '',
       },
     },
-    values: checkout ? {
-      shipping: {
-        fullName: checkout.shipping.fullName || '',
-        phone: checkout.shipping.phone || '',
-        city: checkout.shipping.city || '',
-        address: checkout.shipping.address || '',
-      },
+    values: {
+      shipping: currentShippingValues,
       card: {
         number: '',
         holder: '',
         expiry: '',
         cvc: '',
       },
-    } : undefined,
+    },
     resetOptions: { keepDirtyValues: true },
   })
 
@@ -108,6 +302,41 @@ export function CheckoutPage() {
     reValidateMode: 'onChange',
     defaultValues: { code: '' },
   })
+
+  const handleAddressSelect = (addressId: string) => {
+    setSelectedAddressId(addressId)
+  }
+
+  const handleNewAddress = () => {
+    console.log('handleNewAddress called')
+    setEditingAddress(null)
+    setShowAddressForm(true)
+  }
+
+  const handleEditAddress = (address: Address) => {
+    console.log('handleEditAddress called', address)
+    setEditingAddress(address)
+    setShowAddressForm(true)
+  }
+
+  const handleCloseAddressForm = () => {
+    setShowAddressForm(false)
+    setEditingAddress(null)
+  }
+
+  const handleAddressFormSubmit = async (data: z.infer<typeof addressFormSchema>) => {
+    try {
+      if (editingAddress) {
+        await updateAddress.mutateAsync({ id: editingAddress.id, data })
+      } else {
+        await createAddress.mutateAsync(data as CreateAddressRequest)
+      }
+      handleCloseAddressForm()
+      addressForm.reset()
+    } catch (err) {
+      console.error('Address save error:', err)
+    }
+  }
 
   const handleCheckoutSubmit = async (data: CheckoutFormData) => {
     setSubmitError(null)
@@ -170,6 +399,31 @@ export function CheckoutPage() {
     }
   }, [resendTimer])
 
+  const handleQuantityChange = (itemId: string, qty: number) => {
+    setActionError(null)
+    updateQuantity.mutate(
+      { id: itemId, data: { qty } },
+      {
+        onSuccess: () => {
+          setActionError(null)
+          refetch()
+        },
+        onError: (e) => setActionError(getCartErrorMessage(e)),
+      }
+    )
+  }
+
+  const handleRemove = (itemId: string) => {
+    setActionError(null)
+    removeItem.mutate(itemId, {
+      onSuccess: () => {
+        setActionError(null)
+        refetch()
+      },
+      onError: (e) => setActionError(getCartErrorMessage(e)),
+    })
+  }
+
   if (isLoading) {
     return (
       <PageContainer size="page" as="section">
@@ -190,7 +444,7 @@ export function CheckoutPage() {
   }
 
   // Cart empty check only applies to form step
-  if (step === 'form' && (!checkout || checkout.items.length === 0)) {
+  if (step === 'form' && (!filteredCheckout || filteredCheckout.items.length === 0)) {
     return (
       <PageContainer size="page" as="section">
         <EmptyState
@@ -208,106 +462,212 @@ export function CheckoutPage() {
         <h1 className="checkout-page__page-title">{ka.checkout.title}</h1>
 
         <div className="checkout-page__content">
+          {actionError && <Alert variant="error" message={actionError} className="checkout-page__alert" />}
+
           <div className="checkout-page__summary">
             <h2 className="checkout-page__section-title">{ka.checkout.orderSummary}</h2>
             <div className="checkout-page__items">
-              {checkout?.items.map((item) => (
-                <div key={item.id} className="checkout-page__item">
-                  <img
-                    src={item.product.image}
-                    alt={item.product.title}
-                    className="checkout-page__item-image"
-                    loading="lazy"
-                  />
-                  <div className="checkout-page__item-details">
-                    <h3 className="checkout-page__item-title">{item.product.title}</h3>
-                    <p className="checkout-page__item-brand">{item.product.brand}</p>
-                    <p className="checkout-page__item-qty">{ka.common.quantity}: {item.qty}</p>
+              {filteredCheckout?.items.map((item) => {
+                const maxQty = Math.min(item.product.stock, 99)
+                return (
+                  <div key={item.id} className="checkout-page__item">
+                    <img
+                      src={item.product.image}
+                      alt={item.product.title}
+                      className="checkout-page__item-image"
+                      loading="lazy"
+                    />
+                    <div className="checkout-page__item-details">
+                      <h3 className="checkout-page__item-title">{item.product.title}</h3>
+                      <p className="checkout-page__item-brand">{item.product.brand}</p>
+                      <div className="checkout-page__item-controls">
+                        <QuantityStepper
+                          value={item.qty}
+                          onChange={(qty) => handleQuantityChange(item.id, qty)}
+                          min={1}
+                          max={maxQty}
+                          disabled={isAnyMutationPending || !item.product.inStock}
+                        />
+                        <Button
+                          variant="secondary"
+                          onClick={() => handleRemove(item.id)}
+                          disabled={isAnyMutationPending}
+                          className="checkout-page__item-remove"
+                        >
+                          {ka.cart.remove}
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="checkout-page__item-total">
+                      {formatPrice(item.lineTotal, filteredCheckout?.currency)}
+                    </p>
                   </div>
-                  <p className="checkout-page__item-total">
-                    {formatPrice(item.lineTotal, checkout?.currency)}
-                  </p>
-                </div>
-              ))}
+                )
+              })}
             </div>
             <div className="checkout-page__totals">
               <div className="checkout-page__total-row">
-                <span>{ka.cart.subtotal} ({checkout?.totalQty} {ka.cart.itemsCount(checkout?.totalQty || 0)})</span>
-                <span>{formatPrice(checkout?.subtotal || 0, checkout?.currency)}</span>
+                <span>{ka.cart.subtotal} ({filteredCheckout?.totalQty} ცალი)</span>
+                <span>{formatPrice(filteredCheckout?.subtotal || 0, filteredCheckout?.currency)}</span>
               </div>
               <div className="checkout-page__total-row">
                 <span>{ka.checkout.shippingInfo}</span>
-                <span>{formatPrice(checkout?.shippingFee || 0, checkout?.currency)}</span>
+                <span>{formatPrice(filteredCheckout?.shippingFee || 0, filteredCheckout?.currency)}</span>
               </div>
               <div className="checkout-page__total-row checkout-page__total-row--total">
                 <span>{ka.checkout.total}</span>
-                <span>{formatPrice(checkout?.total || 0, checkout?.currency)}</span>
+                <span>{formatPrice(filteredCheckout?.total || 0, filteredCheckout?.currency)}</span>
               </div>
             </div>
           </div>
 
           <div className="checkout-page__form-section">
             <h2 className="checkout-page__section-title">{ka.checkout.shippingInfo}</h2>
+
+            {/* Address Selector */}
+            <div className="checkout-page__address-selector">
+              <Button
+                variant="secondary"
+                onClick={() => setShowAddressSelector(!showAddressSelector)}
+                className="checkout-page__address-selector-btn"
+              >
+                {showAddressSelector ? 'დახურვა' : 'მისამართის არჩევა'}
+              </Button>
+
+              {showAddressSelector && (
+                <div className="checkout-page__address-list">
+                  {addresses?.items && addresses.items.length > 0 ? (
+                    addresses.items.map((address: Address) => (
+                      <div
+                        key={address.id}
+                        className={`checkout-page__address-item ${selectedAddressId === address.id ? 'checkout-page__address-item--selected' : ''}`}
+                        onClick={() => handleAddressSelect(address.id)}
+                      >
+                        <div className="checkout-page__address-item-info">
+                          <div className="checkout-page__address-item-name">{address.fullName}</div>
+                          <div className="checkout-page__address-item-phone">{address.phone}</div>
+                          <div className="checkout-page__address-item-location">{address.city}, {address.address}</div>
+                          {address.isDefault && (
+                            <span className="checkout-page__address-item-default">მთავარი</span>
+                          )}
+                        </div>
+                        <Button
+                          variant="secondary"
+                          onClick={(e) => {
+                            console.log('Edit button clicked', address, 'isAnyMutationPending:', isAnyMutationPending)
+                            e.stopPropagation()
+                            handleEditAddress(address)
+                          }}
+                          disabled={isAnyMutationPending}
+                          className="checkout-page__address-item-edit"
+                        >
+                          რედაქტირება
+                        </Button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="checkout-page__no-addresses">
+                      <p>მისამართები არ არის დამატებული</p>
+                    </div>
+                  )}
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      console.log('New address button clicked', 'isAnyMutationPending:', isAnyMutationPending)
+                      handleNewAddress()
+                    }}
+                    disabled={isAnyMutationPending}
+                    className="checkout-page__address-new"
+                  >
+                    + ახალი მისამართი
+                  </Button>
+                </div>
+              )}
+            </div>
+
             <form onSubmit={form.handleSubmit(handleCheckoutSubmit)} className="checkout-page__form" noValidate>
-              <FormField label={ka.checkout.fullName} error={form.formState.errors.shipping?.fullName?.message}>
-                {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
-                  <Input
-                    id={id}
-                    type="text"
-                    autoComplete="name"
-                    aria-describedby={ariaDescribedby}
-                    aria-invalid={ariaInvalid}
-                    error={!!form.formState.errors.shipping?.fullName}
-                    disabled={createOrder.isPending}
-                    {...form.register('shipping.fullName')}
-                  />
-                )}
-              </FormField>
+              {!selectedAddressId && (
+                <>
+                  <FormField label={ka.checkout.fullName} error={form.formState.errors.shipping?.fullName?.message}>
+                    {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
+                      <Input
+                        id={id}
+                        type="text"
+                        autoComplete="name"
+                        aria-describedby={ariaDescribedby}
+                        aria-invalid={ariaInvalid}
+                        error={!!form.formState.errors.shipping?.fullName}
+                        disabled={createOrder.isPending}
+                        {...form.register('shipping.fullName')}
+                      />
+                    )}
+                  </FormField>
 
-              <FormField label={ka.checkout.phone} error={form.formState.errors.shipping?.phone?.message}>
-                {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
-                  <Input
-                    id={id}
-                    type="tel"
-                    autoComplete="tel"
-                    aria-describedby={ariaDescribedby}
-                    aria-invalid={ariaInvalid}
-                    error={!!form.formState.errors.shipping?.phone}
-                    disabled={createOrder.isPending}
-                    {...form.register('shipping.phone')}
-                  />
-                )}
-              </FormField>
+                  <FormField label={ka.checkout.phone} error={form.formState.errors.shipping?.phone?.message}>
+                    {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
+                      <Input
+                        id={id}
+                        type="tel"
+                        autoComplete="tel"
+                        aria-describedby={ariaDescribedby}
+                        aria-invalid={ariaInvalid}
+                        error={!!form.formState.errors.shipping?.phone}
+                        disabled={createOrder.isPending}
+                        {...form.register('shipping.phone')}
+                      />
+                    )}
+                  </FormField>
 
-              <FormField label={ka.checkout.city} error={form.formState.errors.shipping?.city?.message}>
-                {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
-                  <Input
-                    id={id}
-                    type="text"
-                    autoComplete="address-level2"
-                    aria-describedby={ariaDescribedby}
-                    aria-invalid={ariaInvalid}
-                    error={!!form.formState.errors.shipping?.city}
-                    disabled={createOrder.isPending}
-                    {...form.register('shipping.city')}
-                  />
-                )}
-              </FormField>
+                  <FormField label={ka.checkout.city} error={form.formState.errors.shipping?.city?.message}>
+                    {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
+                      <Input
+                        id={id}
+                        type="text"
+                        autoComplete="address-level2"
+                        aria-describedby={ariaDescribedby}
+                        aria-invalid={ariaInvalid}
+                        error={!!form.formState.errors.shipping?.city}
+                        disabled={createOrder.isPending}
+                        {...form.register('shipping.city')}
+                      />
+                    )}
+                  </FormField>
 
-              <FormField label={ka.checkout.address} error={form.formState.errors.shipping?.address?.message}>
-                {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
-                  <Input
-                    id={id}
-                    type="text"
-                    autoComplete="street-address"
-                    aria-describedby={ariaDescribedby}
-                    aria-invalid={ariaInvalid}
-                    error={!!form.formState.errors.shipping?.address}
-                    disabled={createOrder.isPending}
-                    {...form.register('shipping.address')}
-                  />
-                )}
-              </FormField>
+                  <FormField label={ka.checkout.address} error={form.formState.errors.shipping?.address?.message}>
+                    {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
+                      <Input
+                        id={id}
+                        type="text"
+                        autoComplete="street-address"
+                        aria-describedby={ariaDescribedby}
+                        aria-invalid={ariaInvalid}
+                        error={!!form.formState.errors.shipping?.address}
+                        disabled={createOrder.isPending}
+                        {...form.register('shipping.address')}
+                      />
+                    )}
+                  </FormField>
+                </>
+              )}
+
+              {selectedAddressId && (
+                <div className="checkout-page__selected-address-info">
+                  <span className="checkout-page__selected-address-label">მისამართი:</span>
+                  <span className="checkout-page__selected-address-value">
+                    {addresses?.items?.find((a: Address) => a.id === selectedAddressId)?.fullName}, {addresses?.items?.find((a: Address) => a.id === selectedAddressId)?.phone}, {addresses?.items?.find((a: Address) => a.id === selectedAddressId)?.city}, {addresses?.items?.find((a: Address) => a.id === selectedAddressId)?.address}
+                  </span>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      console.log('Change address clicked')
+                      setSelectedAddressId(null)
+                    }}
+                    className="checkout-page__change-address"
+                  >
+                    შეცვლა
+                  </Button>
+                </div>
+              )}
 
               <h2 className="checkout-page__section-title">{ka.checkout.paymentInfo}</h2>
 
@@ -394,6 +754,15 @@ export function CheckoutPage() {
             </form>
           </div>
         </div>
+
+        <AddressFormModal
+          show={showAddressForm}
+          editingAddress={editingAddress}
+          onClose={handleCloseAddressForm}
+          onSubmit={handleAddressFormSubmit}
+          form={addressForm}
+          isPending={createAddress.isPending || updateAddress.isPending}
+        />
       </PageContainer>
     )
   }
@@ -405,7 +774,7 @@ export function CheckoutPage() {
         <div className="checkout-page__confirm-section">
           <p className="checkout-page__confirm-message">{ka.checkout.confirmMessage}</p>
           <p className="checkout-page__confirm-total">
-            {ka.checkout.total}: {formatPrice(checkout?.total || 0, checkout?.currency)}
+            {ka.checkout.total}: {formatPrice(filteredCheckout?.total || 0, filteredCheckout?.currency)}
           </p>
 
           <form onSubmit={codeForm.handleSubmit(handleConfirmSubmit)} className="checkout-page__code-form" noValidate>
@@ -457,6 +826,15 @@ export function CheckoutPage() {
             </Button>
           </form>
         </div>
+
+        <AddressFormModal
+          show={showAddressForm}
+          editingAddress={editingAddress}
+          onClose={handleCloseAddressForm}
+          onSubmit={handleAddressFormSubmit}
+          form={addressForm}
+          isPending={createAddress.isPending || updateAddress.isPending}
+        />
       </PageContainer>
     )
   }
@@ -487,6 +865,15 @@ export function CheckoutPage() {
             <Button variant="secondary">{ka.checkout.continueShopping}</Button>
           </Link>
         </div>
+
+        <AddressFormModal
+          show={showAddressForm}
+          editingAddress={editingAddress}
+          onClose={handleCloseAddressForm}
+          onSubmit={handleAddressFormSubmit}
+          form={addressForm}
+          isPending={createAddress.isPending || updateAddress.isPending}
+        />
       </div>
     </PageContainer>
   )
