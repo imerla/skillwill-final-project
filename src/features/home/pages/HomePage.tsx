@@ -24,7 +24,7 @@ export function HomePage() {
         <HeroBanner
           title="თქვენი საყვარელი პროდუქტები ერთ სივრცეში"
           subtitle="მაღალი ხარისხი, საუკეთესო ფასები და სწრაფი მიწოდება"
-          image="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&q=80"
+          image="https://images.unsplash.com/photo-1764779169349-a5adca68947c?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D"
           height="large"
         >
           <Button onClick={() => window.location.href = ROUTES.catalog} className="home-page__hero-cta">

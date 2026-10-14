@@ -5,6 +5,17 @@
   margin-top: var(--spacing-16);
 }
 
+/* No margin for auth pages */
+body:has(.login-page) .footer {
+  margin-top: 0;
+}
+body:has(.register-page) .footer {
+  margin-top: 0;
+}
+body:has(.forgot-password-page) .footer {
+  margin-top: 0;
+}
+
 .footer__container {
   max-width: var(--container-page);
   margin: 0 auto;
@@ -123,7 +134,6 @@
 @media (max-width: 768px) {
   .footer {
     padding: var(--spacing-10) 0 var(--spacing-6);
-    margin-top: var(--spacing-10);
   }
 
   .footer__grid {
@@ -139,7 +149,6 @@
 @media (max-width: 480px) {
   .footer {
     padding: var(--spacing-8) 0 var(--spacing-5);
-    margin-top: var(--spacing-8);
   }
 
   .footer__container {
