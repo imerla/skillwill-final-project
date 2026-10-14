@@ -12,10 +12,21 @@ export function setUnauthorizedHandler(handler: (code?: string) => void): void {
 
 async function request<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit & { params?: Record<string, string | string[]> } = {}
 ): Promise<T> {
-  const url = `${API_URL}${endpoint}`
-  
+  const url = new URL(`${API_URL}${endpoint}`)
+
+  // Add query params
+  if (options.params) {
+    Object.entries(options.params).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach(v => url.searchParams.append(key, v))
+      } else if (value !== undefined && value !== null) {
+        url.searchParams.append(key, value)
+      }
+    })
+  }
+
   const token = getAccessToken()
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -26,7 +37,7 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await fetch(url, {
+  const response = await fetch(url.toString(), {
     ...options,
     headers,
     signal: options.signal,
@@ -70,25 +81,27 @@ async function request<T>(
 }
 
 export const api = {
-  get: <T>(endpoint: string, options?: RequestInit) => request<T>(endpoint, { method: 'GET', ...options }),
-  post: <T>(endpoint: string, data?: unknown, options?: RequestInit) =>
+  get: <T>(endpoint: string, options?: RequestInit & { params?: Record<string, string | string[]> }) =>
+    request<T>(endpoint, { method: 'GET', ...options }),
+  post: <T>(endpoint: string, data?: unknown, options?: RequestInit & { params?: Record<string, string | string[]> }) =>
     request<T>(endpoint, {
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
       ...options,
     }),
-  put: <T>(endpoint: string, data?: unknown, options?: RequestInit) =>
+  put: <T>(endpoint: string, data?: unknown, options?: RequestInit & { params?: Record<string, string | string[]> }) =>
     request<T>(endpoint, {
       method: 'PUT',
       body: data ? JSON.stringify(data) : undefined,
       ...options,
     }),
-  patch: <T>(endpoint: string, data?: unknown, options?: RequestInit) =>
+  patch: <T>(endpoint: string, data?: unknown, options?: RequestInit & { params?: Record<string, string | string[]> }) =>
     request<T>(endpoint, {
       method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
       ...options,
     }),
-  delete: <T>(endpoint: string, options?: RequestInit) => request<T>(endpoint, { method: 'DELETE', ...options }),
+  delete: <T>(endpoint: string, options?: RequestInit & { params?: Record<string, string | string[]> }) =>
+    request<T>(endpoint, { method: 'DELETE', ...options }),
 }
 

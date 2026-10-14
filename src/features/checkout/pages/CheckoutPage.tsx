@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useCheckout, useCreateOrder, useConfirmOrder, useResendCode } from '../hooks'
 import { getCheckoutErrorMessage } from '../errors'
 import type { CreateOrderRequest, Order } from '../types'
@@ -49,7 +49,11 @@ type CodeFormData = z.infer<typeof codeSchema>
 
 export function CheckoutPage() {
   const navigate = useNavigate()
-  const { data: checkout, isLoading, error, refetch } = useCheckout()
+  const [searchParams] = useSearchParams()
+  const itemsParam = searchParams.get('items')
+  const selectedItemIds = itemsParam ? itemsParam.split(',').filter(Boolean) : undefined
+
+  const { data: checkout, isLoading, error, refetch } = useCheckout(selectedItemIds)
   const createOrder = useCreateOrder()
   const confirmOrder = useConfirmOrder()
   const resendCode = useResendCode()

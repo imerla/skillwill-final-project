@@ -8,8 +8,9 @@ import type {
   ResendCodeResponse
 } from '../types'
 
-export async function getCheckout(signal?: AbortSignal): Promise<CheckoutSummary> {
-  return api.get<CheckoutSummary>('/checkout', signal ? { signal } : undefined)
+export async function getCheckout(signal?: AbortSignal, itemIds?: string[]): Promise<CheckoutSummary> {
+  const params = itemIds && itemIds.length > 0 ? { items: itemIds.join(',') } : undefined
+  return api.get<CheckoutSummary>('/checkout', { signal, params })
 }
 
 export async function createOrder(data: CreateOrderRequest): Promise<CreateOrderResponse> {

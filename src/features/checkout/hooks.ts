@@ -11,10 +11,10 @@ import type {
 
 const CHECKOUT_QUERY_KEY = ['checkout']
 
-export function useCheckout() {
+export function useCheckout(itemIds?: string[]) {
   return useQuery<CheckoutSummary>({
     queryKey: CHECKOUT_QUERY_KEY,
-    queryFn: ({ signal }) => getCheckout(signal),
+    queryFn: ({ signal }) => getCheckout(signal, itemIds),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   })

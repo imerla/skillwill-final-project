@@ -270,7 +270,10 @@ export function CartPage() {
           </div>
           <div className="cart-page__actions">
             <Button
-              onClick={() => navigate(ROUTES.checkout)}
+              onClick={() => {
+                const selectedIds = Array.from(selectedItems).join(',')
+                navigate(selectedIds ? `${ROUTES.checkout}?items=${selectedIds}` : ROUTES.checkout)
+              }}
               disabled={
                 selectedItems.size === 0 ||
                 hasSelectedStockIssue ||
