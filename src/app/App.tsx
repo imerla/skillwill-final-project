@@ -11,6 +11,7 @@ import { CartPage } from '../features/cart/pages/CartPage'
 import { CheckoutPage } from '../features/checkout/pages/CheckoutPage'
 import { OrdersPage } from '../features/orders/pages/OrdersPage'
 import { ProfilePage } from '../features/profile/pages/ProfilePage'
+import { FavoritesPage } from '../features/favorites/pages/FavoritesPage'
 import { Nav } from './layout/Nav/Nav'
 import { Footer } from '../shared/ui/Footer/Footer'
 import { LegacyCatalogRedirect } from './LegacyCatalogRedirect'
@@ -70,6 +71,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.favorites}
+            element={
+              <ProtectedRoute>
+                <FavoritesPage />
               </ProtectedRoute>
             }
           />

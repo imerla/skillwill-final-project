@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
-import { Menu, X, Home, ShoppingBag, ShoppingCart, Package, User, LogIn, UserPlus, LogOut, Info } from 'lucide-react'
+import { Menu, X, Home, ShoppingBag, ShoppingCart, Package, User, LogIn, UserPlus, LogOut, Info, Heart } from 'lucide-react'
 import { useSession } from '../../../shared/auth'
 import { useCart } from '../../../features/cart/hooks'
 import { useOrders } from '../../../features/orders/hooks'
+import { useFavorites } from '../../../features/favorites/hooks'
 import { Badge } from '../../../shared/ui/Badge/Badge'
 import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { Input } from '../../../shared/ui/Input/Input'
@@ -15,11 +16,13 @@ export function Nav() {
   const { isAuthenticated, isLoading, logout } = useSession()
   const { data: cart } = useCart()
   const { data: orders } = useOrders({ enabled: isAuthenticated })
+  const { data: favorites } = useFavorites()
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const totalQty = cart?.totalQty || 0
   const ordersCount = orders?.items?.length || 0
+  const favoritesCount = favorites?.total || 0
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   // Search functionality - only show on catalog page
@@ -136,6 +139,13 @@ export function Nav() {
             <NavLink to={ROUTES.about} className="nav__link nav__link--with-text" onClick={closeMobileMenu}>
               <Info size={18} className="nav__link-icon" />
               <span>ჩვენ შესახებ</span>
+            </NavLink>
+            <NavLink to={ROUTES.favorites} className="nav__link" onClick={closeMobileMenu}>
+                  <Heart size={18} className="nav__link-icon" />
+                  <span>ფავორიტები</span>
+                  {favoritesCount > 0 && (
+                    <Badge variant="accent">{favoritesCount}</Badge>
+                  )}
             </NavLink>
             <NavLink
               to={ROUTES.cart}

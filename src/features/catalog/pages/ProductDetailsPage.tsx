@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { Heart, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useProduct } from '../hooks'
 import { useSession } from '../../../shared/auth'
 import { useAddToCart, useUpdateCartItemQuantity, useRemoveCartItem, useCart } from '../../cart/hooks'
+import { useAddToFavorites, useRemoveFromFavorites, useFavorites } from '../../favorites/hooks'
 import { getCartErrorMessage } from '../../cart/errors'
 import { CATALOG_CATEGORY_SLUG } from '../config'
 import { ProductCard } from '../components/ProductCard'
@@ -33,13 +35,69 @@ export function ProductDetailsPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
+  // Favorites
+  const { data: favorites } = useFavorites()
+  const addToFavorites = useAddToFavorites()
+  const removeFromFavorites = useRemoveFromFavorites()
+
   // Get cart item for this product if it exists
   const cartItem = cart?.items.find((item) => item.productId === product?.id)
   const cartQuantity = cartItem?.qty ?? 0
 
+  // Check if product is favorited
+  const getStoredFavoriteIds = (): Set<string> => {
+    try {
+      const stored = localStorage.getItem('favorites_ids')
+      return stored ? new Set(JSON.parse(stored)) : new Set()
+    } catch {
+      return new Set()
+    }
+  }
+  const isFavorite = favorites?.items.some((f) => f.productId === product?.id) ?? getStoredFavoriteIds().has(product?.id ?? '')
+
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [addToCartMessage, setAddToCartMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
+
+  const handleLightboxOpen = useCallback((index: number) => {
+    setLightboxIndex(index)
+    setLightboxOpen(true)
+    document.body.style.overflow = 'hidden'
+  }, [])
+
+  const handleLightboxClose = useCallback(() => {
+    setLightboxOpen(false)
+    document.body.style.overflow = ''
+  }, [])
+
+  const handleLightboxNext = useCallback(() => {
+    setLightboxIndex((prev) => (prev + 1) % (product?.images?.length ?? 1))
+  }, [product?.images?.length])
+
+  const handleLightboxPrev = useCallback(() => {
+    const len = product?.images?.length ?? 1
+    setLightboxIndex((prev) => (prev - 1 + len) % len)
+  }, [product?.images?.length])
+
+  // Handle keyboard navigation for lightbox
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!lightboxOpen) return
+
+      if (e.key === 'Escape') {
+        handleLightboxClose()
+      } else if (e.key === 'ArrowLeft') {
+        handleLightboxPrev()
+      } else if (e.key === 'ArrowRight') {
+        handleLightboxNext()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [lightboxOpen, handleLightboxNext, handleLightboxPrev, handleLightboxClose])
 
   // Timer ref for auto-dismissing messages
   const messageTimerRef = useRef<number | null>(null)
@@ -135,7 +193,7 @@ export function ProductDetailsPage() {
       { id: cartItem.id, data: { qty: newQty } },
       {
         onSuccess: () => {
-          setAddToCartMessage({ type: 'success', text: ka.cart.stockChanged })
+          setAddToCartMessage({ type: 'success', text: 'რაოდენობა განახლდა' })
           // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
@@ -144,7 +202,7 @@ export function ProductDetailsPage() {
           messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
         },
         onError: (error) => {
-          setAddToCartMessage({ type: 'error', text: getCartErrorMessage(error, { stock: product.stock }) })
+          setAddToCartMessage({ type: 'error', text: getCartErrorMessage(error, { stock: product?.stock ?? 0 }) })
           // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
@@ -154,6 +212,15 @@ export function ProductDetailsPage() {
         }
       }
     )
+  }
+
+  const handleToggleFavorite = () => {
+    if (!product) return
+    if (isFavorite) {
+      removeFromFavorites.mutate(product.id)
+    } else {
+      addToFavorites.mutate(product.id)
+    }
   }
 
   const handleRemoveFromCart = () => {
@@ -261,12 +328,22 @@ export function ProductDetailsPage() {
                 src={currentImage}
                 alt={ka.product.imageAlt(title, selectedImageIndex + 1)}
                 className="product-details-page__main-image-img"
+                onClick={() => handleLightboxOpen(selectedImageIndex)}
+                style={{ cursor: 'zoom-in' }}
               />
             ) : (
               <div className="product-details-page__main-image-placeholder">
                 {ka.product.noImage}
               </div>
             )}
+            {/* Favorite Button */}
+            <button
+              onClick={handleToggleFavorite}
+              className={`product-details-page__favorite ${isFavorite ? 'product-details-page__favorite--active' : ''}`}
+              aria-label={isFavorite ? 'ფავორიტებიდან წაშლა' : 'ფავორიტებში დამატება'}
+            >
+              <Heart size={20} fill={isFavorite ? 'var(--color-primary)' : 'none'} />
+            </button>
           </div>
           {hasImages && images.length > 1 && (
             <div className="product-details-page__thumbnails">
@@ -415,6 +492,42 @@ export function ProductDetailsPage() {
           </div>
         )}
       </div>
+
+      {/* Lightbox */}
+      {lightboxOpen && images && images.length > 0 && (
+        <div className="product-details-page__lightbox" onClick={handleLightboxClose}>
+          <button
+            className="product-details-page__lightbox-close"
+            onClick={handleLightboxClose}
+            aria-label="დახურვა"
+          >
+            <X size={24} />
+          </button>
+          <button
+            className="product-details-page__lightbox-nav product-details-page__lightbox-nav--prev"
+            onClick={(e) => { e.stopPropagation(); handleLightboxPrev() }}
+            aria-label="წინა სურათი"
+          >
+            <ChevronLeft size={32} />
+          </button>
+          <img
+            src={images[lightboxIndex]}
+            alt={`${title} - ${lightboxIndex + 1}`}
+            className="product-details-page__lightbox-image"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            className="product-details-page__lightbox-nav product-details-page__lightbox-nav--next"
+            onClick={(e) => { e.stopPropagation(); handleLightboxNext() }}
+            aria-label="შემდეგი სურათი"
+          >
+            <ChevronRight size={32} />
+          </button>
+          <div className="product-details-page__lightbox-counter">
+            {lightboxIndex + 1} / {images.length}
+          </div>
+        </div>
+      )}
     </PageContainer>
   )
 }

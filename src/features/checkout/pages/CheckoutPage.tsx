@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCheckout, useCreateOrder, useConfirmOrder, useResendCode } from '../hooks'
 import { useUpdateCartItemQuantity, useRemoveCartItem } from '../../cart/hooks'
@@ -292,9 +292,6 @@ function AddressFormModal({
 export function CheckoutPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [searchParams] = useSearchParams()
-  const itemsParam = searchParams.get('items')
-  const selectedItemIds = itemsParam ? itemsParam.split(',').filter(Boolean) : undefined
 
   const { data: checkout, isLoading, error, refetch } = useCheckout()
   const { data: addresses } = useAddresses()
@@ -349,21 +346,6 @@ export function CheckoutPage() {
     return cleaned.slice(0, 4)
   }
 
-  // Filter items client-side if specific items were selected
-  const filteredCheckout = useMemo(() => {
-    if (!checkout) return null
-    if (!selectedItemIds || selectedItemIds.length === 0) return checkout
-
-    const filteredItems = checkout.items.filter(item => selectedItemIds.includes(item.id))
-    return {
-      ...checkout,
-      items: filteredItems,
-      totalQty: filteredItems.reduce((sum, item) => sum + item.qty, 0),
-      subtotal: filteredItems.reduce((sum, item) => sum + item.lineTotal, 0),
-      total: filteredItems.reduce((sum, item) => sum + item.lineTotal, 0) + checkout.shippingFee,
-    }
-  }, [checkout, selectedItemIds])
-
   // Prepare shipping data from either backend or selected address
   const currentShippingValues = useMemo(() => {
     if (selectedAddressId && addresses?.items) {
@@ -378,12 +360,12 @@ export function CheckoutPage() {
       }
     }
     return {
-      fullName: filteredCheckout?.shipping?.fullName || '',
-      phone: filteredCheckout?.shipping?.phone || '',
-      city: filteredCheckout?.shipping?.city || '',
-      address: filteredCheckout?.shipping?.address || '',
+      fullName: checkout?.shipping?.fullName || '',
+      phone: checkout?.shipping?.phone || '',
+      city: checkout?.shipping?.city || '',
+      address: checkout?.shipping?.address || '',
     }
-  }, [filteredCheckout, selectedAddressId, addresses])
+  }, [checkout, selectedAddressId, addresses])
 
   const form = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -485,7 +467,7 @@ export function CheckoutPage() {
         // Map server errors to form fields
         Object.entries(err.errors).forEach(([key, value]) => {
           const message = Array.isArray(value) ? value[0] : value
-          form.setError(key as any, { type: 'server', message })
+          form.setError(key as keyof CheckoutFormData, { type: 'server', message })
         })
       }
       setSubmitError(getCheckoutErrorMessage(err))
@@ -583,7 +565,7 @@ export function CheckoutPage() {
   }
 
   // Cart empty check only applies to form step
-  if (step === 'form' && (!filteredCheckout || filteredCheckout.items.length === 0)) {
+  if (step === 'form' && (!checkout || checkout.items.length === 0)) {
     return (
       <PageContainer size="page" as="section">
         <EmptyState
@@ -605,9 +587,9 @@ export function CheckoutPage() {
 
           <div className="checkout-page__left-column">
             <div className="checkout-page__summary">
-            <h2 className="checkout-page__section-title">შესაკვეთად არჩეული</h2>
+            <h2 className="checkout-page__section-title">შეკვეთის პროდუქტები</h2>
             <div className="checkout-page__items">
-              {filteredCheckout?.items.map((item) => {
+              {checkout?.items.map((item) => {
                 const maxQty = Math.min(item.product.stock, 99)
                 return (
                   <div key={item.id} className="checkout-page__item">
@@ -639,7 +621,7 @@ export function CheckoutPage() {
                       </div>
                     </div>
                     <p className="checkout-page__item-total">
-                      {formatPrice(item.lineTotal, filteredCheckout?.currency)}
+                      {formatPrice(item.lineTotal, checkout?.currency)}
                     </p>
                   </div>
                 )
@@ -647,16 +629,16 @@ export function CheckoutPage() {
             </div>
             <div className="checkout-page__totals">
               <div className="checkout-page__total-row">
-                <span>{ka.cart.subtotal} ({filteredCheckout?.totalQty} ცალი)</span>
-                <span>{formatPrice(filteredCheckout?.subtotal || 0, filteredCheckout?.currency)}</span>
+                <span>{ka.cart.subtotal} ({checkout?.totalQty} ცალი)</span>
+                <span>{formatPrice(checkout?.subtotal || 0, checkout?.currency)}</span>
               </div>
               <div className="checkout-page__total-row">
                 <span>მიწოდების საფასური</span>
-                <span>{formatPrice(DELIVERY_OPTIONS.find(opt => opt.id === selectedDeliveryId)?.price || 0, filteredCheckout?.currency)}</span>
+                <span>{formatPrice(DELIVERY_OPTIONS.find(opt => opt.id === selectedDeliveryId)?.price || 0, checkout?.currency)}</span>
               </div>
               <div className="checkout-page__total-row checkout-page__total-row--total">
                 <span>{ka.checkout.total}</span>
-                <span>{formatPrice((filteredCheckout?.total || 0) - (filteredCheckout?.shippingFee || 0) + (DELIVERY_OPTIONS.find(opt => opt.id === selectedDeliveryId)?.price || 0), filteredCheckout?.currency)}</span>
+                <span>{formatPrice((checkout?.total || 0) - (checkout?.shippingFee || 0) + (DELIVERY_OPTIONS.find(opt => opt.id === selectedDeliveryId)?.price || 0), checkout?.currency)}</span>
               </div>
             </div>
           </div>
@@ -682,7 +664,7 @@ export function CheckoutPage() {
                       <span className="checkout-page__delivery-option-name">{option.name}</span>
                       <span className="checkout-page__delivery-option-description">{option.description}</span>
                       <span className="checkout-page__delivery-option-price">
-                        {option.price === 0 ? 'უფასო' : formatPrice(option.price, filteredCheckout?.currency)}
+                        {option.price === 0 ? 'უფასო' : formatPrice(option.price, checkout?.currency)}
                       </span>
                     </label>
                   </div>
@@ -947,7 +929,7 @@ export function CheckoutPage() {
         <div className="checkout-page__confirm-section">
           <p className="checkout-page__confirm-message">{ka.checkout.confirmMessage}</p>
           <p className="checkout-page__confirm-total">
-            {ka.checkout.total}: {formatPrice((filteredCheckout?.total || 0) - (filteredCheckout?.shippingFee || 0) + (DELIVERY_OPTIONS.find(opt => opt.id === selectedDeliveryId)?.price || 0), filteredCheckout?.currency)}
+            {ka.checkout.total}: {formatPrice(createOrder.data?.total || 0, checkout?.currency)}
           </p>
 
           <form onSubmit={codeForm.handleSubmit(handleConfirmSubmit)} className="checkout-page__code-form" noValidate>

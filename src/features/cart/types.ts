@@ -21,6 +21,7 @@ export interface CartItemProduct {
   image: string
   price: number
   oldPrice: number | null
+  discountPercent: number | null
   currency: string
   stock: number
   inStock: boolean

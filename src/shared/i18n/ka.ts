@@ -182,6 +182,7 @@ export const ka = {
     unitPrice: 'ერთეულის ფასი',
     lineTotal: 'ხაზის ჯამი',
     summary: 'შეკვეთის შეჯამება',
+    addToCart: 'კალათაში დამატება',
   },
   profile: {
     title: 'პროფილი',
@@ -227,7 +228,7 @@ export const ka = {
     confirmOrder: 'შეკვეთის დადასტურება',
     confirming: 'დადასტურება...',
     confirmTitle: 'დაადასტურეთ თქვენი შეკვეთა',
-    confirmMessage: 'გამოგიგზავნეთ 6-ნიშნა კოდი თქვენს ელფოსტაზე. გთხოვთ, შეიყვანოთ ის ქვემოთ შეკვეთის დასადასტურებლად.',
+    confirmMessage: 'გამოიგზავნა 6-ნიშნა კოდი თქვენს ელფოსტაზე. გთხოვთ, ქვემოთ შეიყვანოთ ის შეკვეთის დასადასტურებლად.',
     confirmCode: 'დადასტურების კოდი',
     resendCode: 'კოდის ხელახლა გაგზავნა',
     resendIn: (n: number) => `ხელახლა გაგზავნა ${n} წამში`,
@@ -263,6 +264,14 @@ export const ka = {
     statusDelivered: 'მიტანილი',
     statusCancelled: 'გაუქმებული',
     statusFailed: 'წარუმატებელი',
+  },
+  favorites: {
+    title: 'ფავორიტები',
+    empty: 'ფავორიტები ცარიელია',
+    addToCart: 'კალათაში დამატება',
+    remove: 'წაშლა',
+    adding: 'ემატება...',
+    removing: 'შლა...',
   },
 } as const
 

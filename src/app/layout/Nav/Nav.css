@@ -249,7 +249,7 @@
   .nav__links.nav__links--open {
     opacity: 1;
     visibility: visible;
-    max-height: 500px;
+    max-height: 600px;
     padding: var(--spacing-6); /* გახსნისას ბრუნდება შიდა დაშორებები */
   }
 

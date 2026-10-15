@@ -14,7 +14,6 @@ import { Price } from '../../../shared/ui/Price/Price'
 import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog/ConfirmDialog'
 import { ProductCard } from '../../../features/catalog/components/ProductCard'
 import { Carousel } from '../../../shared/ui/Carousel/Carousel'
-import { Checkbox } from '../../../shared/ui/Checkbox/Checkbox'
 import { useProducts } from '../../../features/catalog/hooks'
 import { ka } from '../../../shared/i18n/ka'
 import { formatPrice } from '../../../shared/lib/format'
@@ -31,7 +30,6 @@ export function CartPage() {
   const navigate = useNavigate()
   const [actionError, setActionError] = useState<string | null>(null)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
 
   // Get similar products based on first product's brand
   const firstProductBrand = cart?.items[0]?.product.brand
@@ -80,42 +78,8 @@ export function CartPage() {
     setShowClearConfirm(false)
   }
 
-  const handleSelectItem = (itemId: string, event: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = event.target.checked
-    setSelectedItems((prev) => {
-      const next = new Set(prev)
-      if (checked) {
-        next.add(itemId)
-      } else {
-        next.delete(itemId)
-      }
-      return next
-    })
-  }
-
-  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = event.target.checked
-    if (checked) {
-      setSelectedItems(new Set(cart?.items.map((item) => item.id) ?? []))
-    } else {
-      setSelectedItems(new Set())
-    }
-  }
-
-  const getSelectedItemsTotal = () => {
-    return cart?.items
-      .filter((item) => selectedItems.has(item.id))
-      .reduce((sum, item) => sum + item.lineTotal, 0) ?? 0
-  }
-
-  const getSelectedItemsCount = () => {
-    return cart?.items
-      .filter((item) => selectedItems.has(item.id))
-      .reduce((sum, item) => sum + item.qty, 0) ?? 0
-  }
-
-  const hasSelectedStockIssue = cart?.items.some(
-    (item) => selectedItems.has(item.id) && (!item.product.inStock || item.product.stock < item.qty)
+  const hasStockIssue = cart?.items.some(
+    (item) => !item.product.inStock || item.product.stock < item.qty
   ) ?? false
 
 
@@ -169,26 +133,12 @@ export function CartPage() {
 
       <div className="cart-page__content">
         <ul className="cart-page__list">
-          <li className="cart-page__select-all">
-            <Checkbox
-              checked={selectedItems.size === cart?.items.length && cart.items.length > 0}
-              onChange={handleSelectAll}
-              label="ყველას მონიშვნა"
-            />
-          </li>
           {cart.items.map((item) => {
             const maxQty = Math.min(item.product.stock, 99)
             const hasStockIssue = !item.product.inStock || item.product.stock < item.qty
 
             return (
               <li key={item.id} className="cart-page__item">
-                <div className="cart-page__checkbox">
-                  <Checkbox
-                    checked={selectedItems.has(item.id)}
-                    onChange={(e) => handleSelectItem(item.id, e)}
-                    label=""
-                  />
-                </div>
                 <div className="cart-page__thumb">
                   <img
                     src={item.product.image}
@@ -205,6 +155,7 @@ export function CartPage() {
                     <Price
                       value={item.product.price}
                       oldValue={item.product.oldPrice ?? undefined}
+                      discountPercent={item.product.discountPercent ?? undefined}
                       currency={cart.currency}
                     />
                   </div>
@@ -252,42 +203,32 @@ export function CartPage() {
           <h2 className="cart-page__summary-title">{ka.cart.summary}</h2>
           <div className="cart-page__summary-row">
             <span className="cart-page__summary-label">
-              {selectedItems.size > 0
-                ? ka.cart.itemsCount(getSelectedItemsCount())
-                : ka.cart.itemsCount(cart?.totalQty ?? 0)}
+              {ka.cart.itemsCount(cart?.totalQty ?? 0)}
             </span>
             <span className="cart-page__summary-value">
-              {selectedItems.size > 0
-                ? formatPrice(getSelectedItemsTotal(), cart?.currency ?? 'GEL')
-                : formatPrice(cart?.subtotal ?? 0, cart?.currency ?? 'GEL')}
+              {formatPrice(cart?.subtotal ?? 0, cart?.currency ?? 'GEL')}
             </span>
           </div>
           <div className="cart-page__summary-row cart-page__summary-row--total">
             <span className="cart-page__summary-label">{ka.cart.subtotal}</span>
             <span className="cart-page__summary-value cart-page__summary-value--total">
-              {selectedItems.size > 0
-                ? formatPrice(getSelectedItemsTotal(), cart?.currency ?? 'GEL')
-                : formatPrice(cart?.subtotal ?? 0, cart?.currency ?? 'GEL')}
+              {formatPrice(cart?.subtotal ?? 0, cart?.currency ?? 'GEL')}
             </span>
           </div>
           <div className="cart-page__actions">
             <Button
-              onClick={() => {
-                const selectedIds = Array.from(selectedItems).join(',')
-                navigate(selectedIds ? `${ROUTES.checkout}?items=${selectedIds}` : ROUTES.checkout)
-              }}
+              onClick={() => navigate(ROUTES.checkout)}
               disabled={
-                selectedItems.size === 0 ||
-                hasSelectedStockIssue ||
+                hasStockIssue ||
                 isAnyMutationPending ||
                 (cart?.items.length ?? 0) === 0
               }
-              aria-describedby={hasSelectedStockIssue ? 'cart-checkout-blocked' : undefined}
+              aria-describedby={hasStockIssue ? 'cart-checkout-blocked' : undefined}
               className="cart-page__checkout"
             >
               {ka.cart.checkout}
             </Button>
-            {hasSelectedStockIssue && (
+            {hasStockIssue && (
               <p id="cart-checkout-blocked" className="cart-page__blocked-text">
                 {ka.cart.checkoutBlocked}
               </p>

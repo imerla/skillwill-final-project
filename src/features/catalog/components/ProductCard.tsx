@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ShoppingCart, Star } from 'lucide-react'
+import { ShoppingCart, Star, Heart } from 'lucide-react'
 import type { Product } from '../types'
 import { Price } from '../../../shared/ui/Price/Price'
 import { Badge } from '../../../shared/ui/Badge/Badge'
 import { ka } from '../../../shared/i18n/ka'
 import { ROUTES } from '../../../app/routes'
+import { useFavorites, useAddToFavorites, useRemoveFromFavorites } from '../../favorites/hooks'
 import './ProductCard.css'
 
 interface ProductCardProps {
@@ -15,6 +16,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onQuickAdd }: ProductCardProps) {
   const {
+    id,
     slug,
     title,
     brand,
@@ -32,10 +34,36 @@ export function ProductCard({ product, onQuickAdd }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const currentImage = isHovered && images && images.length > 1 ? images[1] : image
 
+  const { data: favorites } = useFavorites()
+  const addToFavorites = useAddToFavorites()
+  const removeFromFavorites = useRemoveFromFavorites()
+
+  // Check localStorage as fallback for when API fails
+  const getStoredFavoriteIds = (): Set<string> => {
+    try {
+      const stored = localStorage.getItem('favorites_ids')
+      return stored ? new Set(JSON.parse(stored)) : new Set()
+    } catch {
+      return new Set()
+    }
+  }
+
+  const isFavorite = favorites?.items.some((f) => f.productId === id) ?? getStoredFavoriteIds().has(id)
+
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     onQuickAdd?.(product)
+  }
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (isFavorite) {
+      removeFromFavorites.mutate(id)
+    } else {
+      addToFavorites.mutate(id)
+    }
   }
 
   return (
@@ -71,6 +99,13 @@ export function ProductCard({ product, onQuickAdd }: ProductCardProps) {
             <ShoppingCart size={18} />
           </button>
         )}
+        <button
+          className={`product-card__favorite ${isFavorite ? 'product-card__favorite--active' : ''}`}
+          onClick={handleToggleFavorite}
+          aria-label={isFavorite ? 'ფავორიტებიდან წაშლა' : 'ფავორიტებში დამატება'}
+        >
+          <Heart size={18} fill={isFavorite ? 'var(--color-primary)' : 'none'} />
+        </button>
       </div>
 
       <div className="product-card__content">

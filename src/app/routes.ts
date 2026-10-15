@@ -11,5 +11,6 @@ export const ROUTES = {
   orders: '/orders',
   order: (id: string) => `/orders/${id}`,
   profile: '/profile',
+  favorites: '/favorites',
 } as const
 
