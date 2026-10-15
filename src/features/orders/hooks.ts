@@ -8,7 +8,7 @@ export function useOrders(options?: { enabled?: boolean }) {
   return useQuery<{ items: Order[] }>({
     queryKey: ORDERS_QUERY_KEY,
     queryFn: ({ signal }) => getOrders(signal),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
     enabled: options?.enabled !== false,
   })
 }

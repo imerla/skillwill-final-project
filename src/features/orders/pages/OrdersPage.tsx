@@ -1,12 +1,15 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import { useOrders, useOrder } from '../hooks'
 import type { Order, OrderStatus } from '../types'
+import { ApiErrorClass } from '../../../shared/api'
 import { PageContainer } from '../../../shared/ui/PageContainer/PageContainer'
 import { Button } from '../../../shared/ui/Button/Button'
 import { Badge } from '../../../shared/ui/Badge/Badge'
 import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { ErrorState } from '../../../shared/ui/ErrorState/ErrorState'
 import { EmptyState } from '../../../shared/ui/EmptyState/EmptyState'
+import { Alert } from '../../../shared/ui/Alert/Alert'
 import { formatPrice } from '../../../shared/lib/format'
 import { formatDate } from '../../../shared/lib/format'
 import { ka } from '../../../shared/i18n/ka'
@@ -37,6 +40,13 @@ export function OrdersPage() {
 
   useDocumentTitle(id ? ka.orders.orderDetails : ka.orders.title)
 
+  // Refetch orders on mount to ensure fresh data
+  useEffect(() => {
+    if (!id) {
+      refetch()
+    }
+  }, [id, refetch])
+
   if (id) {
     return <OrderDetail order={orderDetail?.order} isLoading={isLoadingDetail} error={errorDetail} onBack={() => navigate(ROUTES.orders)} />
   }
@@ -54,8 +64,12 @@ export function OrdersPage() {
   }
 
   if (error) {
+    console.error('Orders error:', error)
+    const errorMessage = error instanceof ApiErrorClass ? error.message : 'შეცდომა მოხდა'
     return (
       <PageContainer size="page" as="section">
+        <h1 className="orders-page__title">{ka.orders.title}</h1>
+        <Alert variant="error" message={errorMessage} className="orders-page__alert" />
         <ErrorState onAction={() => refetch()} />
       </PageContainer>
     )

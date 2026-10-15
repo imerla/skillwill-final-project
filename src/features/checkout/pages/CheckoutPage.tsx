@@ -3,12 +3,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { useCheckout, useCreateOrder, useConfirmOrder, useResendCode } from '../hooks'
 import { useUpdateCartItemQuantity, useRemoveCartItem } from '../../cart/hooks'
 import { useAddresses, useCreateAddress, useUpdateAddress, type Address, type CreateAddressRequest } from '../../profile/hooks'
 import { getCheckoutErrorMessage } from '../errors'
 import { getCartErrorMessage } from '../../cart/errors'
 import type { CreateOrderRequest, Order } from '../types'
+import { ApiErrorClass, applyServerErrors } from '../../../shared/api'
 import { PageContainer } from '../../../shared/ui/PageContainer/PageContainer'
 import { Button } from '../../../shared/ui/Button/Button'
 import { FormField } from '../../../shared/ui/FormField'
@@ -31,18 +33,22 @@ const shippingSchema = z.object({
   address: z.string().min(5, ka.validation.addressMin),
 })
 
-const addressFormSchema = z.object({
-  label: z.string().min(1, 'ლეიბლი აუცილებელია'),
-  fullName: z.string().min(2, ka.validation.nameMin),
-  phone: z.string().min(9, ka.validation.phoneMin),
-  city: z.string().min(2, ka.validation.cityMin),
-  address: z.string().min(5, ka.validation.addressMin),
-})
-
 const cardSchema = z.object({
-  number: z.string().regex(/^\d{4}\s?\d{4}\s?\d{4}\s?\d{4}$/, ka.validation.cardNumberInvalid),
+  number: z.string()
+    .regex(/^\d{4}\s\d{4}\s\d{4}\s\d{4}$/, ka.validation.cardNumberInvalid)
+    .transform((val) => val.replace(/\s/g, '')), // Remove spaces after validation
   holder: z.string().min(2, ka.validation.cardHolderMin),
-  expiry: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, ka.validation.expiryInvalid),
+  expiry: z.string()
+    .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, ka.validation.expiryInvalid)
+    .refine((val) => {
+      const [month, year] = val.split('/').map(Number)
+      const now = new Date()
+      const currentYear = now.getFullYear() % 100
+      const currentMonth = now.getMonth() + 1
+      if (year < currentYear) return false
+      if (year === currentYear && month < currentMonth) return false
+      return true
+    }, ka.validation.expiryInvalid),
   cvc: z.string().regex(/^\d{3,4}$/, ka.validation.cvcInvalid),
 })
 
@@ -59,21 +65,112 @@ const codeSchema = z.object({
 
 type CodeFormData = z.infer<typeof codeSchema>
 
+interface DeliveryOption {
+  id: string
+  name: string
+  description: string
+  price: number
+  estimatedDays: string
+}
+
+const DELIVERY_OPTIONS: DeliveryOption[] = [
+  {
+    id: 'pickup',
+    name: 'მაღაზიიდან გატანა',
+    description: '7 დღის განმავლობაში',
+    price: 0,
+    estimatedDays: 'მაშინვე',
+  },
+  {
+    id: 'standard',
+    name: 'სტანდარტული მიწოდება',
+    description: '4-5 სამუშაო დღე',
+    price: 5,
+    estimatedDays: '4-5 დღე',
+  },
+  {
+    id: 'express',
+    name: 'სწრაფი მიწოდება',
+    description: '1-3 სამუშაო დღე',
+    price: 15,
+    estimatedDays: '1-3 დღე',
+  },
+]
+
 function AddressFormModal({
   show,
   editingAddress,
   onClose,
   onSubmit,
-  form,
-  isPending,
+  isLoading,
+  serverError,
 }: {
   show: boolean
   editingAddress: Address | null
   onClose: () => void
-  onSubmit: (data: z.infer<typeof addressFormSchema>) => void
-  form: ReturnType<typeof useForm<z.infer<typeof addressFormSchema>>>
-  isPending: boolean
+  onSubmit: (data: { label: string; fullName: string; phone: string; city: string; address: string }) => void
+  isLoading: boolean
+  serverError: ApiErrorClass | null
 }) {
+  const {
+    register,
+    handleSubmit,
+    setError,
+    clearErrors,
+    formState: { errors },
+  } = useForm<{ label: string; fullName: string; phone: string; city: string; address: string }>({
+    defaultValues: editingAddress
+      ? {
+          label: editingAddress.label,
+          fullName: editingAddress.fullName,
+          phone: editingAddress.phone,
+          city: editingAddress.city,
+          address: editingAddress.address,
+        }
+      : {
+          label: '',
+          fullName: '',
+          phone: '',
+          city: '',
+          address: '',
+        },
+  })
+
+  // Apply server errors when they change
+  useEffect(() => {
+    if (serverError && serverError.status === 422) {
+      applyServerErrors(serverError, setError, ['label', 'fullName', 'phone', 'city', 'address'])
+    }
+  }, [serverError, setError])
+
+  const handleFormChange = () => {
+    clearErrors()
+  }
+
+  const formatPhone = (value: string) => {
+    const cleaned = value.replace(/\D/g, '')
+    if (cleaned.length === 0) return ''
+    if (cleaned.startsWith('995')) {
+      const rest = cleaned.slice(3)
+      if (rest.length <= 3) return `+995 ${rest}`
+      if (rest.length <= 6) return `+995 ${rest.slice(0, 3)} ${rest.slice(3)}`
+      if (rest.length <= 9) return `+995 ${rest.slice(0, 3)} ${rest.slice(3, 6)} ${rest.slice(6)}`
+      return `+995 ${rest.slice(0, 3)} ${rest.slice(3, 6)} ${rest.slice(6, 9)}`
+    }
+    if (cleaned.length <= 3) return cleaned
+    if (cleaned.length <= 6) return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`
+    if (cleaned.length <= 9) return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`
+    return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6, 9)}`
+  }
+
+  const validatePhone = (value: string) => {
+    const cleaned = value.replace(/\D/g, '')
+    if (cleaned.length < 9) {
+      return 'ტელეფონის ნომერი უნდა შეიცავდეს მინიმუმ 9 ციფრს'
+    }
+    return true
+  }
+
   if (!show) return null
 
   return (
@@ -82,96 +179,110 @@ function AddressFormModal({
         <h3 className="checkout-page__modal-title">
           {editingAddress ? 'მისამართის რედაქტირება' : 'ახალი მისამართი'}
         </h3>
-        <Button
-          variant="secondary"
-          onClick={onClose}
+        <button
           className="checkout-page__modal-close"
+          onClick={onClose}
         >
-          დახურვა
-        </Button>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="checkout-page__address-form" noValidate>
-          <FormField label="ლეიბლი" error={form.formState.errors.label?.message}>
+          ✕
+        </button>
+        <form onSubmit={handleSubmit(onSubmit)} className="checkout-page__address-form" noValidate onChange={handleFormChange}>
+          <FormField label="სახელწოდება" error={errors.label?.message}>
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
                 id={id}
                 type="text"
-                autoComplete="organization"
+                placeholder="მაგ: სახლი, ოფისი"
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
-                error={!!form.formState.errors.label}
-                disabled={isPending}
-                {...form.register('label')}
+                error={!!errors.label}
+                disabled={isLoading}
+                {...register('label', { required: 'სახელწოდება სავალდებულოა' })}
               />
             )}
           </FormField>
 
-          <FormField label={ka.checkout.fullName} error={form.formState.errors.fullName?.message}>
+          <FormField label="სრული სახელი" error={errors.fullName?.message}>
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
                 id={id}
                 type="text"
-                autoComplete="name"
+                placeholder="სახელი და გვარი"
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
-                error={!!form.formState.errors.fullName}
-                disabled={isPending}
-                {...form.register('fullName')}
+                error={!!errors.fullName}
+                disabled={isLoading}
+                {...register('fullName', { required: 'სრული სახელი სავალდებულოა' })}
               />
             )}
           </FormField>
 
-          <FormField label={ka.checkout.phone} error={form.formState.errors.phone?.message}>
+          <FormField label="ტელეფონი" error={errors.phone?.message}>
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
                 id={id}
                 type="tel"
-                autoComplete="tel"
+                placeholder="+995 555 12 34 56"
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
-                error={!!form.formState.errors.phone}
-                disabled={isPending}
-                {...form.register('phone')}
+                error={!!errors.phone}
+                disabled={isLoading}
+                {...register('phone', {
+                  required: 'ტელეფონი სავალდებულოა',
+                  onChange: (e) => {
+                    e.target.value = formatPhone(e.target.value)
+                  },
+                  validate: validatePhone,
+                })}
               />
             )}
           </FormField>
 
-          <FormField label={ka.checkout.city} error={form.formState.errors.city?.message}>
+          <FormField label="ქალაქი" error={errors.city?.message}>
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
                 id={id}
                 type="text"
-                autoComplete="address-level2"
+                placeholder="ქალაქი"
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
-                error={!!form.formState.errors.city}
-                disabled={isPending}
-                {...form.register('city')}
+                error={!!errors.city}
+                disabled={isLoading}
+                {...register('city', { required: 'ქალაქი სავალდებულოა' })}
               />
             )}
           </FormField>
 
-          <FormField label={ka.checkout.address} error={form.formState.errors.address?.message}>
+          <FormField label="მისამართი" error={errors.address?.message}>
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
                 id={id}
                 type="text"
-                autoComplete="street-address"
+                placeholder="მისამართი"
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
-                error={!!form.formState.errors.address}
-                disabled={isPending}
-                {...form.register('address')}
+                error={!!errors.address}
+                disabled={isLoading}
+                {...register('address', { required: 'მისამართი სავალდებულოა' })}
               />
             )}
           </FormField>
 
-          <Button
-            type="submit"
-            loading={isPending}
-            disabled={isPending}
-          >
-            {isPending ? 'ინახება...' : 'შენახვა'}
-          </Button>
+          <div className="checkout-page__address-form-actions">
+            <Button
+              type="submit"
+              loading={isLoading}
+              disabled={isLoading}
+            >
+              {editingAddress ? 'შენახება' : 'დამატება'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onClose}
+            >
+              გაუქმება
+            </Button>
+          </div>
         </form>
       </div>
     </div>
@@ -180,6 +291,7 @@ function AddressFormModal({
 
 export function CheckoutPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
   const itemsParam = searchParams.get('items')
   const selectedItemIds = itemsParam ? itemsParam.split(',').filter(Boolean) : undefined
@@ -205,30 +317,37 @@ export function CheckoutPage() {
   const [showAddressSelector, setShowAddressSelector] = useState(false)
   const [showAddressForm, setShowAddressForm] = useState(false)
   const [editingAddress, setEditingAddress] = useState<Address | null>(null)
-
-  const addressForm = useForm<z.infer<typeof addressFormSchema>>({
-    resolver: zodResolver(addressFormSchema),
-    mode: 'onSubmit',
-    reValidateMode: 'onChange',
-    defaultValues: {
-      label: '',
-      fullName: '',
-      phone: '',
-      city: '',
-      address: '',
-    },
-    values: editingAddress ? {
-      label: editingAddress.label,
-      fullName: editingAddress.fullName,
-      phone: editingAddress.phone,
-      city: editingAddress.city,
-      address: editingAddress.address,
-    } : undefined,
-  })
+  const [addressServerError, setAddressServerError] = useState<ApiErrorClass | null>(null)
+  const [selectedDeliveryId, setSelectedDeliveryId] = useState<string>('standard')
 
   useDocumentTitle(ka.checkout.title)
 
   const isAnyMutationPending = updateQuantity.isPending || removeItem.isPending || createAddress.isPending || updateAddress.isPending
+
+  // Card number formatting
+  const formatCardNumber = (value: string) => {
+    const cleaned = value.replace(/\D/g, '')
+    const maxLength = 16
+    const trimmed = cleaned.slice(0, maxLength)
+    const groups = trimmed.match(/.{1,4}/g)
+    const formatted = groups ? groups.join(' ') : ''
+    return formatted
+  }
+
+  // Card expiry formatting
+  const formatExpiry = (value: string) => {
+    const cleaned = value.replace(/\D/g, '')
+    if (cleaned.length >= 2) {
+      return cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4)
+    }
+    return cleaned
+  }
+
+  // CVC formatting (max 4 digits)
+  const formatCVC = (value: string) => {
+    const cleaned = value.replace(/\D/g, '')
+    return cleaned.slice(0, 4)
+  }
 
   // Filter items client-side if specific items were selected
   const filteredCheckout = useMemo(() => {
@@ -308,23 +427,18 @@ export function CheckoutPage() {
   }
 
   const handleNewAddress = () => {
-    console.log('handleNewAddress called')
     setEditingAddress(null)
-    setShowAddressForm(true)
-  }
-
-  const handleEditAddress = (address: Address) => {
-    console.log('handleEditAddress called', address)
-    setEditingAddress(address)
     setShowAddressForm(true)
   }
 
   const handleCloseAddressForm = () => {
     setShowAddressForm(false)
     setEditingAddress(null)
+    setAddressServerError(null)
   }
 
-  const handleAddressFormSubmit = async (data: z.infer<typeof addressFormSchema>) => {
+  const handleAddressFormSubmit = async (data: { label: string; fullName: string; phone: string; city: string; address: string }) => {
+    setAddressServerError(null)
     try {
       if (editingAddress) {
         await updateAddress.mutateAsync({ id: editingAddress.id, data })
@@ -332,16 +446,31 @@ export function CheckoutPage() {
         await createAddress.mutateAsync(data as CreateAddressRequest)
       }
       handleCloseAddressForm()
-      addressForm.reset()
     } catch (err) {
-      console.error('Address save error:', err)
+      if (err instanceof ApiErrorClass) {
+        if (err.status === 422) {
+          setAddressServerError(err)
+        } else {
+          setActionError(err.message || 'მისამართის შენახვა ვერ მოხერხდა')
+        }
+      } else {
+        setActionError('მისამართის შენახვა ვერ მოხერხდა')
+      }
     }
   }
 
   const handleCheckoutSubmit = async (data: CheckoutFormData) => {
     setSubmitError(null)
     try {
-      const result = await createOrder.mutateAsync(data as CreateOrderRequest)
+      // Clean the data before sending - remove spaces from card number
+      const cleanedData = {
+        ...data,
+        card: {
+          ...data.card,
+          number: data.card.number.replace(/\s/g, ''), // Remove spaces from card number
+        },
+      }
+      const result = await createOrder.mutateAsync(cleanedData as CreateOrderRequest)
       setOrderId(result.orderId)
       if (result.devCode) {
         setDevCode(result.devCode)
@@ -352,6 +481,13 @@ export function CheckoutPage() {
       form.setValue('card.expiry', '')
       form.setValue('card.cvc', '')
     } catch (err) {
+      if (err instanceof ApiErrorClass && err.status === 422 && err.errors) {
+        // Map server errors to form fields
+        Object.entries(err.errors).forEach(([key, value]) => {
+          const message = Array.isArray(value) ? value[0] : value
+          form.setError(key as any, { type: 'server', message })
+        })
+      }
       setSubmitError(getCheckoutErrorMessage(err))
     }
   }
@@ -362,6 +498,9 @@ export function CheckoutPage() {
     try {
       const result = await confirmOrder.mutateAsync({ orderId, data })
       setConfirmedOrder(result.order)
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      queryClient.invalidateQueries({ queryKey: ['checkout'] })
+      queryClient.invalidateQueries({ queryKey: ['cart'] })
       setStep('success')
     } catch (err) {
       setSubmitError(getCheckoutErrorMessage(err))
@@ -464,8 +603,9 @@ export function CheckoutPage() {
         <div className="checkout-page__content">
           {actionError && <Alert variant="error" message={actionError} className="checkout-page__alert" />}
 
-          <div className="checkout-page__summary">
-            <h2 className="checkout-page__section-title">{ka.checkout.orderSummary}</h2>
+          <div className="checkout-page__left-column">
+            <div className="checkout-page__summary">
+            <h2 className="checkout-page__section-title">შესაკვეთად არჩეული</h2>
             <div className="checkout-page__items">
               {filteredCheckout?.items.map((item) => {
                 const maxQty = Math.min(item.product.stock, 99)
@@ -511,18 +651,49 @@ export function CheckoutPage() {
                 <span>{formatPrice(filteredCheckout?.subtotal || 0, filteredCheckout?.currency)}</span>
               </div>
               <div className="checkout-page__total-row">
-                <span>{ka.checkout.shippingInfo}</span>
-                <span>{formatPrice(filteredCheckout?.shippingFee || 0, filteredCheckout?.currency)}</span>
+                <span>მიწოდების საფასური</span>
+                <span>{formatPrice(DELIVERY_OPTIONS.find(opt => opt.id === selectedDeliveryId)?.price || 0, filteredCheckout?.currency)}</span>
               </div>
               <div className="checkout-page__total-row checkout-page__total-row--total">
                 <span>{ka.checkout.total}</span>
-                <span>{formatPrice(filteredCheckout?.total || 0, filteredCheckout?.currency)}</span>
+                <span>{formatPrice((filteredCheckout?.total || 0) - (filteredCheckout?.shippingFee || 0) + (DELIVERY_OPTIONS.find(opt => opt.id === selectedDeliveryId)?.price || 0), filteredCheckout?.currency)}</span>
               </div>
             </div>
           </div>
 
+          <div className="checkout-page__delivery-section">
+            <h2 className="checkout-page__section-title">მიწოდება</h2>
+            <div className="checkout-page__delivery-options">
+              {DELIVERY_OPTIONS.map((option) => (
+                <div
+                  key={option.id}
+                  className={`checkout-page__delivery-option ${selectedDeliveryId === option.id ? 'checkout-page__delivery-option--selected' : ''}`}
+                  onClick={() => setSelectedDeliveryId(option.id)}
+                >
+                  <div className="checkout-page__delivery-option-radio">
+                    <input
+                      type="radio"
+                      name="delivery"
+                      id={`delivery-${option.id}`}
+                      checked={selectedDeliveryId === option.id}
+                      onChange={() => setSelectedDeliveryId(option.id)}
+                    />
+                    <label htmlFor={`delivery-${option.id}`}>
+                      <span className="checkout-page__delivery-option-name">{option.name}</span>
+                      <span className="checkout-page__delivery-option-description">{option.description}</span>
+                      <span className="checkout-page__delivery-option-price">
+                        {option.price === 0 ? 'უფასო' : formatPrice(option.price, filteredCheckout?.currency)}
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          </div>
+
           <div className="checkout-page__form-section">
-            <h2 className="checkout-page__section-title">{ka.checkout.shippingInfo}</h2>
+            <h2 className="checkout-page__section-title">მიწოდების ინფორმაცია</h2>
 
             {/* Address Selector */}
             <div className="checkout-page__address-selector">
@@ -551,18 +722,6 @@ export function CheckoutPage() {
                             <span className="checkout-page__address-item-default">მთავარი</span>
                           )}
                         </div>
-                        <Button
-                          variant="secondary"
-                          onClick={(e) => {
-                            console.log('Edit button clicked', address, 'isAnyMutationPending:', isAnyMutationPending)
-                            e.stopPropagation()
-                            handleEditAddress(address)
-                          }}
-                          disabled={isAnyMutationPending}
-                          className="checkout-page__address-item-edit"
-                        >
-                          რედაქტირება
-                        </Button>
                       </div>
                     ))
                   ) : (
@@ -573,7 +732,6 @@ export function CheckoutPage() {
                   <Button
                     variant="secondary"
                     onClick={() => {
-                      console.log('New address button clicked', 'isAnyMutationPending:', isAnyMutationPending)
                       handleNewAddress()
                     }}
                     disabled={isAnyMutationPending}
@@ -659,7 +817,6 @@ export function CheckoutPage() {
                   <Button
                     variant="secondary"
                     onClick={() => {
-                      console.log('Change address clicked')
                       setSelectedAddressId(null)
                     }}
                     className="checkout-page__change-address"
@@ -683,7 +840,11 @@ export function CheckoutPage() {
                     aria-invalid={ariaInvalid}
                     error={!!form.formState.errors.card?.number}
                     disabled={createOrder.isPending}
-                    {...form.register('card.number')}
+                    {...form.register('card.number', {
+                      onChange: (e) => {
+                        e.target.value = formatCardNumber(e.target.value)
+                      },
+                    })}
                   />
                 )}
               </FormField>
@@ -694,12 +855,16 @@ export function CheckoutPage() {
                     id={id}
                     type="text"
                     autoComplete="cc-name"
-                    placeholder="NAME ON CARD"
+                    placeholder="ბარათის მფლობელი"
                     aria-describedby={ariaDescribedby}
                     aria-invalid={ariaInvalid}
                     error={!!form.formState.errors.card?.holder}
                     disabled={createOrder.isPending}
-                    {...form.register('card.holder')}
+                    {...form.register('card.holder', {
+                      onChange: (e) => {
+                        e.target.value = e.target.value.toUpperCase()
+                      },
+                    })}
                   />
                 )}
               </FormField>
@@ -717,9 +882,13 @@ export function CheckoutPage() {
                       aria-invalid={ariaInvalid}
                       error={!!form.formState.errors.card?.expiry}
                       disabled={createOrder.isPending}
-                      {...form.register('card.expiry')}
-                    />
-                  )}
+                      {...form.register('card.expiry', {
+                      onChange: (e) => {
+                        e.target.value = formatExpiry(e.target.value)
+                      },
+                    })}
+                  />
+                )}
                 </FormField>
 
                 <FormField label={ka.checkout.cvc} error={form.formState.errors.card?.cvc?.message}>
@@ -734,9 +903,13 @@ export function CheckoutPage() {
                       aria-invalid={ariaInvalid}
                       error={!!form.formState.errors.card?.cvc}
                       disabled={createOrder.isPending}
-                      {...form.register('card.cvc')}
-                    />
-                  )}
+                      {...form.register('card.cvc', {
+                      onChange: (e) => {
+                        e.target.value = formatCVC(e.target.value)
+                      },
+                    })}
+                  />
+                )}
                 </FormField>
               </div>
 
@@ -760,8 +933,8 @@ export function CheckoutPage() {
           editingAddress={editingAddress}
           onClose={handleCloseAddressForm}
           onSubmit={handleAddressFormSubmit}
-          form={addressForm}
-          isPending={createAddress.isPending || updateAddress.isPending}
+          isLoading={createAddress.isPending || updateAddress.isPending}
+          serverError={addressServerError}
         />
       </PageContainer>
     )
@@ -774,7 +947,7 @@ export function CheckoutPage() {
         <div className="checkout-page__confirm-section">
           <p className="checkout-page__confirm-message">{ka.checkout.confirmMessage}</p>
           <p className="checkout-page__confirm-total">
-            {ka.checkout.total}: {formatPrice(filteredCheckout?.total || 0, filteredCheckout?.currency)}
+            {ka.checkout.total}: {formatPrice((filteredCheckout?.total || 0) - (filteredCheckout?.shippingFee || 0) + (DELIVERY_OPTIONS.find(opt => opt.id === selectedDeliveryId)?.price || 0), filteredCheckout?.currency)}
           </p>
 
           <form onSubmit={codeForm.handleSubmit(handleConfirmSubmit)} className="checkout-page__code-form" noValidate>
@@ -832,8 +1005,8 @@ export function CheckoutPage() {
           editingAddress={editingAddress}
           onClose={handleCloseAddressForm}
           onSubmit={handleAddressFormSubmit}
-          form={addressForm}
-          isPending={createAddress.isPending || updateAddress.isPending}
+          isLoading={createAddress.isPending || updateAddress.isPending}
+          serverError={addressServerError}
         />
       </PageContainer>
     )
@@ -871,8 +1044,8 @@ export function CheckoutPage() {
           editingAddress={editingAddress}
           onClose={handleCloseAddressForm}
           onSubmit={handleAddressFormSubmit}
-          form={addressForm}
-          isPending={createAddress.isPending || updateAddress.isPending}
+          isLoading={createAddress.isPending || updateAddress.isPending}
+          serverError={addressServerError}
         />
       </div>
     </PageContainer>

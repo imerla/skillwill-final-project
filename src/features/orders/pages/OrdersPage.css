@@ -6,6 +6,10 @@
   margin-bottom: var(--spacing-8);
 }
 
+.orders-page__alert {
+  margin-bottom: var(--spacing-6);
+}
+
 .orders-page__loading {
   display: flex;
   flex-direction: column;

@@ -118,6 +118,8 @@ export function CartPage() {
     (item) => selectedItems.has(item.id) && (!item.product.inStock || item.product.stock < item.qty)
   ) ?? false
 
+
+
   if (isLoading) {
     return (
       <PageContainer size="page" as="section">
