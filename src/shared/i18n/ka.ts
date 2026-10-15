@@ -235,7 +235,7 @@ export const ka = {
     sending: 'გაგზავნა...',
     devCode: 'დეველოპერის კოდი',
     successTitle: 'შეკვეთა დადასტურებულია!',
-    successMessage: 'თქვენი შეკვეთა წარმატებით დადასტურდა.',
+    successMessage: 'თქვენი შეკვეთა მიღებულია.',
     orderId: 'შეკვეთის ID',
     total: 'ჯამი',
     status: 'სტატუსი',

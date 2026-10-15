@@ -392,7 +392,7 @@ export function ProductDetailsPage() {
           {cartQuantity > 0 && (
             <div className="product-details-page__cart-status">
               <span className="product-details-page__cart-status-text">
-                {ka.cart.itemsCount(cartQuantity)}
+                {ka.cart.itemsCount(cartQuantity)} კალათაში
               </span>
             </div>
           )}

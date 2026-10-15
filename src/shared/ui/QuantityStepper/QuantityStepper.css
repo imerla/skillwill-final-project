@@ -38,6 +38,7 @@
 .quantity-stepper__value {
   min-width: var(--spacing-8);
   max-width: 80px;
+  height: var(--size-control-md);
   font-family: var(--font-family);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);

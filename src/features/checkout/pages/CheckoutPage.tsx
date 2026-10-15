@@ -48,7 +48,7 @@ const cardSchema = z.object({
       if (year < currentYear) return false
       if (year === currentYear && month < currentMonth) return false
       return true
-    }, ka.validation.expiryInvalid),
+    }, 'ბარათის ვადა გასულია'),
   cvc: z.string().regex(/^\d{3,4}$/, ka.validation.cvcInvalid),
 })
 
@@ -75,24 +75,17 @@ interface DeliveryOption {
 
 const DELIVERY_OPTIONS: DeliveryOption[] = [
   {
-    id: 'pickup',
-    name: 'მაღაზიიდან გატანა',
-    description: '7 დღის განმავლობაში',
-    price: 0,
-    estimatedDays: 'მაშინვე',
-  },
-  {
     id: 'standard',
     name: 'სტანდარტული მიწოდება',
     description: '4-5 სამუშაო დღე',
-    price: 5,
+    price: 0,
     estimatedDays: '4-5 დღე',
   },
   {
     id: 'express',
     name: 'სწრაფი მიწოდება',
     description: '1-3 სამუშაო დღე',
-    price: 15,
+    price: 10,
     estimatedDays: '1-3 დღე',
   },
 ]

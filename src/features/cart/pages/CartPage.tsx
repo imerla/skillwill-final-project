@@ -137,6 +137,13 @@ export function CartPage() {
             const maxQty = Math.min(item.product.stock, 99)
             const hasStockIssue = !item.product.inStock || item.product.stock < item.qty
 
+            // Calculate discount percent if not provided by backend
+            const calculatedDiscountPercent = item.product.discountPercent
+              ? item.product.discountPercent
+              : item.product.oldPrice && item.product.oldPrice > item.product.price
+                ? Math.round(((item.product.oldPrice - item.product.price) / item.product.oldPrice) * 100)
+                : undefined
+
             return (
               <li key={item.id} className="cart-page__item">
                 <div className="cart-page__thumb">
@@ -155,7 +162,7 @@ export function CartPage() {
                     <Price
                       value={item.product.price}
                       oldValue={item.product.oldPrice ?? undefined}
-                      discountPercent={item.product.discountPercent ?? undefined}
+                      discountPercent={calculatedDiscountPercent}
                       currency={cart.currency}
                     />
                   </div>
