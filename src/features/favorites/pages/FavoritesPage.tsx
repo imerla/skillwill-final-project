@@ -98,7 +98,7 @@ export function FavoritesPage() {
   if (showLoading) {
     return (
       <PageContainer size="page" as="section">
-        <h1 className="favorites-page__title">{ka.favorites.title}</h1>
+        <h1 className="favorites-page__page-title">{ka.favorites.title}</h1>
         <div className="favorites-page__grid">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="favorites-page__skeleton">
@@ -125,7 +125,7 @@ export function FavoritesPage() {
   if (!favorites || favoriteIds.length === 0) {
     return (
       <PageContainer size="page" as="section">
-        <h1 className="favorites-page__title">{ka.favorites.title}</h1>
+        <h1 className="favorites-page__page-title">{ka.favorites.title}</h1>
         <EmptyState
           title={ka.favorites.empty}
           actionLabel={ka.catalog.titleFallback}
@@ -137,7 +137,7 @@ export function FavoritesPage() {
 
   return (
     <PageContainer size="page" as="section">
-      <h1 className="favorites-page__title">{ka.favorites.title}</h1>
+      <h1 className="favorites-page__page-title">{ka.favorites.title}</h1>
 
       {actionError && <Alert variant="error" message={actionError} className="favorites-page__alert" />}
 
