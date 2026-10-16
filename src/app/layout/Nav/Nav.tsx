@@ -226,6 +226,10 @@ export function Nav() {
                   <LogIn size={18} className="nav__link-icon" />
                   <span>{t.nav.login}</span>
                 </NavLink>
+                <NavLink to={ROUTES.register} className="nav__link" onClick={closeMobileMenu}>
+                  <UserPlus size={18} className="nav__link-icon" />
+                  <span>{t.nav.register}</span>
+                </NavLink>
                 {/* Language switcher - desktop */}
                 <button
                   type="button"
@@ -243,10 +247,6 @@ export function Nav() {
                   />
                   <span className="nav__language-text">{language === 'ka' ? 'EN' : 'KA'}</span>
                 </button>
-                <NavLink to={ROUTES.register} className="nav__link" onClick={closeMobileMenu}>
-                  <UserPlus size={18} className="nav__link-icon" />
-                  <span>{t.nav.register}</span>
-                </NavLink>
               </>
             )}
           </div>
