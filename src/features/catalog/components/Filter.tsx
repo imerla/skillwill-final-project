@@ -3,7 +3,7 @@ import { Button } from '../../../shared/ui/Button/Button'
 import { Checkbox } from '../../../shared/ui/Checkbox/Checkbox'
 import { Radio } from '../../../shared/ui/Radio/Radio'
 import { Input } from '../../../shared/ui/Input/Input'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import './Filter.css'
 
 interface FilterProps {
@@ -18,6 +18,7 @@ interface FilterProps {
 }
 
 export function Filter({ filter, selectedValues, onChange, onClear, minValue, maxValue, onRangeChange }: FilterProps) {
+  const { t } = useLanguage()
   const selectedSet = new Set(selectedValues.split(',').filter(Boolean))
 
   // Special handling for price filter - use controlled values from URL state
@@ -66,10 +67,10 @@ export function Filter({ filter, selectedValues, onChange, onClear, minValue, ma
           <Button
             variant="secondary"
             onClick={() => onClear(filter.key)}
-            aria-label={ka.catalog.clearFilterAria(filter.label)}
+            aria-label={t.catalog.clearFilterAria(filter.label)}
             className="filter__clear"
           >
-            {ka.catalog.clear}
+            {t.catalog.clear}
           </Button>
         )}
       </legend>
@@ -130,7 +131,7 @@ export function Filter({ filter, selectedValues, onChange, onClear, minValue, ma
           <div className="filter__range-inputs">
             <div className="filter__range-field">
               <label htmlFor={`${filter.key}-min`} className="filter__range-label">
-                {ka.catalog.min}
+                {t.catalog.min}
               </label>
               <Input
                 id={`${filter.key}-min`}
@@ -156,7 +157,7 @@ export function Filter({ filter, selectedValues, onChange, onClear, minValue, ma
             </div>
             <div className="filter__range-field">
               <label htmlFor={`${filter.key}-max`} className="filter__range-label">
-                {ka.catalog.max}
+                {t.catalog.max}
               </label>
               <Input
                 id={`${filter.key}-max`}

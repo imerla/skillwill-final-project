@@ -11,45 +11,52 @@ import { Alert } from '../../../shared/ui/Alert'
 import { setAccessToken, useSession } from '../../../shared/auth'
 import { register as registerApi } from '../api/register'
 import { ApiErrorClass, applyServerErrors } from '../../../shared/api'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
 import './RegisterPage.css'
 
-const registerSchema = z
-  .object({
-    name: z
-      .string()
-      .min(1, ka.validation.nameRequired)
-      .min(2, ka.validation.nameMin),
-    email: z
-      .string()
-      .min(1, ka.validation.emailRequired)
-      .email(ka.validation.emailInvalid),
-    password: z
-      .string()
-      .min(1, ka.validation.passwordRequired)
-      .min(8, ka.validation.passwordMin)
-      .regex(/[a-zA-Z]/, ka.validation.passwordLetter)
-      .regex(/\d/, ka.validation.passwordDigit),
-    confirmPassword: z
-      .string()
-      .min(1, ka.validation.confirmRequired),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: ka.validation.passwordsMismatch,
-    path: ['confirmPassword'],
-  })
-
-type RegisterFormData = z.infer<typeof registerSchema>
+type RegisterFormData = {
+  name: string
+  email: string
+  password: string
+  confirmPassword: string
+}
 
 export function RegisterPage() {
+  const { t } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const navigate = useNavigate()
   const { setUser } = useSession()
 
-  useDocumentTitle(ka.auth.register.title)
+  useDocumentTitle(t.auth.register.title)
+
+  // Define schema with dynamic translations
+  const registerSchema = z
+    .object({
+      name: z
+        .string()
+        .min(1, t.validation.nameRequired)
+        .min(2, t.validation.nameMin),
+      email: z
+        .string()
+        .min(1, t.validation.emailRequired)
+        .email(t.validation.emailInvalid),
+      password: z
+        .string()
+        .min(1, t.validation.passwordRequired)
+        .min(8, t.validation.passwordMin)
+        .regex(/[a-zA-Z]/, t.validation.passwordLetter)
+        .regex(/\d/, t.validation.passwordDigit),
+      confirmPassword: z
+        .string()
+        .min(1, t.validation.confirmRequired),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t.validation.passwordsMismatch,
+      path: ['confirmPassword'],
+    })
 
   const {
     register: registerField,
@@ -79,19 +86,19 @@ export function RegisterPage() {
     } catch (error) {
       if (error instanceof ApiErrorClass) {
         if (error.code === 'EMAIL_TAKEN') {
-          setError('email', { message: ka.auth.register.emailTaken })
+          setError('email', { message: t.auth.register.emailTaken })
         } else if (error.status === 422) {
           const result = applyServerErrors(error, setError, ['name', 'email', 'password'])
           if (result.formError) {
             setSubmitError(result.formError)
           } else if (!result.fieldErrorsSet) {
-            setSubmitError(ka.common.genericError)
+            setSubmitError(t.common.genericError)
           }
         } else {
-          setSubmitError(ka.common.genericError)
+          setSubmitError(t.common.genericError)
         }
       } else {
-        setSubmitError(ka.common.networkError)
+        setSubmitError(t.common.networkError)
       }
     } finally {
       setIsLoading(false)
@@ -101,7 +108,7 @@ export function RegisterPage() {
   return (
     <div className="register-page">
       <div className="register-page__container">
-        <h1 className="register-page__title">{ka.auth.register.title}</h1>
+        <h1 className="register-page__title">{t.auth.register.title}</h1>
 
         {submitError && (
           <Alert variant="error" message={submitError} className="register-page__alert" />
@@ -109,14 +116,14 @@ export function RegisterPage() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="register-page__form" noValidate>
           <FormField
-            label={ka.auth.nameLabel}
+            label={t.auth.nameLabel}
             error={errors.name?.message}
           >
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
                 id={id}
                 type="text"
-                placeholder={ka.auth.namePlaceholder}
+                placeholder={t.auth.namePlaceholder}
                 autoComplete="name"
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
@@ -127,7 +134,7 @@ export function RegisterPage() {
           </FormField>
 
           <FormField
-            label={ka.auth.emailLabel}
+            label={t.auth.emailLabel}
             error={errors.email?.message}
           >
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
@@ -145,7 +152,7 @@ export function RegisterPage() {
           </FormField>
 
           <FormField
-            label={ka.auth.passwordLabel}
+            label={t.auth.passwordLabel}
             error={errors.password?.message}
           >
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
@@ -162,7 +169,7 @@ export function RegisterPage() {
           </FormField>
 
           <FormField
-            label={ka.auth.register.confirmLabel}
+            label={t.auth.register.confirmLabel}
             error={errors.confirmPassword?.message}
           >
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
@@ -184,16 +191,16 @@ export function RegisterPage() {
               loading={isLoading}
               className="register-page__submit"
             >
-              {ka.auth.register.submit}
+              {t.auth.register.submit}
             </Button>
           </div>
         </form>
 
         <div className="register-page__links">
           <div className="register-page__login">
-            {ka.auth.register.haveAccount}{' '}
+            {t.auth.register.haveAccount}{' '}
             <Link to="/login" className="register-page__link">
-              {ka.auth.register.signIn}
+              {t.auth.register.signIn}
             </Link>
           </div>
         </div>

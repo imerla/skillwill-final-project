@@ -4,14 +4,14 @@ import { z } from 'zod'
 import { Button } from '../../../../shared/ui/Button'
 import { FormField } from '../../../../shared/ui/FormField'
 import { Input } from '../../../../shared/ui/Input'
-import { ka } from '../../../../shared/i18n/ka'
+import { useLanguage } from '../../../../shared/i18n/LanguageContext'
 
 const emailSchema = z.object({
   email: z
     .string()
     .trim()
-    .min(1, ka.validation.emailRequired)
-    .email(ka.validation.emailInvalid),
+    .min(1, 'Email is required')
+    .email('Invalid email address'),
 })
 
 type EmailFormData = z.infer<typeof emailSchema>
@@ -23,6 +23,7 @@ interface EmailStepProps {
 }
 
 export function EmailStep({ defaultEmail, isLoading, onSubmit }: EmailStepProps) {
+  const { t } = useLanguage()
   const {
     register,
     handleSubmit,
@@ -42,7 +43,7 @@ export function EmailStep({ defaultEmail, isLoading, onSubmit }: EmailStepProps)
   return (
     <form onSubmit={handleSubmit(submitHandler)} className="forgot-password-page__form" noValidate>
       <FormField
-        label={ka.auth.emailLabel}
+        label={t.auth.emailLabel}
         error={errors.email?.message}
       >
         {(props: { id: string; 'aria-describedby'?: string; 'aria-invalid': boolean }) => (
@@ -65,7 +66,7 @@ export function EmailStep({ defaultEmail, isLoading, onSubmit }: EmailStepProps)
           loading={isLoading}
           className="forgot-password-page__submit"
         >
-          {ka.auth.forgot.sendCode}
+          {t.auth.forgot.sendCode}
         </Button>
       </div>
     </form>

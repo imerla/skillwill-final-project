@@ -12,12 +12,13 @@ import { ErrorState } from '../../../shared/ui/ErrorState/ErrorState'
 import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { Price } from '../../../shared/ui/Price/Price'
 import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog/ConfirmDialog'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
 import './FavoritesPage.css'
 
 export function FavoritesPage() {
+  const { t } = useLanguage()
   const { data: favorites, isLoading, error, refetch } = useFavorites()
   const removeFromFavorites = useRemoveFromFavorites()
   const addToCart = useAddToCart()
@@ -25,7 +26,7 @@ export function FavoritesPage() {
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [itemToRemove, setItemToRemove] = useState<string | null>(null)
 
-  useDocumentTitle(ka.favorites.title)
+  useDocumentTitle(t.favorites.title)
 
   const isAnyMutationPending = removeFromFavorites.isPending || addToCart.isPending
 
@@ -98,7 +99,7 @@ export function FavoritesPage() {
   if (showLoading) {
     return (
       <PageContainer size="page" as="section">
-        <h1 className="favorites-page__page-title">{ka.favorites.title}</h1>
+        <h1 className="favorites-page__page-title">{t.favorites.title}</h1>
         <div className="favorites-page__grid">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="favorites-page__skeleton">
@@ -125,10 +126,10 @@ export function FavoritesPage() {
   if (!favorites || favoriteIds.length === 0) {
     return (
       <PageContainer size="page" as="section">
-        <h1 className="favorites-page__page-title">{ka.favorites.title}</h1>
+        <h1 className="favorites-page__page-title">{t.favorites.title}</h1>
         <EmptyState
-          title={ka.favorites.empty}
-          actionLabel={ka.catalog.titleFallback}
+          title={t.favorites.empty}
+          actionLabel={t.catalog.titleFallback}
           onAction={() => (window.location.href = ROUTES.catalog)}
         />
       </PageContainer>
@@ -137,7 +138,7 @@ export function FavoritesPage() {
 
   return (
     <PageContainer size="page" as="section">
-      <h1 className="favorites-page__page-title">{ka.favorites.title}</h1>
+      <h1 className="favorites-page__page-title">{t.favorites.title}</h1>
 
       {actionError && <Alert variant="error" message={actionError} className="favorites-page__alert" />}
 
@@ -170,6 +171,7 @@ export function FavoritesPage() {
                   oldValue={product.oldPrice ?? undefined}
                   discountPercent={product.discountPercent ?? undefined}
                   currency={product.currency}
+                  t={t}
                 />
               </div>
               <div className="favorites-page__item-actions">

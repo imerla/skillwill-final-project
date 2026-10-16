@@ -1,17 +1,18 @@
 import { Link } from 'react-router-dom'
 import { Mail, Phone, MapPin, Facebook, Instagram, Youtube } from 'lucide-react'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { ROUTES } from '../../../app/routes'
 import './Footer.css'
 
 export function Footer() {
+  const { t } = useLanguage()
   return (
     <footer className="footer">
       <div className="footer__container">
         <div className="footer__grid">
           {/* About Section */}
           <div className="footer__section">
-            <h3 className="footer__title">{ka.nav.brand}</h3>
+            <h3 className="footer__title">{t.nav.brand}</h3>
             <p className="footer__description">
               თქვენი საყვარელი პროდუქტების საიმედო მაღაზია. მაღალი ხარისხი, საუკეთესო ფასები და სწრაფი მიწოდება.
             </p>
@@ -23,17 +24,17 @@ export function Footer() {
             <ul className="footer__links">
               <li>
                 <Link to={ROUTES.catalog} className="footer__link">
-                  {ka.nav.products}
+                  {t.nav.products}
                 </Link>
               </li>
               <li>
                 <Link to={ROUTES.orders} className="footer__link">
-                  {ka.nav.orders}
+                  {t.nav.orders}
                 </Link>
               </li>
               <li>
                 <Link to={ROUTES.profile} className="footer__link">
-                  {ka.nav.profile}
+                  {t.nav.profile}
                 </Link>
               </li>
             </ul>
@@ -77,7 +78,7 @@ export function Footer() {
 
         <div className="footer__bottom">
           <p className="footer__copyright">
-            © {new Date().getFullYear()} {ka.nav.brand}. ყველა უფლება დაცულია.
+            © {new Date().getFullYear()} {t.nav.brand}. ყველა უფლება დაცულია.
           </p>
         </div>
       </div>

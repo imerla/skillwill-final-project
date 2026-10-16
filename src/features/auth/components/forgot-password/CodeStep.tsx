@@ -5,13 +5,13 @@ import { useEffect } from 'react'
 import { Button } from '../../../../shared/ui/Button'
 import { FormField } from '../../../../shared/ui/FormField'
 import { Input } from '../../../../shared/ui/Input'
-import { ka } from '../../../../shared/i18n/ka'
+import { useLanguage } from '../../../../shared/i18n/LanguageContext'
 
 const codeSchema = z.object({
   code: z
     .string()
     .trim()
-    .regex(/^\d{6}$/, ka.validation.codeInvalid),
+    .regex(/^\d{6}$/, 'Code must be 6 digits'),
 })
 
 type CodeFormData = z.infer<typeof codeSchema>
@@ -26,6 +26,7 @@ interface CodeStepProps {
 }
 
 export function CodeStep({ isLoading, onSubmit, onChangeEmail, onRequestNewCode, tooManyAttempts, fieldError }: CodeStepProps) {
+  const { t } = useLanguage()
   const {
     register,
     handleSubmit,
@@ -52,7 +53,7 @@ export function CodeStep({ isLoading, onSubmit, onChangeEmail, onRequestNewCode,
     <>
       <form onSubmit={handleSubmit(submitHandler)} className="forgot-password-page__form" noValidate>
         <FormField
-          label={ka.auth.forgot.codeLabel}
+          label={t.auth.forgot.codeLabel}
           error={errors.code?.message}
         >
           {(props: { id: string; 'aria-describedby'?: string; 'aria-invalid': boolean }) => (
@@ -77,7 +78,7 @@ export function CodeStep({ isLoading, onSubmit, onChangeEmail, onRequestNewCode,
             loading={isLoading}
             className="forgot-password-page__submit"
           >
-            {ka.auth.forgot.verifyCode}
+            {t.auth.forgot.verifyCode}
           </Button>
         </div>
 
@@ -87,7 +88,7 @@ export function CodeStep({ isLoading, onSubmit, onChangeEmail, onRequestNewCode,
             onClick={onChangeEmail}
             className="forgot-password-page__link"
           >
-            {ka.auth.forgot.changeEmail}
+            {t.auth.forgot.changeEmail}
           </button>
           {tooManyAttempts && (
             <button
@@ -95,7 +96,7 @@ export function CodeStep({ isLoading, onSubmit, onChangeEmail, onRequestNewCode,
               onClick={onRequestNewCode}
               className="forgot-password-page__link"
             >
-              {ka.auth.forgot.requestNewCode}
+              {t.auth.forgot.requestNewCode}
             </button>
           )}
         </div>

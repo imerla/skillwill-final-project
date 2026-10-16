@@ -11,7 +11,7 @@ import { Alert } from '../../../shared/ui/Alert'
 import { setAccessToken, useSession, hasSessionExpiredNotice, clearSessionExpiredNotice } from '../../../shared/auth'
 import { login } from '../api/login'
 import { ApiErrorClass, applyServerErrors } from '../../../shared/api'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
 import './LoginPage.css'
@@ -19,11 +19,11 @@ import './LoginPage.css'
 const loginSchema = z.object({
   email: z
     .string()
-    .min(1, ka.validation.emailRequired)
-    .email(ka.validation.emailInvalid),
+    .min(1, 'Email is required')
+    .email('Invalid email address'),
   password: z
     .string()
-    .min(1, ka.validation.passwordRequired),
+    .min(1, 'Password is required'),
 })
 
 type LoginFormData = z.infer<typeof loginSchema>
@@ -43,8 +43,9 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { setUser } = useSession()
+  const { t } = useLanguage()
 
-  useDocumentTitle(ka.auth.login.title)
+  useDocumentTitle(t.auth.login.title)
 
   useEffect(() => {
     clearSessionExpiredNotice()
@@ -77,19 +78,19 @@ export function LoginPage() {
     } catch (error) {
       if (error instanceof ApiErrorClass) {
         if (error.code === 'INVALID_CREDENTIALS') {
-          setSubmitError(ka.auth.login.invalidCredentials)
+          setSubmitError(t.auth.login.invalidCredentials)
         } else if (error.status === 422) {
           const result = applyServerErrors(error, setError, ['email', 'password'])
           if (result.formError) {
             setSubmitError(result.formError)
           } else if (!result.fieldErrorsSet) {
-            setSubmitError(ka.common.genericError)
+            setSubmitError(t.common.genericError)
           }
         } else {
-          setSubmitError(ka.common.genericError)
+          setSubmitError(t.common.genericError)
         }
       } else {
-        setSubmitError(ka.common.networkError)
+        setSubmitError(t.common.networkError)
       }
     } finally {
       setIsLoading(false)
@@ -99,10 +100,10 @@ export function LoginPage() {
   return (
     <div className="login-page">
       <div className="login-page__container">
-        <h1 className="login-page__title">{ka.auth.login.title}</h1>
+        <h1 className="login-page__title">{t.auth.login.title}</h1>
 
         {showExpiredNotice && (
-          <Alert variant="info" message={ka.auth.login.sessionExpired} />
+          <Alert variant="info" message={t.auth.login.sessionExpired} />
         )}
 
         {submitError && (
@@ -111,7 +112,7 @@ export function LoginPage() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="login-page__form" noValidate>
           <FormField
-            label={ka.auth.emailLabel}
+            label={t.auth.emailLabel}
             error={errors.email?.message}
           >
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
@@ -129,7 +130,7 @@ export function LoginPage() {
           </FormField>
 
           <FormField
-            label={ka.auth.passwordLabel}
+            label={t.auth.passwordLabel}
             error={errors.password?.message}
           >
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
@@ -151,19 +152,19 @@ export function LoginPage() {
               loading={isLoading}
               className="login-page__submit"
             >
-              {ka.auth.login.submit}
+              {t.auth.login.submit}
             </Button>
           </div>
         </form>
 
         <div className="login-page__links">
           <Link to="/forgot-password" className="login-page__link">
-            {ka.auth.login.forgot}
+            {t.auth.login.forgot}
           </Link>
           <div className="login-page__register">
-            {ka.auth.login.noAccount}{' '}
+            {t.auth.login.noAccount}{' '}
             <Link to="/register" className="login-page__link">
-              {ka.auth.login.createAccount}
+              {t.auth.login.createAccount}
             </Link>
           </div>
         </div>

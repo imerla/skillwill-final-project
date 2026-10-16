@@ -1,7 +1,7 @@
 import type { Category } from '../types'
 import { Button } from '../../../shared/ui/Button/Button'
 import { X } from 'lucide-react'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage, type Translations } from '../../../shared/i18n/LanguageContext'
 import './ActiveFilters.css'
 
 interface ActiveFiltersProps {
@@ -9,16 +9,19 @@ interface ActiveFiltersProps {
   params: Record<string, string | number | boolean | undefined>
   onClearFilter: (key: string, value?: string) => void
   onClearAll: () => void
+  t?: Translations
 }
 
-export function ActiveFilters({ category, params, onClearFilter, onClearAll }: ActiveFiltersProps) {
+export function ActiveFilters({ category, params, onClearFilter, onClearAll, t: propT }: ActiveFiltersProps) {
+  const { t: hookT } = useLanguage()
+  const t = propT || hookT
   const activeFilters: Array<{ key: string; label: string; value: string }> = []
 
   // Add search query
   if (params.q) {
     activeFilters.push({
       key: 'q',
-      label: ka.catalog.search,
+      label: t.catalog.search,
       value: params.q as string
     })
   }
@@ -26,17 +29,17 @@ export function ActiveFilters({ category, params, onClearFilter, onClearAll }: A
   // Add sort
   if (params.sort) {
     const sortLabels: Record<string, string> = {
-      'newest': ka.catalog.sort.newest,
-      'oldest': ka.catalog.sort.oldest,
-      'price-asc': ka.catalog.sort['price-asc'],
-      'price-desc': ka.catalog.sort['price-desc'],
-      'rating-desc': ka.catalog.sort['rating-desc'],
-      'popular': ka.catalog.sort.popular,
-      'title-asc': ka.catalog.sort['title-asc']
+      'newest': t.catalog.sort.newest,
+      'oldest': t.catalog.sort.oldest,
+      'price-asc': t.catalog.sort['price-asc'],
+      'price-desc': t.catalog.sort['price-desc'],
+      'rating-desc': t.catalog.sort['rating-desc'],
+      'popular': t.catalog.sort.popular,
+      'title-asc': t.catalog.sort['title-asc']
     }
     activeFilters.push({
       key: 'sort',
-      label: ka.catalog.sortLabel,
+      label: t.catalog.sortLabel,
       value: sortLabels[params.sort as string] || params.sort as string
     })
   }
@@ -48,7 +51,7 @@ export function ActiveFilters({ category, params, onClearFilter, onClearAll }: A
     if (params.maxPrice !== undefined) priceParts.push(`${params.maxPrice}₾`)
     activeFilters.push({
       key: 'price',
-      label: ka.catalog.price,
+      label: t.catalog.price,
       value: priceParts.join(' - ')
     })
   }
@@ -57,16 +60,16 @@ export function ActiveFilters({ category, params, onClearFilter, onClearAll }: A
   if (params.inStock === true) {
     activeFilters.push({
       key: 'inStock',
-      label: ka.catalog.inStock,
-      value: ka.catalog.inStock
+      label: t.catalog.inStock,
+      value: t.catalog.inStock
     })
   }
 
   if (params.onSale === true) {
     activeFilters.push({
       key: 'onSale',
-      label: ka.catalog.onSale,
-      value: ka.catalog.onSale
+      label: t.catalog.onSale,
+      value: t.catalog.onSale
     })
   }
 
@@ -117,7 +120,7 @@ export function ActiveFilters({ category, params, onClearFilter, onClearAll }: A
                   onClearFilter(filter.key)
                 }
               }}
-              aria-label={ka.catalog.removeFilter}
+              aria-label={t.catalog.removeFilter}
             >
               <X size={14} />
             </button>
@@ -129,7 +132,7 @@ export function ActiveFilters({ category, params, onClearFilter, onClearAll }: A
         onClick={onClearAll}
         className="active-filters__clear-all"
       >
-        {ka.catalog.clearAll}
+        {t.catalog.clearAll}
       </Button>
     </div>
   )

@@ -19,12 +19,13 @@ import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { EmptyState } from '../../../shared/ui/EmptyState/EmptyState'
 import { ErrorState } from '../../../shared/ui/ErrorState/ErrorState'
 import { QuantityStepper } from '../../../shared/ui/QuantityStepper/QuantityStepper'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
 import './ProductDetailsPage.css'
 
 export function ProductDetailsPage() {
+  const { t } = useLanguage()
   const { slug } = useParams<{ slug: string }>()
   const { data: product, isLoading, error, refetch } = useProduct(slug)
   const { isAuthenticated } = useSession()
@@ -102,7 +103,7 @@ export function ProductDetailsPage() {
   // Timer ref for auto-dismissing messages
   const messageTimerRef = useRef<number | null>(null)
 
-  useDocumentTitle(product?.title ?? ka.common.loading)
+  useDocumentTitle(product?.title ?? t.common.loading)
 
   // Track previous slug to detect when product changes
   const prevSlugRef = useRef(slug)
@@ -134,7 +135,7 @@ export function ProductDetailsPage() {
     }
 
     if (!product.inStock || product.stock === 0) {
-      setAddToCartMessage({ type: 'error', text: ka.product.outOfStockMessage })
+      setAddToCartMessage({ type: 'error', text: t.product.outOfStockMessage })
       // Clear previous timer
       if (messageTimerRef.current !== null) {
         clearTimeout(messageTimerRef.current)
@@ -145,7 +146,7 @@ export function ProductDetailsPage() {
     }
 
     if (quantity > product.stock) {
-      setAddToCartMessage({ type: 'error', text: ka.cart.onlyN(product.stock) })
+      setAddToCartMessage({ type: 'error', text: t.cart.onlyN(product.stock) })
       // Clear previous timer
       if (messageTimerRef.current !== null) {
         clearTimeout(messageTimerRef.current)
@@ -159,7 +160,7 @@ export function ProductDetailsPage() {
       { productId: product.id, qty: quantity },
       {
         onSuccess: () => {
-          setAddToCartMessage({ type: 'success', text: ka.product.added })
+          setAddToCartMessage({ type: 'success', text: t.product.added })
           setQuantity(1)
           // Clear previous timer
           if (messageTimerRef.current !== null) {
@@ -228,7 +229,7 @@ export function ProductDetailsPage() {
 
     removeFromCart.mutate(cartItem.id, {
       onSuccess: () => {
-        setAddToCartMessage({ type: 'success', text: ka.cart.itemGone })
+        setAddToCartMessage({ type: 'success', text: t.cart.itemGone })
         // Clear previous timer
         if (messageTimerRef.current !== null) {
           clearTimeout(messageTimerRef.current)
@@ -237,7 +238,7 @@ export function ProductDetailsPage() {
         messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
       },
       onError: () => {
-        setAddToCartMessage({ type: 'error', text: ka.cart.remove })
+        setAddToCartMessage({ type: 'error', text: t.cart.remove })
         // Clear previous timer
         if (messageTimerRef.current !== null) {
           clearTimeout(messageTimerRef.current)
@@ -295,8 +296,8 @@ export function ProductDetailsPage() {
     return (
       <PageContainer size="page" as="section">
         <EmptyState
-          title={ka.product.notAvailable}
-          actionLabel={ka.product.backToCatalog}
+          title={t.product.notAvailable}
+          actionLabel={t.product.backToCatalog}
           onAction={() => navigate(ROUTES.catalog)}
         />
       </PageContainer>
@@ -314,7 +315,7 @@ export function ProductDetailsPage() {
 
       <Breadcrumbs
         items={[
-          { label: ka.nav.products, href: ROUTES.catalog },
+          { label: t.nav.products, href: ROUTES.catalog },
           { label: product.category.name, href: ROUTES.catalog },
           { label: product.title }
         ]}
@@ -326,14 +327,14 @@ export function ProductDetailsPage() {
             {currentImage ? (
               <img
                 src={currentImage}
-                alt={ka.product.imageAlt(title, selectedImageIndex + 1)}
+                alt={t.product.imageAlt(title, selectedImageIndex + 1)}
                 className="product-details-page__main-image-img"
                 onClick={() => handleLightboxOpen(selectedImageIndex)}
                 style={{ cursor: 'zoom-in' }}
               />
             ) : (
               <div className="product-details-page__main-image-placeholder">
-                {ka.product.noImage}
+                {t.product.noImage}
               </div>
             )}
             {/* Favorite Button */}
@@ -353,12 +354,12 @@ export function ProductDetailsPage() {
                   type="button"
                   onClick={() => setSelectedImageIndex(index)}
                   className={`product-details-page__thumbnail ${index === selectedImageIndex ? 'product-details-page__thumbnail--active' : ''}`}
-                  aria-label={ka.product.viewImage(index + 1)}
+                  aria-label={t.product.viewImage(index + 1)}
                   aria-current={index === selectedImageIndex ? 'true' : undefined}
                 >
                   <img
                     src={image}
-                    alt={ka.product.thumbAlt(title, index + 1)}
+                    alt={t.product.thumbAlt(title, index + 1)}
                     className="product-details-page__thumbnail-img"
                   />
                 </button>
@@ -384,7 +385,7 @@ export function ProductDetailsPage() {
 
           <div className="product-details-page__stock">
             <Badge variant={inStock ? 'success' : 'danger'}>
-              {inStock ? ka.product.inStockCount(stock) : ka.product.outOfStock}
+              {inStock ? t.product.inStockCount(stock) : t.product.outOfStock}
             </Badge>
           </div>
 
@@ -392,7 +393,7 @@ export function ProductDetailsPage() {
           {cartQuantity > 0 && (
             <div className="product-details-page__cart-status">
               <span className="product-details-page__cart-status-text">
-                {ka.cart.itemsCount(cartQuantity)} კალათაში
+                {t.cart.itemsCount(cartQuantity)} კალათაში
               </span>
             </div>
           )}
@@ -431,7 +432,7 @@ export function ProductDetailsPage() {
               onClick={handleAddToCart}
               className="product-details-page__add-to-cart"
             >
-              {ka.product.addToCart}
+              {t.product.addToCart}
             </Button>
           )}
 
@@ -458,14 +459,14 @@ export function ProductDetailsPage() {
 
           {warrantyMonths > 0 && (
             <p className="product-details-page__warranty">
-              {ka.product.warranty(warrantyMonths)}
+              {t.product.warranty(warrantyMonths)}
             </p>
           )}
 
           {/* Specs */}
           {specs && Object.keys(specs).length > 0 && (
             <table className="product-details-page__table">
-              <caption className="visually-hidden">{ka.product.specs}</caption>
+              <caption className="visually-hidden">{t.product.specs}</caption>
               <tbody>
                 {Object.entries(specs).map(([key, value]) => (
                   <tr key={key}>
@@ -481,7 +482,7 @@ export function ProductDetailsPage() {
         {/* Related Products */}
         {related && related.length > 0 && (
           <div className="product-details-page__related">
-            <h2 className="product-details-page__section-title">{ka.product.related}</h2>
+            <h2 className="product-details-page__section-title">{t.product.related}</h2>
             <div className="product-details-page__related-grid">
               {related
                 .filter((relatedProduct) => relatedProduct.category.slug === CATALOG_CATEGORY_SLUG)

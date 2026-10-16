@@ -15,7 +15,7 @@ import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog/ConfirmDialog'
 import { ProductCard } from '../../../features/catalog/components/ProductCard'
 import { Carousel } from '../../../shared/ui/Carousel/Carousel'
 import { useProducts } from '../../../features/catalog/hooks'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { formatPrice } from '../../../shared/lib/format'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
@@ -23,6 +23,7 @@ import type { CartItem } from '../types'
 import './CartPage.css'
 
 export function CartPage() {
+  const { t } = useLanguage()
   const { data: cart, isLoading, error, refetch } = useCart()
   const updateQuantity = useUpdateCartItemQuantity()
   const removeItem = useRemoveCartItem()
@@ -38,7 +39,7 @@ export function CartPage() {
     { enabled: !!firstProductBrand && cart.items.length > 0 }
   )
 
-  useDocumentTitle(ka.cart.title)
+  useDocumentTitle(t.cart.title)
 
   const isAnyMutationPending = updateQuantity.isPending || removeItem.isPending || clearCart.isPending
 
@@ -87,7 +88,7 @@ export function CartPage() {
   if (isLoading) {
     return (
       <PageContainer size="page" as="section">
-        <h1 className="cart-page__page-title">{ka.cart.title}</h1>
+        <h1 className="cart-page__page-title">{t.cart.title}</h1>
         <ul className="cart-page__list">
           {[1, 2, 3].map((i) => (
             <li key={i} className="cart-page__item-skeleton">
@@ -117,8 +118,8 @@ export function CartPage() {
     return (
       <PageContainer size="page" as="section">
         <EmptyState
-          title={ka.cart.empty}
-          actionLabel={ka.cart.backToCatalog}
+          title={t.cart.empty}
+          actionLabel={t.cart.backToCatalog}
           onAction={() => navigate(ROUTES.catalog)}
         />
       </PageContainer>
@@ -127,7 +128,7 @@ export function CartPage() {
 
   return (
     <PageContainer size="page" as="section">
-      <h1 className="cart-page__page-title">{ka.cart.title}</h1>
+      <h1 className="cart-page__page-title">{t.cart.title}</h1>
 
       {actionError && <Alert variant="error" message={actionError} className="cart-page__alert" />}
 
@@ -164,14 +165,15 @@ export function CartPage() {
                       oldValue={item.product.oldPrice ?? undefined}
                       discountPercent={calculatedDiscountPercent}
                       currency={cart.currency}
+                      t={t}
                     />
                   </div>
                   {hasStockIssue && (
                     <div className="cart-page__stock-alert">
                       {!item.product.inStock ? (
-                        <Badge variant="danger">{ka.cart.outOfStock}</Badge>
+                        <Badge variant="danger">{t.cart.outOfStock}</Badge>
                       ) : (
-                        <Alert variant="warning" message={ka.cart.onlyN(item.product.stock)} />
+                        <Alert variant="warning" message={t.cart.onlyN(item.product.stock)} />
                       )}
                     </div>
                   )}
@@ -184,20 +186,21 @@ export function CartPage() {
                       min={1}
                       max={maxQty}
                       disabled={isAnyMutationPending || !item.product.inStock}
+                      t={t}
                     />
                   </div>
                   <div className="cart-page__actions-wrapper">
-                    <div className="cart-page__total" aria-label={ka.cart.lineTotal}>
+                    <div className="cart-page__total" aria-label={t.cart.lineTotal}>
                       {formatPrice(item.lineTotal, cart.currency)}
                     </div>
                     <Button
                       variant="secondary"
                       onClick={() => handleRemove(item)}
                       disabled={isAnyMutationPending}
-                      aria-label={ka.cart.removeAria(item.product.title)}
+                      aria-label={t.cart.removeAria(item.product.title)}
                       className="cart-page__remove"
                     >
-                      {ka.cart.remove}
+                      {t.cart.remove}
                     </Button>
                   </div>
                 </div>
@@ -207,17 +210,17 @@ export function CartPage() {
         </ul>
 
         <div className="cart-page__summary">
-          <h2 className="cart-page__summary-title">{ka.cart.summary}</h2>
+          <h2 className="cart-page__summary-title">{t.cart.summary}</h2>
           <div className="cart-page__summary-row">
             <span className="cart-page__summary-label">
-              {ka.cart.itemsCount(cart?.totalQty ?? 0)}
+              {t.cart.itemsCount(cart?.totalQty ?? 0)}
             </span>
             <span className="cart-page__summary-value">
               {formatPrice(cart?.subtotal ?? 0, cart?.currency ?? 'GEL')}
             </span>
           </div>
           <div className="cart-page__summary-row cart-page__summary-row--total">
-            <span className="cart-page__summary-label">{ka.cart.subtotal}</span>
+            <span className="cart-page__summary-label">{t.cart.subtotal}</span>
             <span className="cart-page__summary-value cart-page__summary-value--total">
               {formatPrice(cart?.subtotal ?? 0, cart?.currency ?? 'GEL')}
             </span>
@@ -233,11 +236,11 @@ export function CartPage() {
               aria-describedby={hasStockIssue ? 'cart-checkout-blocked' : undefined}
               className="cart-page__checkout"
             >
-              {ka.cart.checkout}
+              {t.cart.checkout}
             </Button>
             {hasStockIssue && (
               <p id="cart-checkout-blocked" className="cart-page__blocked-text">
-                {ka.cart.checkoutBlocked}
+                {t.cart.checkoutBlocked}
               </p>
             )}
             <Button
@@ -246,7 +249,7 @@ export function CartPage() {
               disabled={isAnyMutationPending}
               className="cart-page__clear"
             >
-              {ka.cart.clear}
+              {t.cart.clear}
             </Button>
           </div>
         </div>
@@ -272,7 +275,7 @@ export function CartPage() {
                   </div>
                 ))
               : similarProducts.items.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.id} product={product} t={t} />
                 ))}
           </Carousel>
         </PageContainer>
@@ -281,10 +284,10 @@ export function CartPage() {
 
       <ConfirmDialog
         isOpen={showClearConfirm}
-        title={ka.cart.clear}
-        message={ka.cart.clearConfirm}
-        confirmLabel={ka.cart.clear}
-        cancelLabel={ka.common.show}
+        title={t.cart.clear}
+        message={t.cart.clearConfirm}
+        confirmLabel={t.cart.clear}
+        cancelLabel={t.common.show}
         onConfirm={handleClearCartConfirm}
         onCancel={handleClearCartCancel}
         variant="danger"

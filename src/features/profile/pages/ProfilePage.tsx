@@ -15,34 +15,25 @@ import { Alert } from '../../../shared/ui/Alert/Alert'
 import { Badge } from '../../../shared/ui/Badge/Badge'
 import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog/ConfirmDialog'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import type { Address } from '../hooks'
 import './ProfilePage.css'
 
-// Split schemas for personal info and password
-const personalSchema = z.object({
-  name: z.string().min(2, ka.validation.nameMin),
-  email: z.string().email(ka.validation.emailInvalid),
-  currentPassword: z.string().min(1, ka.profile.currentPasswordRequired),
-})
+type PersonalFormData = {
+  name: string
+  email: string
+  currentPassword: string
+}
 
-const passwordSchema = z.object({
-  newPassword: z.string()
-    .min(8, ka.validation.passwordMin)
-    .regex(/[a-zA-Z]/, ka.validation.passwordLetter)
-    .regex(/\d/, ka.validation.passwordDigit),
-  confirmPassword: z.string(),
-  currentPassword: z.string().min(1, ka.profile.currentPasswordRequired),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: ka.validation.passwordsMismatch,
-  path: ['confirmPassword'],
-})
-
-type PersonalFormData = z.infer<typeof personalSchema>
-type PasswordFormData = z.infer<typeof passwordSchema>
+type PasswordFormData = {
+  newPassword: string
+  confirmPassword: string
+  currentPassword: string
+}
 
 export function ProfilePage() {
+  const { t } = useLanguage()
   const { user, setUser } = useSession()
   const queryClient = useQueryClient()
   const updateProfile = useUpdateProfile()
@@ -59,7 +50,26 @@ export function ProfilePage() {
   const [addressServerError, setAddressServerError] = useState<ApiErrorClass | null>(null)
   const [activeTab, setActiveTab] = useState<'profile' | 'addresses' | 'password'>('profile')
 
-  useDocumentTitle(ka.profile.title)
+  useDocumentTitle(t.profile.title)
+
+  // Define schemas with dynamic translations
+  const personalSchema = z.object({
+    name: z.string().min(2, t.validation.nameMin),
+    email: z.string().email(t.validation.emailInvalid),
+    currentPassword: z.string().min(1, t.profile.currentPasswordRequired),
+  })
+
+  const passwordSchema = z.object({
+    newPassword: z.string()
+      .min(8, t.validation.passwordMin)
+      .regex(/[a-zA-Z]/, t.validation.passwordLetter)
+      .regex(/\d/, t.validation.passwordDigit),
+    confirmPassword: z.string(),
+    currentPassword: z.string().min(1, t.profile.currentPasswordRequired),
+  }).refine((data) => data.newPassword === data.confirmPassword, {
+    message: t.validation.passwordsMismatch,
+    path: ['confirmPassword'],
+  })
 
   // Personal info form
   const personalForm = useForm<PersonalFormData>({
@@ -115,21 +125,21 @@ export function ProfilePage() {
     } catch (err) {
       if (err instanceof ApiErrorClass) {
         if (err.code === 'INVALID_CURRENT_PASSWORD') {
-          personalForm.setError('currentPassword', { message: ka.profile.currentPasswordWrong }, { shouldFocus: true })
+          personalForm.setError('currentPassword', { message: t.profile.currentPasswordWrong }, { shouldFocus: true })
         } else if (err.code === 'EMAIL_TAKEN') {
-          personalForm.setError('email', { message: ka.auth.register.emailTaken }, { shouldFocus: true })
+          personalForm.setError('email', { message: t.auth.register.emailTaken }, { shouldFocus: true })
         } else if (err.status === 422) {
           const result = applyServerErrors(err, personalForm.setError, ['name', 'email', 'currentPassword'])
           if (result.formError) {
             personalForm.setError('root', { message: result.formError })
           } else if (!result.fieldErrorsSet) {
-            personalForm.setError('root', { message: ka.common.genericError })
+            personalForm.setError('root', { message: t.common.genericError })
           }
         } else {
-          personalForm.setError('root', { message: ka.common.genericError })
+          personalForm.setError('root', { message: t.common.genericError })
         }
       } else {
-        personalForm.setError('root', { message: ka.common.networkError })
+        personalForm.setError('root', { message: t.common.networkError })
       }
     }
   }
@@ -148,26 +158,26 @@ export function ProfilePage() {
     } catch (err) {
       if (err instanceof ApiErrorClass) {
         if (err.code === 'INVALID_CURRENT_PASSWORD') {
-          passwordForm.setError('currentPassword', { message: ka.profile.currentPasswordWrong }, { shouldFocus: true })
+          passwordForm.setError('currentPassword', { message: t.profile.currentPasswordWrong }, { shouldFocus: true })
         } else if (err.status === 422) {
           const result = applyServerErrors(err, passwordForm.setError, ['newPassword', 'currentPassword'])
           if (result.formError) {
             passwordForm.setError('root', { message: result.formError })
           } else if (!result.fieldErrorsSet) {
-            passwordForm.setError('root', { message: ka.common.genericError })
+            passwordForm.setError('root', { message: t.common.genericError })
           }
         } else {
-          passwordForm.setError('root', { message: ka.common.genericError })
+          passwordForm.setError('root', { message: t.common.genericError })
         }
       } else {
-        passwordForm.setError('root', { message: ka.common.networkError })
+        passwordForm.setError('root', { message: t.common.networkError })
       }
     }
   }
 
   return (
     <PageContainer size="page" as="section">
-      <h1 className="profile-page__title">{ka.profile.title}</h1>
+      <h1 className="profile-page__title">{t.profile.title}</h1>
 
       <div className="profile-page__layout">
         {/* Sidebar Navigation */}
@@ -201,14 +211,14 @@ export function ProfilePage() {
               )}
 
               {showSuccess && (
-                <Alert variant="success" message={ka.profile.saved} className="profile-page__alert" />
+                <Alert variant="success" message={t.profile.saved} className="profile-page__alert" />
               )}
 
               <form onSubmit={personalForm.handleSubmit(onPersonalSubmit)} className="profile-page__form" noValidate onChange={handlePersonalFormChange}>
                 <div className="profile-page__section">
-                  <h2 className="profile-page__section-title">{ka.profile.personal}</h2>
+                  <h2 className="profile-page__section-title">{t.profile.personal}</h2>
 
-                  <FormField label={ka.profile.name} error={personalForm.formState.errors.name?.message}>
+                  <FormField label={t.profile.name} error={personalForm.formState.errors.name?.message}>
                     {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                       <Input
                         id={id}
@@ -223,7 +233,7 @@ export function ProfilePage() {
                     )}
                   </FormField>
 
-                  <FormField label={ka.profile.email} error={personalForm.formState.errors.email?.message}>
+                  <FormField label={t.profile.email} error={personalForm.formState.errors.email?.message}>
                     {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                       <Input
                         id={id}
@@ -240,9 +250,9 @@ export function ProfilePage() {
                 </div>
 
                 <div className="profile-page__section">
-                  <h2 className="profile-page__section-title">{ka.profile.confirmSection}</h2>
+                  <h2 className="profile-page__section-title">{t.profile.confirmSection}</h2>
 
-                  <FormField label={ka.profile.currentPassword} error={personalForm.formState.errors.currentPassword?.message}>
+                  <FormField label={t.profile.currentPassword} error={personalForm.formState.errors.currentPassword?.message}>
                     {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                       <PasswordInput
                         id={id}
@@ -256,7 +266,7 @@ export function ProfilePage() {
                     )}
                   </FormField>
 
-                  <p className="profile-page__hint">{ka.profile.currentPasswordHint}</p>
+                  <p className="profile-page__hint">{t.profile.currentPasswordHint}</p>
                 </div>
 
                 <Button
@@ -264,7 +274,7 @@ export function ProfilePage() {
                   loading={updateProfile.isPending}
                   disabled={!personalForm.formState.isDirty || updateProfile.isPending}
                 >
-                  {ka.profile.save}
+                  {t.profile.save}
                 </Button>
               </form>
             </>
@@ -361,14 +371,14 @@ export function ProfilePage() {
           {activeTab === 'password' && (
             <>
               {showSuccess && (
-                <Alert variant="success" message={ka.profile.saved} className="profile-page__alert" />
+                <Alert variant="success" message={t.profile.saved} className="profile-page__alert" />
               )}
 
               <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="profile-page__form" noValidate onChange={handlePasswordFormChange}>
                 <div className="profile-page__section">
-                  <h2 className="profile-page__section-title">{ka.profile.passwordSection}</h2>
+                  <h2 className="profile-page__section-title">{t.profile.passwordSection}</h2>
 
-                  <FormField label={ka.profile.newPassword} error={passwordForm.formState.errors.newPassword?.message}>
+                  <FormField label={t.profile.newPassword} error={passwordForm.formState.errors.newPassword?.message}>
                     {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                       <PasswordInput
                         id={id}
@@ -382,7 +392,7 @@ export function ProfilePage() {
                     )}
                   </FormField>
 
-                  <FormField label={ka.profile.confirmNewPassword} error={passwordForm.formState.errors.confirmPassword?.message}>
+                  <FormField label={t.profile.confirmNewPassword} error={passwordForm.formState.errors.confirmPassword?.message}>
                     {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                       <PasswordInput
                         id={id}
@@ -398,9 +408,9 @@ export function ProfilePage() {
                 </div>
 
                 <div className="profile-page__section">
-                  <h2 className="profile-page__section-title">{ka.profile.confirmSection}</h2>
+                  <h2 className="profile-page__section-title">{t.profile.confirmSection}</h2>
 
-                  <FormField label={ka.profile.currentPassword} error={passwordForm.formState.errors.currentPassword?.message}>
+                  <FormField label={t.profile.currentPassword} error={passwordForm.formState.errors.currentPassword?.message}>
                     {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                       <PasswordInput
                         id={id}
@@ -414,7 +424,7 @@ export function ProfilePage() {
                     )}
                   </FormField>
 
-                  <p className="profile-page__hint">{ka.profile.currentPasswordHint}</p>
+                  <p className="profile-page__hint">{t.profile.currentPasswordHint}</p>
                 </div>
 
                 <Button
@@ -422,7 +432,7 @@ export function ProfilePage() {
                   loading={updateProfile.isPending}
                   disabled={!passwordForm.formState.isDirty || updateProfile.isPending}
                 >
-                  {ka.profile.save}
+                  {t.profile.save}
                 </Button>
               </form>
             </>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ka } from '../../i18n/ka'
+import { useLanguage, type Translations } from '../../i18n/LanguageContext'
 import './QuantityStepper.css'
 
 interface QuantityStepperProps {
@@ -9,9 +9,12 @@ interface QuantityStepperProps {
   max?: number
   disabled?: boolean
   label?: string
+  t?: Translations
 }
 
-export function QuantityStepper({ value, onChange, min = 1, max = 999, disabled = false, label }: QuantityStepperProps) {
+export function QuantityStepper({ value, onChange, min = 1, max = 999, disabled = false, label, t: propT }: QuantityStepperProps) {
+  const { t: hookT } = useLanguage()
+  const t = propT || hookT
   const [inputValue, setInputValue] = useState(value.toString())
 
   const handleDecrease = () => {
@@ -58,7 +61,7 @@ export function QuantityStepper({ value, onChange, min = 1, max = 999, disabled 
         className="quantity-stepper__button"
         onClick={handleDecrease}
         disabled={value <= min || disabled}
-        aria-label={ka.common.decrease}
+        aria-label={t.common.decrease}
       >
         −
       </button>
@@ -73,14 +76,14 @@ export function QuantityStepper({ value, onChange, min = 1, max = 999, disabled 
         min={min}
         max={max}
         disabled={disabled}
-        aria-label={label ?? ka.common.quantity}
+        aria-label={label ?? t.common.quantity}
       />
       <button
         type="button"
         className="quantity-stepper__button"
         onClick={handleIncrease}
         disabled={value >= max || disabled}
-        aria-label={ka.common.increase}
+        aria-label={t.common.increase}
       >
         +
       </button>

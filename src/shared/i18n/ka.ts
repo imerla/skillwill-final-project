@@ -35,6 +35,8 @@ export const ka = {
     skipToContent: 'მთავარ შიგთავსზე გადასვლა',
     cartCount: (n: number) => `კალათა, ${n} ცალი`,
     primaryNav: 'მთავარი ნავიგაცია',
+    favorites: 'ფავორიტები',
+    about: 'ჩვენ შესახებ',
   },
   dashboard: {
     welcome: (name: string) => `გამარჯობა, ${name}!`,

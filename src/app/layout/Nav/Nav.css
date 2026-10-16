@@ -131,6 +131,119 @@
   display: inline;
 }
 
+.nav__link--language {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  position: relative;
+  padding: var(--spacing-2) 0;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.nav__link--language:hover {
+  color: var(--color-text);
+}
+
+.nav__language-flag {
+  width: 24px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 2px;
+  border: 1px solid var(--color-border);
+}
+
+.nav__language-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Language switcher - mobile only (next to hamburger) */
+.nav__language-switcher-mobile {
+  display: none;
+  padding: var(--spacing-1);
+  margin-right: var(--spacing-2);
+}
+
+/* Language switcher - desktop only (in nav links) */
+.nav__language-switcher-desktop {
+  display: none;
+}
+
+/* ახალი კონტეინერი მობილური ღილაკების სიახლოვისთვის */
+.nav__mobile-actions {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .nav__container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav__mobile-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    flex-shrink: 0;
+    margin-left: auto; /* გასწორდა: ეს თვისება ავტომატურად სვამს ბლოკს მარჯვენა კუთხეში */
+  }
+
+  .nav__language-switcher-mobile {
+    display: flex;
+    padding: var(--spacing-2);
+  }
+
+  .nav__burger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-2);
+  }
+
+  .nav__logo {
+    height: 80px;
+  }
+
+  .nav__search {
+    max-width: 200px;
+  }
+
+  .nav__language-switcher-desktop {
+    display: none !important;
+  }
+}
+
+/* ამოღებულია ძველი order და margin სტილები, რომლებიც აფუჭებდა განლაგებას */
+.nav__language-switcher-mobile {
+  padding: var(--spacing-1);
+}
+
+.nav__language-switcher-desktop {
+  display: none;
+}
+
+@media (min-width: 1025px) {
+  .nav__language-switcher-mobile {
+    display: none;
+  }
+
+  .nav__language-switcher-desktop {
+    display: flex;
+  }
+
+  .nav__nav-items {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+  }
+}
+
 .nav__link .badge {
   display: inline-flex;
   position: absolute;

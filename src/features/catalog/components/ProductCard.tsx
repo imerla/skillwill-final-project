@@ -4,7 +4,7 @@ import { ShoppingCart, Star, Heart } from 'lucide-react'
 import type { Product } from '../types'
 import { Price } from '../../../shared/ui/Price/Price'
 import { Badge } from '../../../shared/ui/Badge/Badge'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage, type Translations } from '../../../shared/i18n/LanguageContext'
 import { ROUTES } from '../../../app/routes'
 import { useFavorites, useAddToFavorites, useRemoveFromFavorites } from '../../favorites/hooks'
 import './ProductCard.css'
@@ -12,9 +12,12 @@ import './ProductCard.css'
 interface ProductCardProps {
   product: Product
   onQuickAdd?: (product: Product) => void
+  t?: Translations
 }
 
-export function ProductCard({ product, onQuickAdd }: ProductCardProps) {
+export function ProductCard({ product, onQuickAdd, t: propT }: ProductCardProps) {
+  const { t: hookT } = useLanguage()
+  const t = propT || hookT
   const {
     id,
     slug,
@@ -87,14 +90,14 @@ export function ProductCard({ product, onQuickAdd }: ProductCardProps) {
         )}
         {!inStock && (
           <Badge variant="danger" className="product-card__stock-badge">
-            {ka.catalog.outOfStock}
+            {t.catalog.outOfStock}
           </Badge>
         )}
         {inStock && onQuickAdd && (
           <button
             className="product-card__quick-add"
             onClick={handleQuickAdd}
-            aria-label={ka.product.addToCart}
+            aria-label={t.product.addToCart}
           >
             <ShoppingCart size={18} />
           </button>
@@ -118,6 +121,7 @@ export function ProductCard({ product, onQuickAdd }: ProductCardProps) {
           discountPercent={discountPercent ?? undefined}
           currency={currency}
           size="lg"
+          t={t}
         />
 
         {rating > 0 && (

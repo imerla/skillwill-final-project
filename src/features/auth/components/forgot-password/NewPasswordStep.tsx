@@ -5,22 +5,22 @@ import { useEffect } from 'react'
 import { Button } from '../../../../shared/ui/Button'
 import { FormField } from '../../../../shared/ui/FormField'
 import { PasswordInput } from '../../../../shared/ui/PasswordInput'
-import { ka } from '../../../../shared/i18n/ka'
+import { useLanguage } from '../../../../shared/i18n/LanguageContext'
 
 const newPasswordSchema = z
   .object({
     newPassword: z
       .string()
-      .min(1, ka.validation.passwordRequired)
-      .min(8, ka.validation.passwordMin)
-      .regex(/[a-zA-Z]/, ka.validation.passwordLetter)
-      .regex(/\d/, ka.validation.passwordDigit),
+      .min(1, 'Password is required')
+      .min(8, 'Password must be at least 8 characters')
+      .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
+      .regex(/\d/, 'Password must contain at least one digit'),
     confirmPassword: z
       .string()
-      .min(1, ka.validation.confirmRequired),
+      .min(1, 'Please confirm your password'),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: ka.validation.passwordsMismatch,
+    message: 'Passwords do not match',
     path: ['confirmPassword'],
   })
 
@@ -33,6 +33,7 @@ interface NewPasswordStepProps {
 }
 
 export function NewPasswordStep({ isLoading, onSubmit, fieldErrors }: NewPasswordStepProps) {
+  const { t } = useLanguage()
   const {
     register,
     handleSubmit,
@@ -58,7 +59,7 @@ export function NewPasswordStep({ isLoading, onSubmit, fieldErrors }: NewPasswor
   return (
     <form onSubmit={handleSubmit(submitHandler)} className="forgot-password-page__form" noValidate>
       <FormField
-        label={ka.auth.forgot.newPasswordLabel}
+        label={t.auth.forgot.newPasswordLabel}
         error={errors.newPassword?.message}
       >
         {(props: { id: string; 'aria-describedby'?: string; 'aria-invalid': boolean }) => (
@@ -75,7 +76,7 @@ export function NewPasswordStep({ isLoading, onSubmit, fieldErrors }: NewPasswor
       </FormField>
 
       <FormField
-        label={ka.auth.forgot.confirmNewPasswordLabel}
+        label={t.auth.forgot.confirmNewPasswordLabel}
         error={errors.confirmPassword?.message}
       >
         {(props: { id: string; 'aria-describedby'?: string; 'aria-invalid': boolean }) => (
@@ -97,7 +98,7 @@ export function NewPasswordStep({ isLoading, onSubmit, fieldErrors }: NewPasswor
           loading={isLoading}
           className="forgot-password-page__submit"
         >
-          {ka.auth.forgot.resetSubmit}
+          {t.auth.forgot.resetSubmit}
         </Button>
       </div>
     </form>

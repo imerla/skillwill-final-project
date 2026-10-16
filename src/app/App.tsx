@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { SessionProvider, ProtectedRoute } from '../shared/auth'
+import { LanguageProvider } from '../shared/i18n/LanguageContext'
 import { LoginPage } from '../features/auth/pages/LoginPage'
 import { RegisterPage } from '../features/auth/pages/RegisterPage'
 import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage'
@@ -22,10 +23,11 @@ import { UiDemoPage } from './UiDemoPage'
 
 function App() {
   return (
-    <SessionProvider>
-      <BrowserRouter>
-        <Nav />
-        <Routes>
+    <LanguageProvider>
+      <SessionProvider>
+        <BrowserRouter>
+          <Nav />
+          <Routes>
           <Route path={ROUTES.home} element={<HomePage />} />
           <Route path={ROUTES.about} element={<AboutUsPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -87,6 +89,7 @@ function App() {
         <Footer />
       </BrowserRouter>
     </SessionProvider>
+    </LanguageProvider>
   )
 }
 

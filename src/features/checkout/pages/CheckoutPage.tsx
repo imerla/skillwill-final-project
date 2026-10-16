@@ -21,49 +21,29 @@ import { ErrorState } from '../../../shared/ui/ErrorState/ErrorState'
 import { EmptyState } from '../../../shared/ui/EmptyState/EmptyState'
 import { QuantityStepper } from '../../../shared/ui/QuantityStepper/QuantityStepper'
 import { formatPrice } from '../../../shared/lib/format'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { ROUTES } from '../../../app/routes'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import './CheckoutPage.css'
 
-const shippingSchema = z.object({
-  fullName: z.string().min(2, ka.validation.nameMin),
-  phone: z.string().min(9, ka.validation.phoneMin),
-  city: z.string().min(2, ka.validation.cityMin),
-  address: z.string().min(5, ka.validation.addressMin),
-})
+type CheckoutFormData = {
+  shipping: {
+    fullName: string
+    phone: string
+    city: string
+    address: string
+  }
+  card: {
+    number: string
+    holder: string
+    expiry: string
+    cvc: string
+  }
+}
 
-const cardSchema = z.object({
-  number: z.string()
-    .regex(/^\d{4}\s\d{4}\s\d{4}\s\d{4}$/, ka.validation.cardNumberInvalid)
-    .transform((val) => val.replace(/\s/g, '')), // Remove spaces after validation
-  holder: z.string().min(2, ka.validation.cardHolderMin),
-  expiry: z.string()
-    .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, ka.validation.expiryInvalid)
-    .refine((val) => {
-      const [month, year] = val.split('/').map(Number)
-      const now = new Date()
-      const currentYear = now.getFullYear() % 100
-      const currentMonth = now.getMonth() + 1
-      if (year < currentYear) return false
-      if (year === currentYear && month < currentMonth) return false
-      return true
-    }, 'ბარათის ვადა გასულია'),
-  cvc: z.string().regex(/^\d{3,4}$/, ka.validation.cvcInvalid),
-})
-
-const checkoutSchema = z.object({
-  shipping: shippingSchema,
-  card: cardSchema,
-})
-
-type CheckoutFormData = z.infer<typeof checkoutSchema>
-
-const codeSchema = z.object({
-  code: z.string().regex(/^\d{6}$/, ka.validation.codeInvalid),
-})
-
-type CodeFormData = z.infer<typeof codeSchema>
+type CodeFormData = {
+  code: string
+}
 
 function AddressFormModal({
   show,
@@ -258,6 +238,7 @@ function AddressFormModal({
 }
 
 export function CheckoutPage() {
+  const { t } = useLanguage()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -284,7 +265,43 @@ export function CheckoutPage() {
   const [editingAddress, setEditingAddress] = useState<Address | null>(null)
   const [addressServerError, setAddressServerError] = useState<ApiErrorClass | null>(null)
 
-  useDocumentTitle(ka.checkout.title)
+  useDocumentTitle(t.checkout.title)
+
+  // Define schemas with dynamic translations
+  const shippingSchema = z.object({
+    fullName: z.string().min(2, t.validation.nameMin),
+    phone: z.string().min(9, t.validation.phoneMin),
+    city: z.string().min(2, t.validation.cityMin),
+    address: z.string().min(5, t.validation.addressMin),
+  })
+
+  const cardSchema = z.object({
+    number: z.string()
+      .regex(/^\d{4}\s\d{4}\s\d{4}\s\d{4}$/, t.validation.cardNumberInvalid)
+      .transform((val) => val.replace(/\s/g, '')), // Remove spaces after validation
+    holder: z.string().min(2, t.validation.cardHolderMin),
+    expiry: z.string()
+      .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, t.validation.expiryInvalid)
+      .refine((val) => {
+        const [month, year] = val.split('/').map(Number)
+        const now = new Date()
+        const currentYear = now.getFullYear() % 100
+        const currentMonth = now.getMonth() + 1
+        if (year < currentYear) return false
+        if (year === currentYear && month < currentMonth) return false
+        return true
+      }, 'ბარათის ვადა გასულია'),
+    cvc: z.string().regex(/^\d{3,4}$/, t.validation.cvcInvalid),
+  })
+
+  const checkoutSchema = z.object({
+    shipping: shippingSchema,
+    card: cardSchema,
+  })
+
+  const codeSchema = z.object({
+    code: z.string().regex(/^\d{6}$/, t.validation.codeInvalid),
+  })
 
   const isAnyMutationPending = updateQuantity.isPending || removeItem.isPending || createAddress.isPending || updateAddress.isPending
 
@@ -536,8 +553,8 @@ export function CheckoutPage() {
     return (
       <PageContainer size="page" as="section">
         <EmptyState
-          title={ka.cart.empty}
-          actionLabel={ka.catalog.titleFallback}
+          title={t.cart.empty}
+          actionLabel={t.catalog.titleFallback}
           onAction={() => navigate(ROUTES.catalog)}
         />
       </PageContainer>
@@ -547,7 +564,7 @@ export function CheckoutPage() {
   if (step === 'form') {
     return (
       <PageContainer size="page" as="section">
-        <h1 className="checkout-page__page-title">{ka.checkout.title}</h1>
+        <h1 className="checkout-page__page-title">{t.checkout.title}</h1>
 
         <div className="checkout-page__content">
           {actionError && <Alert variant="error" message={actionError} className="checkout-page__alert" />}
@@ -576,6 +593,7 @@ export function CheckoutPage() {
                           min={1}
                           max={maxQty}
                           disabled={isAnyMutationPending || !item.product.inStock}
+                          t={t}
                         />
                         <Button
                           variant="secondary"
@@ -583,7 +601,7 @@ export function CheckoutPage() {
                           disabled={isAnyMutationPending}
                           className="checkout-page__item-remove"
                         >
-                          {ka.cart.remove}
+                          {t.cart.remove}
                         </Button>
                       </div>
                     </div>
@@ -596,7 +614,7 @@ export function CheckoutPage() {
             </div>
             <div className="checkout-page__totals">
               <div className="checkout-page__total-row">
-                <span>{ka.cart.subtotal} ({checkout?.totalQty} ცალი)</span>
+                <span>{t.cart.subtotal} ({checkout?.totalQty} ცალი)</span>
                 <span>{formatPrice(checkout?.subtotal || 0, checkout?.currency)}</span>
               </div>
               <div className="checkout-page__total-row">
@@ -604,7 +622,7 @@ export function CheckoutPage() {
                 <span>{formatPrice(0, checkout?.currency)}</span>
               </div>
               <div className="checkout-page__total-row checkout-page__total-row--total">
-                <span>{ka.checkout.total}</span>
+                <span>{t.checkout.total}</span>
                 <span>{formatPrice((checkout?.total || 0) - (checkout?.shippingFee || 0), checkout?.currency)}</span>
               </div>
             </div>
@@ -674,7 +692,7 @@ export function CheckoutPage() {
             <form onSubmit={form.handleSubmit(handleCheckoutSubmit)} className="checkout-page__form" noValidate>
               {!selectedAddressId && (
                 <>
-                  <FormField label={ka.checkout.fullName} error={form.formState.errors.shipping?.fullName?.message}>
+                  <FormField label={t.checkout.fullName} error={form.formState.errors.shipping?.fullName?.message}>
                     {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                       <Input
                         id={id}
@@ -689,7 +707,7 @@ export function CheckoutPage() {
                     )}
                   </FormField>
 
-                  <FormField label={ka.checkout.phone} error={form.formState.errors.shipping?.phone?.message}>
+                  <FormField label={t.checkout.phone} error={form.formState.errors.shipping?.phone?.message}>
                     {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                       <Input
                         id={id}
@@ -704,7 +722,7 @@ export function CheckoutPage() {
                     )}
                   </FormField>
 
-                  <FormField label={ka.checkout.city} error={form.formState.errors.shipping?.city?.message}>
+                  <FormField label={t.checkout.city} error={form.formState.errors.shipping?.city?.message}>
                     {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                       <Input
                         id={id}
@@ -719,7 +737,7 @@ export function CheckoutPage() {
                     )}
                   </FormField>
 
-                  <FormField label={ka.checkout.address} error={form.formState.errors.shipping?.address?.message}>
+                  <FormField label={t.checkout.address} error={form.formState.errors.shipping?.address?.message}>
                     {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                       <Input
                         id={id}
@@ -754,9 +772,9 @@ export function CheckoutPage() {
                 </div>
               )}
 
-              <h2 className="checkout-page__section-title">{ka.checkout.paymentInfo}</h2>
+              <h2 className="checkout-page__section-title">{t.checkout.paymentInfo}</h2>
 
-              <FormField label={ka.checkout.cardNumber} error={form.formState.errors.card?.number?.message}>
+              <FormField label={t.checkout.cardNumber} error={form.formState.errors.card?.number?.message}>
                 {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                   <Input
                     id={id}
@@ -777,7 +795,7 @@ export function CheckoutPage() {
                 )}
               </FormField>
 
-              <FormField label={ka.checkout.cardHolder} error={form.formState.errors.card?.holder?.message}>
+              <FormField label={t.checkout.cardHolder} error={form.formState.errors.card?.holder?.message}>
                 {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                   <Input
                     id={id}
@@ -798,7 +816,7 @@ export function CheckoutPage() {
               </FormField>
 
               <div className="checkout-page__form-row">
-                <FormField label={ka.checkout.expiry} error={form.formState.errors.card?.expiry?.message}>
+                <FormField label={t.checkout.expiry} error={form.formState.errors.card?.expiry?.message}>
                   {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                     <Input
                       id={id}
@@ -819,7 +837,7 @@ export function CheckoutPage() {
                 )}
                 </FormField>
 
-                <FormField label={ka.checkout.cvc} error={form.formState.errors.card?.cvc?.message}>
+                <FormField label={t.checkout.cvc} error={form.formState.errors.card?.cvc?.message}>
                   {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                     <Input
                       id={id}
@@ -850,7 +868,7 @@ export function CheckoutPage() {
                 loading={createOrder.isPending}
                 disabled={createOrder.isPending}
               >
-                {createOrder.isPending ? ka.checkout.processing : ka.checkout.placeOrder}
+                {createOrder.isPending ? t.checkout.processing : t.checkout.placeOrder}
               </Button>
             </form>
           </div>
@@ -871,15 +889,15 @@ export function CheckoutPage() {
   if (step === 'confirm') {
     return (
       <PageContainer size="page" as="section">
-        <h1 className="checkout-page__page-title">{ka.checkout.confirmTitle}</h1>
+        <h1 className="checkout-page__page-title">{t.checkout.confirmTitle}</h1>
         <div className="checkout-page__confirm-section">
-          <p className="checkout-page__confirm-message">{ka.checkout.confirmMessage}</p>
+          <p className="checkout-page__confirm-message">{t.checkout.confirmMessage}</p>
           <p className="checkout-page__confirm-total">
-            {ka.checkout.total}: {formatPrice((createOrder.data?.total || 0) - (checkout?.shippingFee || 0), checkout?.currency)}
+            {t.checkout.total}: {formatPrice((createOrder.data?.total || 0) - (checkout?.shippingFee || 0), checkout?.currency)}
           </p>
 
           <form onSubmit={codeForm.handleSubmit(handleConfirmSubmit)} className="checkout-page__code-form" noValidate>
-            <FormField label={ka.checkout.confirmCode} error={codeForm.formState.errors.code?.message}>
+            <FormField label={t.checkout.confirmCode} error={codeForm.formState.errors.code?.message}>
               {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
                 <Input
                   id={id}
@@ -898,7 +916,7 @@ export function CheckoutPage() {
             </FormField>
 
             {import.meta.env.DEV && devCode && (
-              <Alert variant="info" message={`${ka.checkout.devCode}: ${devCode}`} className="checkout-page__alert" />
+              <Alert variant="info" message={`${t.checkout.devCode}: ${devCode}`} className="checkout-page__alert" />
             )}
 
             {submitError && (
@@ -910,7 +928,7 @@ export function CheckoutPage() {
               loading={confirmOrder.isPending}
               disabled={confirmOrder.isPending}
             >
-              {confirmOrder.isPending ? ka.checkout.confirming : ka.checkout.confirmOrder}
+              {confirmOrder.isPending ? t.checkout.confirming : t.checkout.confirmOrder}
             </Button>
 
             <Button
@@ -920,10 +938,10 @@ export function CheckoutPage() {
               onClick={handleResendCode}
             >
               {resendTimer !== null
-                ? ka.checkout.resendIn(resendTimer)
+                ? t.checkout.resendIn(resendTimer)
                 : resendCode.isPending
-                ? ka.checkout.sending
-                : ka.checkout.resendCode}
+                ? t.checkout.sending
+                : t.checkout.resendCode}
             </Button>
           </form>
         </div>
@@ -943,30 +961,30 @@ export function CheckoutPage() {
   return (
     <PageContainer size="page" as="section">
       <div className="checkout-page__success">
-        <h1 className="checkout-page__success-title">{ka.checkout.successTitle}</h1>
-        <p className="checkout-page__success-message">{ka.checkout.successMessage}</p>
+        <h1 className="checkout-page__success-title">{t.checkout.successTitle}</h1>
+        <p className="checkout-page__success-message">{t.checkout.successMessage}</p>
         {confirmedOrder && (
           <div className="checkout-page__success-details">
             <p className="checkout-page__success-order-id">
-              {ka.checkout.orderId}: {confirmedOrder.id}
+              {t.checkout.orderId}: {confirmedOrder.id}
             </p>
             <p className="checkout-page__success-total">
-              {ka.checkout.total}: {formatPrice(
+              {t.checkout.total}: {formatPrice(
                 confirmedOrder.items.reduce((sum, item) => sum + item.price * item.qty, 0),
                 confirmedOrder.currency
               )}
             </p>
             <p className="checkout-page__success-status">
-              {ka.checkout.status}: {confirmedOrder.status === 'paid' ? ka.orders.statusPaid : ka.orders.statusPending}
+              {t.checkout.status}: {confirmedOrder.status === 'paid' ? t.orders.statusPaid : t.orders.statusPending}
             </p>
           </div>
         )}
         <div className="checkout-page__success-actions">
           <Link to={ROUTES.orders}>
-            <Button>{ka.checkout.viewOrders}</Button>
+            <Button>{t.checkout.viewOrders}</Button>
           </Link>
           <Link to={ROUTES.catalog}>
-            <Button variant="secondary">{ka.checkout.continueShopping}</Button>
+            <Button variant="secondary">{t.checkout.continueShopping}</Button>
           </Link>
         </div>
 

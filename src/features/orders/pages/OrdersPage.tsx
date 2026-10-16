@@ -12,25 +12,25 @@ import { EmptyState } from '../../../shared/ui/EmptyState/EmptyState'
 import { Alert } from '../../../shared/ui/Alert/Alert'
 import { Pagination } from '../../../shared/ui/Pagination/Pagination'
 import { formatPrice, formatDate } from '../../../shared/lib/format'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage, type Translations } from '../../../shared/i18n/LanguageContext'
 import { ROUTES } from '../../../app/routes'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import './OrdersPage.css'
 
-const statusMap: Record<
-  OrderStatus,
-  { label: string; variant: 'neutral' | 'success' | 'accent' | 'danger' }
-> = {
-  pending: { label: ka.orders.statusPending, variant: 'neutral' },
-  paid: { label: ka.orders.statusPaid, variant: 'success' },
-  confirmed: { label: ka.orders.statusConfirmed, variant: 'success' },
-  shipped: { label: ka.orders.statusShipped, variant: 'accent' },
-  delivered: { label: ka.orders.statusDelivered, variant: 'success' },
-  cancelled: { label: ka.orders.statusCancelled, variant: 'danger' },
-  failed: { label: ka.orders.statusFailed, variant: 'danger' },
-}
+function getStatusBadge(status: OrderStatus, t: Translations) {
+  const statusMap: Record<
+    OrderStatus,
+    { label: string; variant: 'neutral' | 'success' | 'accent' | 'danger' }
+  > = {
+    pending: { label: t.orders.statusPending, variant: 'neutral' },
+    paid: { label: t.orders.statusPaid, variant: 'success' },
+    confirmed: { label: t.orders.statusConfirmed, variant: 'success' },
+    shipped: { label: t.orders.statusShipped, variant: 'accent' },
+    delivered: { label: t.orders.statusDelivered, variant: 'success' },
+    cancelled: { label: t.orders.statusCancelled, variant: 'danger' },
+    failed: { label: t.orders.statusFailed, variant: 'danger' },
+  }
 
-function getStatusBadge(status: OrderStatus) {
   const config = statusMap[status] || {
     label: status,
     variant: 'neutral' as const,
@@ -60,6 +60,7 @@ function OrdersLoading() {
 }
 
 export function OrdersPage() {
+  const { t } = useLanguage()
   const { id } = useParams()
   const navigate = useNavigate()
 
@@ -79,7 +80,7 @@ export function OrdersPage() {
     error: errorDetail,
   } = useOrder(id || '')
 
-  useDocumentTitle(id ? ka.orders.orderDetails : ka.orders.title)
+  useDocumentTitle(id ? t.orders.orderDetails : t.orders.title)
 
   useEffect(() => {
     if (!id) refetch()
@@ -92,6 +93,7 @@ export function OrdersPage() {
         isLoading={isLoadingDetail}
         error={errorDetail}
         onBack={() => navigate(ROUTES.orders)}
+        t={t}
       />
     )
   }
@@ -100,7 +102,7 @@ export function OrdersPage() {
     return (
       <PageContainer size="page" as="section">
         <div className="orders-container">
-          <h1 className="orders-page__title">{ka.orders.title}</h1>
+          <h1 className="orders-page__title">{t.orders.title}</h1>
           <OrdersLoading />
         </div>
       </PageContainer>
@@ -114,7 +116,7 @@ export function OrdersPage() {
     return (
       <PageContainer size="page" as="section">
         <div className="orders-container">
-          <h1 className="orders-page__title">{ka.orders.title}</h1>
+          <h1 className="orders-page__title">{t.orders.title}</h1>
           <Alert
             variant="error"
             message={errorMessage}
@@ -130,11 +132,11 @@ export function OrdersPage() {
     return (
       <PageContainer size="page" as="section">
         <div className="orders-container">
-          <h1 className="orders-page__title">{ka.orders.title}</h1>
+          <h1 className="orders-page__title">{t.orders.title}</h1>
           <div className="orders-page__empty-wrap">
             <EmptyState
-              title={ka.orders.empty}
-              actionLabel={ka.orders.startShopping}
+              title={t.orders.empty}
+              actionLabel={t.orders.startShopping}
               onAction={() => navigate(ROUTES.catalog)}
             />
           </div>
@@ -161,7 +163,7 @@ export function OrdersPage() {
   return (
     <PageContainer size="page" as="section">
       <div className="orders-container">
-        <h1 className="orders-page__title">{ka.orders.title}</h1>
+        <h1 className="orders-page__title">{t.orders.title}</h1>
 
         <section className="orders-page__overview" aria-label="შეკვეთების შეჯამება">
           <div className="orders-page__overview-copy">
@@ -193,7 +195,7 @@ export function OrdersPage() {
 
         <div className="orders-page__list">
           {paginatedOrders.map((order) => (
-            <OrderCard key={order.id} order={order} />
+            <OrderCard key={order.id} order={order} t={t} />
           ))}
         </div>
 
@@ -211,7 +213,7 @@ export function OrdersPage() {
   )
 }
 
-function OrderCard({ order }: { order: Order }) {
+function OrderCard({ order, t }: { order: Order; t: Translations }) {
   const totalItemsCount = getItemsCount(order)
   const visibleItems = order.items.slice(0, 4)
   const remainingItems = Math.max(0, order.items.length - visibleItems.length)
@@ -221,19 +223,19 @@ function OrderCard({ order }: { order: Order }) {
     <Link
       to={ROUTES.order(order.id)}
       className="orders-page__card"
-      aria-label={`${ka.orders.orderId} ${order.id.slice(0, 8)}, ${formatPrice(subtotal, order.currency)} — დეტალების ნახვა`}
+      aria-label={`${t.orders.orderId} ${order.id.slice(0, 8)}, ${formatPrice(subtotal, order.currency)} — დეტალების ნახვა`}
     >
       <div className="orders-page__card-top">
         <div className="orders-page__card-identity">
           <span className="orders-page__card-label">
-            {ka.orders.orderId}
+            {t.orders.orderId}
           </span>
           <span className="orders-page__order-id">
             #{order.id.slice(0, 8)}
           </span>
         </div>
 
-        {getStatusBadge(order.status)}
+        {getStatusBadge(order.status, t)}
       </div>
 
       <div className="orders-page__card-content">
@@ -315,11 +317,13 @@ function OrderDetail({
   isLoading,
   error,
   onBack,
+  t,
 }: {
   order?: Order
   isLoading: boolean
   error: unknown
   onBack: () => void
+  t: Translations
 }) {
   if (isLoading) {
     return (
@@ -330,7 +334,7 @@ function OrderDetail({
             onClick={onBack}
             className="orders-page__back-btn"
           >
-            {ka.checkout.backToOrders}
+            {t.checkout.backToOrders}
           </Button>
           <div className="orders-page__detail-loading">
             <Skeleton
@@ -354,11 +358,11 @@ function OrderDetail({
             onClick={onBack}
             className="orders-page__back-btn"
           >
-            {ka.checkout.backToOrders}
+            {t.checkout.backToOrders}
           </Button>
           <ErrorState
-            title={ka.common.genericError}
-            actionLabel={ka.checkout.backToOrders}
+            title={t.common.genericError}
+            actionLabel={t.checkout.backToOrders}
             onAction={onBack}
           />
         </div>
@@ -382,21 +386,21 @@ function OrderDetail({
           onClick={onBack}
           className="orders-page__back-btn"
         >
-          {ka.checkout.backToOrders}
+          {t.checkout.backToOrders}
         </Button>
 
         <header className="orders-page__detail-hero">
           <div className="orders-page__detail-hero-top">
             <div className="orders-page__detail-heading">
               <h1 className="orders-page__detail-title">
-                {ka.orders.orderDetails}
+                {t.orders.orderDetails}
               </h1>
               <p className="orders-page__detail-number">
                 შეკვეთის ID: <strong>#{order.id.slice(0, 8)}</strong>
               </p>
             </div>
             <div className="orders-page__detail-status">
-              {getStatusBadge(order.status)}
+              {getStatusBadge(order.status, t)}
             </div>
           </div>
 
@@ -439,7 +443,7 @@ function OrderDetail({
               id="order-items-heading"
               className="orders-page__section-title"
             >
-              {ka.orders.orderItems}
+              {t.orders.orderItems}
             </h2>
 
             {order.items.length > 0 ? (
@@ -515,7 +519,7 @@ function OrderDetail({
               </div>
 
               <div className="summary-row summary-row--total">
-                <span>{ka.orders.total}</span>
+                <span>{t.orders.total}</span>
                 <strong className="orders-page__total-value">
                   {formatPrice(displayTotal, order.currency)}
                 </strong>

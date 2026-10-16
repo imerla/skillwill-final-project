@@ -8,7 +8,7 @@ import { useFavorites } from '../../../features/favorites/hooks'
 import { Badge } from '../../../shared/ui/Badge/Badge'
 import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { Input } from '../../../shared/ui/Input/Input'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { ROUTES } from '../../routes'
 import './Nav.css'
 
@@ -17,6 +17,7 @@ export function Nav() {
   const { data: cart } = useCart()
   const { data: orders } = useOrders({ enabled: isAuthenticated })
   const { data: favorites } = useFavorites()
+  const { language, setLanguage, t } = useLanguage()
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -83,15 +84,15 @@ export function Nav() {
 
   return (
     <header className={`nav ${isMobileMenuOpen ? 'nav--menu-open' : ''}`}>
-      <nav aria-label={ka.nav.primaryNav}>
+      <nav aria-label={t.nav.primaryNav}>
         <div className="nav__container">
           <button
             type="button"
             className="nav__brand"
             onClick={() => navigate(ROUTES.home)}
-            aria-label={ka.nav.brand}
+            aria-label={t.nav.brand}
           >
-            <img src="/image_75788823.png" alt={ka.nav.brand} className="nav__logo" />
+            <img src="/image_75788823.png" alt={t.nav.brand} className="nav__logo" />
           </button>
 
           {/* Search input - only show on catalog page */}
@@ -99,27 +100,46 @@ export function Nav() {
             <div className="nav__search">
               <Input
                 type="search"
-                placeholder={ka.catalog.searchPlaceholder}
+                placeholder={t.catalog.searchPlaceholder}
                 value={searchInput}
                 onChange={(e) => {
                   isUserTypingRef.current = true
                   setSearchInput(e.target.value)
                 }}
-                aria-label={ka.catalog.searchLabel}
+                aria-label={t.catalog.searchLabel}
                 className="nav__search-input"
               />
             </div>
           )}
 
-          <button
-            type="button"
-            className="nav__burger"
-            onClick={toggleMobileMenu}
-            aria-label={isMobileMenuOpen ? ka.nav.closeMenu : ka.nav.menu}
-            aria-expanded={isMobileMenuOpen}
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {/* ახალი საერთო Div მობილურის ენისა და ბურგერისთვის */}
+          <div className="nav__mobile-actions">
+            <button
+              type="button"
+              className="nav__link nav__link--language nav__language-switcher-mobile"
+              onClick={() => setLanguage(language === 'ka' ? 'en' : 'ka')}
+              aria-label="Switch language"
+            >
+              <img
+                src={language === 'ka' 
+                  ? 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Flag_of_Georgia.svg/1280px-Flag_of_Georgia.svg.png'
+                  : 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1280px-Flag_of_the_United_Kingdom_%281-2%29.svg.png'
+                }
+                alt={language === 'ka' ? 'Georgian' : 'English'}
+                className="nav__language-flag"
+              />
+            </button>
+
+            <button
+              type="button"
+              className="nav__burger"
+              onClick={toggleMobileMenu}
+              aria-label={isMobileMenuOpen ? t.nav.closeMenu : t.nav.menu}
+              aria-expanded={isMobileMenuOpen}
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
 
           <div
             className={`nav__overlay ${isMobileMenuOpen ? 'nav__overlay--open' : ''}`}
@@ -127,22 +147,23 @@ export function Nav() {
             aria-hidden="true"
           />
 
-          <div className={`nav__links ${isMobileMenuOpen ? 'nav__links--open' : ''}`}>
+          <div className="nav__nav-items">
+            <div className={`nav__links ${isMobileMenuOpen ? 'nav__links--open' : ''}`}>
             <NavLink to={ROUTES.home} className="nav__link nav__link--with-text" onClick={closeMobileMenu}>
               <Home size={18} className="nav__link-icon" />
-              <span>მთავარი</span>
+              <span>{t.nav.brand}</span>
             </NavLink>
             <NavLink to={ROUTES.catalog} className="nav__link nav__link--with-text" onClick={closeMobileMenu}>
               <ShoppingBag size={18} className="nav__link-icon" />
-              <span>{ka.nav.products}</span>
+              <span>{t.nav.products}</span>
             </NavLink>
             <NavLink to={ROUTES.about} className="nav__link nav__link--with-text" onClick={closeMobileMenu}>
               <Info size={18} className="nav__link-icon" />
-              <span>ჩვენ შესახებ</span>
+              <span>{t.nav.about}</span>
             </NavLink>
             <NavLink to={ROUTES.favorites} className="nav__link" onClick={closeMobileMenu}>
                   <Heart size={18} className="nav__link-icon" />
-                  <span>ფავორიტები</span>
+                  <span>{t.nav.favorites}</span>
                   {favoritesCount > 0 && (
                     <Badge variant="accent">{favoritesCount}</Badge>
                   )}
@@ -150,11 +171,11 @@ export function Nav() {
             <NavLink
               to={ROUTES.cart}
               className="nav__link"
-              aria-label={isAuthenticated && totalQty > 0 ? ka.nav.cartCount(totalQty) : undefined}
+              aria-label={isAuthenticated && totalQty > 0 ? t.nav.cartCount(totalQty) : undefined}
               onClick={closeMobileMenu}
             >
               <ShoppingCart size={18} className="nav__link-icon" />
-              <span>{ka.nav.cart}</span>
+              <span>{t.nav.cart}</span>
               {isAuthenticated && totalQty > 0 && (
                 <Badge variant="accent">{totalQty}</Badge>
               )}
@@ -168,36 +189,71 @@ export function Nav() {
               <>
                 <NavLink to={ROUTES.orders} className="nav__link" onClick={closeMobileMenu}>
                   <Package size={18} className="nav__link-icon" />
-                  <span>{ka.nav.orders}</span>
+                  <span>{t.nav.orders}</span>
                   {ordersCount > 0 && (
                     <Badge variant="accent">{ordersCount}</Badge>
                   )}
                 </NavLink>
                 <NavLink to={ROUTES.profile} className="nav__link" onClick={closeMobileMenu}>
                   <User size={18} className="nav__link-icon" />
-                  <span>{ka.nav.profile}</span>
+                  <span>{t.nav.profile}</span>
                 </NavLink>
+                {/* Language switcher - desktop */}
+                <button
+                  type="button"
+                  className="nav__link nav__link--language nav__language-switcher-desktop"
+                  onClick={() => setLanguage(language === 'ka' ? 'en' : 'ka')}
+                  aria-label="Switch language"
+                >
+                  <img
+                    src={language === 'ka' 
+                      ? 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Flag_of_Georgia.svg/1280px-Flag_of_Georgia.svg.png'
+                      : 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1280px-Flag_of_the_United_Kingdom_%281-2%29.svg.png'
+                    }
+                    alt={language === 'ka' ? 'Georgian' : 'English'}
+                    className="nav__language-flag"
+                  />
+                  <span className="nav__language-text">{language === 'ka' ? 'EN' : 'KA'}</span>
+                </button>
                 <button type="button" className="nav__button nav__button--with-text" onClick={handleLogout}>
                   <LogOut size={18} className="nav__button-icon" />
-                  <span>{ka.nav.logout}</span>
+                  <span>{t.nav.logout}</span>
                 </button>
               </>
             ) : (
               <>
                 <NavLink to={ROUTES.login} className="nav__link" onClick={closeMobileMenu}>
                   <LogIn size={18} className="nav__link-icon" />
-                  <span>{ka.nav.login}</span>
+                  <span>{t.nav.login}</span>
                 </NavLink>
+                {/* Language switcher - desktop */}
+                <button
+                  type="button"
+                  className="nav__link nav__link--language nav__language-switcher-desktop"
+                  onClick={() => setLanguage(language === 'ka' ? 'en' : 'ka')}
+                  aria-label="Switch language"
+                >
+                  <img
+                    src={language === 'ka' 
+                      ? 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Flag_of_Georgia.svg/1280px-Flag_of_Georgia.svg.png'
+                      : 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1280px-Flag_of_the_United_Kingdom_%281-2%29.svg.png'
+                    }
+                    alt={language === 'ka' ? 'Georgian' : 'English'}
+                    className="nav__language-flag"
+                  />
+                  <span className="nav__language-text">{language === 'ka' ? 'EN' : 'KA'}</span>
+                </button>
                 <NavLink to={ROUTES.register} className="nav__link" onClick={closeMobileMenu}>
                   <UserPlus size={18} className="nav__link-icon" />
-                  <span>{ka.nav.register}</span>
+                  <span>{t.nav.register}</span>
                 </NavLink>
               </>
             )}
           </div>
         </div>
-      </nav>
-    </header>
+      </div>
+    </nav>
+  </header>
   )
 }
 

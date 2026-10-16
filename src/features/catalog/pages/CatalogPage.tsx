@@ -14,11 +14,12 @@ import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { EmptyState } from '../../../shared/ui/EmptyState/EmptyState'
 import { ErrorState } from '../../../shared/ui/ErrorState/ErrorState'
 import { Pagination } from '../../../shared/ui/Pagination/Pagination'
-import { ka } from '../../../shared/i18n/ka'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import './CatalogPage.css'
 
 export function CatalogPage() {
+  const { t } = useLanguage()
   const [searchParams, setSearchParams] = useSearchParams()
   const categorySlug = CATALOG_CATEGORY_SLUG
 
@@ -26,7 +27,7 @@ export function CatalogPage() {
   const params = parseUrlParams(searchParams, category?.filters)
   const { data: productsData, isPending: productsPending, isFetching: productsFetching, error: productsError, refetch: refetchProducts } = useProducts(params, { enabled: !categoryLoading })
 
-  useDocumentTitle(category?.name ?? ka.catalog.titleFallback)
+  useDocumentTitle(category?.name ?? t.catalog.titleFallback)
 
   // Use server response page as authoritative current page
   const currentPage = productsData?.page ?? 1
@@ -122,7 +123,7 @@ export function CatalogPage() {
       {categoryLoading && (
         <div className="catalog-page__header">
           <h1 className="catalog-page__title">
-            {ka.common.loading}
+            {t.common.loading}
           </h1>
         </div>
       )}
@@ -130,19 +131,19 @@ export function CatalogPage() {
       {/* Sorting Area */}
       <div className="catalog-page__sorting">
         <Select
-          label={ka.catalog.sortLabel}
+          label={t.catalog.sortLabel}
           value={params.sort as string || ''}
           onChange={(e) => handleUpdateParams({ sort: (e.target.value || undefined) as ProductSort | undefined })}
           className="catalog-page__sort"
         >
-          <option value="">{ka.catalog.sortPlaceholder}</option>
-          <option value="newest">{ka.catalog.sort.newest}</option>
-          <option value="oldest">{ka.catalog.sort.oldest}</option>
-          <option value="price-asc">{ka.catalog.sort['price-asc']}</option>
-          <option value="price-desc">{ka.catalog.sort['price-desc']}</option>
-          <option value="rating-desc">{ka.catalog.sort['rating-desc']}</option>
-          <option value="popular">{ka.catalog.sort.popular}</option>
-          <option value="title-asc">{ka.catalog.sort['title-asc']}</option>
+          <option value="">{t.catalog.sortPlaceholder}</option>
+          <option value="newest">{t.catalog.sort.newest}</option>
+          <option value="oldest">{t.catalog.sort.oldest}</option>
+          <option value="price-asc">{t.catalog.sort['price-asc']}</option>
+          <option value="price-desc">{t.catalog.sort['price-desc']}</option>
+          <option value="rating-desc">{t.catalog.sort['rating-desc']}</option>
+          <option value="popular">{t.catalog.sort.popular}</option>
+          <option value="title-asc">{t.catalog.sort['title-asc']}</option>
         </Select>
       </div>
 
@@ -152,6 +153,7 @@ export function CatalogPage() {
         params={params}
         onClearFilter={(key, value) => handleFilterClear(key, value)}
         onClearAll={handleClearAll}
+        t={t}
       />
 
       {/* Filters and Products Container */}
@@ -159,7 +161,7 @@ export function CatalogPage() {
         {/* Filters Area */}
         <div className="catalog-page__filters">
           <div className="catalog-page__filter-section">
-            <h3 className="catalog-page__filter-title">{ka.catalog.filters}</h3>
+            <h3 className="catalog-page__filter-title">{t.catalog.filters}</h3>
             {categoryError ? (
               <ErrorState onAction={() => refetchCategory()} />
             ) : category?.filters?.sort((a, b) => {
@@ -199,9 +201,9 @@ export function CatalogPage() {
             </div>
           ) : productsData?.items && productsData.items.length === 0 ? (
             <EmptyState
-              title={ka.catalog.empty}
+              title={t.catalog.empty}
               description={params.q ? 'სცადეთ სხვა საძიებო სიტყვა ან გაასუფთავეთ ფილტრები' : undefined}
-              actionLabel={ka.catalog.clearAll}
+              actionLabel={t.catalog.clearAll}
               onAction={handleClearAll}
               illustration={params.q ? 'search' : 'package'}
             />
@@ -209,12 +211,12 @@ export function CatalogPage() {
             <>
               {productsData && productsData.items.length > 0 && (
                 <p className="catalog-page__results" aria-live="polite">
-                  {ka.catalog.pageRange((currentPage - 1) * productsData.limit + 1, Math.min(currentPage * productsData.limit, productsData.total), productsData.total)}
+                  {t.catalog.pageRange((currentPage - 1) * productsData.limit + 1, Math.min(currentPage * productsData.limit, productsData.total), productsData.total)}
                 </p>
               )}
               <div className="catalog-page__grid">
                 {productsData?.items?.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard key={product.id} product={product} t={t} />
                 ))}
               </div>
               {/* Pagination Area */}
