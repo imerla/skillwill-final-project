@@ -256,7 +256,7 @@ export const ka = {
     status: 'სტატუსი',
     total: 'ჯამი',
     shippingAddress: 'მიწოდების მისამართი',
-    orderItems: 'შეკვეთის პროდუქტები',
+    orderItems: 'შეკვეთილი პროდუქტები',
     statusPending: 'მოლოდინში',
     statusPaid: 'გადახდილი',
     statusConfirmed: 'დადასტურებული',

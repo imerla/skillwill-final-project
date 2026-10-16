@@ -140,6 +140,36 @@
   gap: var(--spacing-3);
 }
 
+.checkout-page__delivery-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-muted);
+}
+
+.checkout-page__delivery-name {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
+.checkout-page__delivery-description {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.checkout-page__delivery-price {
+  margin: 0;
+  color: var(--color-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+}
+
 .checkout-page__delivery-option {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);

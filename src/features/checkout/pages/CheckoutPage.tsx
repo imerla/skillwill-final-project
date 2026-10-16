@@ -65,31 +65,6 @@ const codeSchema = z.object({
 
 type CodeFormData = z.infer<typeof codeSchema>
 
-interface DeliveryOption {
-  id: string
-  name: string
-  description: string
-  price: number
-  estimatedDays: string
-}
-
-const DELIVERY_OPTIONS: DeliveryOption[] = [
-  {
-    id: 'standard',
-    name: 'სტანდარტული მიწოდება',
-    description: '4-5 სამუშაო დღე',
-    price: 0,
-    estimatedDays: '4-5 დღე',
-  },
-  {
-    id: 'express',
-    name: 'სწრაფი მიწოდება',
-    description: '1-3 სამუშაო დღე',
-    price: 10,
-    estimatedDays: '1-3 დღე',
-  },
-]
-
 function AddressFormModal({
   show,
   editingAddress,
@@ -308,7 +283,6 @@ export function CheckoutPage() {
   const [showAddressForm, setShowAddressForm] = useState(false)
   const [editingAddress, setEditingAddress] = useState<Address | null>(null)
   const [addressServerError, setAddressServerError] = useState<ApiErrorClass | null>(null)
-  const [selectedDeliveryId, setSelectedDeliveryId] = useState<string>('standard')
 
   useDocumentTitle(ka.checkout.title)
 
@@ -627,42 +601,21 @@ export function CheckoutPage() {
               </div>
               <div className="checkout-page__total-row">
                 <span>მიწოდების საფასური</span>
-                <span>{formatPrice(DELIVERY_OPTIONS.find(opt => opt.id === selectedDeliveryId)?.price || 0, checkout?.currency)}</span>
+                <span>{formatPrice(0, checkout?.currency)}</span>
               </div>
               <div className="checkout-page__total-row checkout-page__total-row--total">
                 <span>{ka.checkout.total}</span>
-                <span>{formatPrice((checkout?.total || 0) - (checkout?.shippingFee || 0) + (DELIVERY_OPTIONS.find(opt => opt.id === selectedDeliveryId)?.price || 0), checkout?.currency)}</span>
+                <span>{formatPrice((checkout?.total || 0) - (checkout?.shippingFee || 0), checkout?.currency)}</span>
               </div>
             </div>
           </div>
 
           <div className="checkout-page__delivery-section">
             <h2 className="checkout-page__section-title">მიწოდება</h2>
-            <div className="checkout-page__delivery-options">
-              {DELIVERY_OPTIONS.map((option) => (
-                <div
-                  key={option.id}
-                  className={`checkout-page__delivery-option ${selectedDeliveryId === option.id ? 'checkout-page__delivery-option--selected' : ''}`}
-                  onClick={() => setSelectedDeliveryId(option.id)}
-                >
-                  <div className="checkout-page__delivery-option-radio">
-                    <input
-                      type="radio"
-                      name="delivery"
-                      id={`delivery-${option.id}`}
-                      checked={selectedDeliveryId === option.id}
-                      onChange={() => setSelectedDeliveryId(option.id)}
-                    />
-                    <label htmlFor={`delivery-${option.id}`}>
-                      <span className="checkout-page__delivery-option-name">{option.name}</span>
-                      <span className="checkout-page__delivery-option-description">{option.description}</span>
-                      <span className="checkout-page__delivery-option-price">
-                        {option.price === 0 ? 'უფასო' : formatPrice(option.price, checkout?.currency)}
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              ))}
+            <div className="checkout-page__delivery-info">
+              <p className="checkout-page__delivery-name">სწრაფი მიწოდება</p>
+              <p className="checkout-page__delivery-description">1-3 სამუშაო დღე</p>
+              <p className="checkout-page__delivery-price">უფასო</p>
             </div>
           </div>
           </div>
@@ -922,7 +875,7 @@ export function CheckoutPage() {
         <div className="checkout-page__confirm-section">
           <p className="checkout-page__confirm-message">{ka.checkout.confirmMessage}</p>
           <p className="checkout-page__confirm-total">
-            {ka.checkout.total}: {formatPrice(createOrder.data?.total || 0, checkout?.currency)}
+            {ka.checkout.total}: {formatPrice((createOrder.data?.total || 0) - (checkout?.shippingFee || 0), checkout?.currency)}
           </p>
 
           <form onSubmit={codeForm.handleSubmit(handleConfirmSubmit)} className="checkout-page__code-form" noValidate>
@@ -998,7 +951,10 @@ export function CheckoutPage() {
               {ka.checkout.orderId}: {confirmedOrder.id}
             </p>
             <p className="checkout-page__success-total">
-              {ka.checkout.total}: {formatPrice(confirmedOrder.total, confirmedOrder.currency)}
+              {ka.checkout.total}: {formatPrice(
+                confirmedOrder.items.reduce((sum, item) => sum + item.price * item.qty, 0),
+                confirmedOrder.currency
+              )}
             </p>
             <p className="checkout-page__success-status">
               {ka.checkout.status}: {confirmedOrder.status === 'paid' ? ka.orders.statusPaid : ka.orders.statusPending}
