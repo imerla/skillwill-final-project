@@ -1,4 +1,4 @@
-import { ka } from '../../i18n/ka'
+import { useLanguage } from '../../i18n/LanguageContext'
 import './Pagination.css'
 
 interface PaginationProps {
@@ -9,49 +9,50 @@ interface PaginationProps {
 }
 
 export function Pagination({ page, totalPages, onPageChange, disabled = false }: PaginationProps) {
+  const { t } = useLanguage()
   if (totalPages <= 1) return null
 
   const getPages = () => {
     const pages: (number | string)[] = []
-    
+
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i)
       }
     } else {
       pages.push(1)
-      
+
       if (page > 3) {
         pages.push('...')
       }
-      
+
       const start = Math.max(2, page - 1)
       const end = Math.min(totalPages - 1, page + 1)
-      
+
       for (let i = start; i <= end; i++) {
         pages.push(i)
       }
-      
+
       if (page < totalPages - 2) {
         pages.push('...')
       }
-      
+
       pages.push(totalPages)
     }
-    
+
     return pages
   }
 
   return (
-    <nav className="pagination" aria-label={ka.common.pagination}>
+    <nav className="pagination" aria-label={t.common.pagination}>
       <button
         type="button"
         className="pagination__button"
         onClick={() => onPageChange(page - 1)}
         disabled={page === 1 || disabled}
-        aria-label={ka.catalog.prev}
+        aria-label={t.catalog.prev}
       >
-        {ka.catalog.prev}
+        {t.catalog.prev}
       </button>
       <div className="pagination__pages">
         {getPages().map((p, index) => {
@@ -65,7 +66,7 @@ export function Pagination({ page, totalPages, onPageChange, disabled = false }:
               className={`pagination__page ${p === page ? 'pagination__page--current' : ''}`}
               onClick={() => onPageChange(p)}
               disabled={disabled}
-              aria-label={ka.common.pageN(p)}
+              aria-label={t.common.pageN(p)}
               aria-current={p === page ? 'page' : undefined}
             >
               {p}
@@ -78,9 +79,9 @@ export function Pagination({ page, totalPages, onPageChange, disabled = false }:
         className="pagination__button"
         onClick={() => onPageChange(page + 1)}
         disabled={page === totalPages || disabled}
-        aria-label={ka.catalog.next}
+        aria-label={t.catalog.next}
       >
-        {ka.catalog.next}
+        {t.catalog.next}
       </button>
     </nav>
   )
