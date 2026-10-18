@@ -15,6 +15,7 @@ import { EmptyState } from '../../../shared/ui/EmptyState/EmptyState'
 import { ErrorState } from '../../../shared/ui/ErrorState/ErrorState'
 import { Pagination } from '../../../shared/ui/Pagination/Pagination'
 import { useLanguage } from '../../../shared/i18n/LanguageContext'
+import { translateFilterLabel } from '../../../shared/i18n/apiTranslations'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import './CatalogPage.css'
 
@@ -165,9 +166,11 @@ export function CatalogPage() {
             {categoryError ? (
               <ErrorState onAction={() => refetchCategory()} />
             ) : category?.filters?.sort((a, b) => {
-              // Put "forWhom" first
-              if (a.label === t.catalog.forWhom) return -1
-              if (b.label === t.catalog.forWhom) return 1
+              // Put "forWhom" filter first by checking the original Georgian label
+              const aTranslated = translateFilterLabel(a.label, t)
+              const bTranslated = translateFilterLabel(b.label, t)
+              if (aTranslated === t.api.forWhom) return -1
+              if (bTranslated === t.api.forWhom) return 1
               return 0
             }).map((filter) => (
               <Filter
