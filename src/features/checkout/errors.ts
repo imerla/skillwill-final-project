@@ -1,26 +1,26 @@
 import { ApiErrorClass } from '../../shared/api/types'
-import { ka } from '../../shared/i18n/ka'
+import type { Translations } from '../../shared/i18n/LanguageContext'
 
-export function getCheckoutErrorMessage(error: unknown): string {
+export function getCheckoutErrorMessage(error: unknown, t: Translations): string {
   if (!(error instanceof ApiErrorClass)) {
-    return ka.common.networkError
+    return t.common.networkError
   }
 
   switch (error.code) {
     case 'INSUFFICIENT_STOCK':
     case 'OUT_OF_STOCK':
-      return ka.checkout.stockError
+      return t.checkout.stockError
     case 'PRODUCT_NOT_FOUND':
-      return ka.cart.productGone
+      return t.cart.productGone
     default:
       // TODO: Remove this backward-compatibility check once server always sends code
       if (!error.code && error.message && error.message.includes('NotEnoughStock')) {
-        return ka.checkout.stockError
+        return t.checkout.stockError
       }
       if (error.status === 422) {
-        return error.message || ka.common.genericError
+        return error.message || t.common.genericError
       }
-      return ka.common.genericError
+      return t.common.genericError
   }
 }
 

@@ -112,7 +112,7 @@ export function Nav() {
             </div>
           )}
 
-          {/* ახალი საერთო Div მობილურის ენისა და ბურგერისთვის */}
+          {/* New common Div for mobile language and burger */}
           <div className="nav__mobile-actions">
             <button
               type="button"

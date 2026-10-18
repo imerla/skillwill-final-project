@@ -67,10 +67,10 @@ export function FavoritesPage() {
       { productId, qty: 1 },
       {
         onSuccess: () => {
-          // არ ვშლით favorites-დან, სურვილისამებრ შეიძლება დარჩეს
+          // t.favorites.keepInFavoritesComment
         },
         onError: () => {
-          setActionError('შეცდომა კალათაში დამატებისას')
+          setActionError(t.favorites.addToCartError)
         },
       }
     )
@@ -85,7 +85,7 @@ export function FavoritesPage() {
         setItemToRemove(null)
       },
       onError: () => {
-        setActionError('შეცდომა წაშლისას')
+        setActionError(t.favorites.removeError)
         setShowRemoveConfirm(false)
       },
     })
@@ -180,7 +180,7 @@ export function FavoritesPage() {
                   onClick={() => handleAddToCart(product.id)}
                   disabled={isAnyMutationPending}
                   className="favorites-page__add-to-cart"
-                  aria-label="კალათაში დამატება"
+                  aria-label={t.favorites.addToCart}
                 >
                   <ShoppingCart size={18} />
                 </Button>
@@ -189,7 +189,7 @@ export function FavoritesPage() {
                   onClick={() => handleRemove(product.id)}
                   disabled={isAnyMutationPending}
                   className="favorites-page__remove"
-                  aria-label="წაშლა"
+                  aria-label={t.favorites.remove}
                 >
                   <Trash2 size={18} />
                 </Button>
@@ -201,10 +201,10 @@ export function FavoritesPage() {
 
       <ConfirmDialog
         isOpen={showRemoveConfirm}
-        title="წაშლის დადასტურება"
-        message="დარწმუნებული ხართ, რომ გსურთ ამ პროდუქტის წაშლა ფავორიტებიდან?"
-        confirmLabel="წაშლა"
-        cancelLabel="გაუქმება"
+        title={t.favorites.removeConfirmTitle}
+        message={t.favorites.removeConfirmMessage}
+        confirmLabel={t.favorites.removeConfirmLabel}
+        cancelLabel={t.favorites.removeCancelLabel}
         onConfirm={handleRemoveConfirm}
         onCancel={handleRemoveCancel}
       />

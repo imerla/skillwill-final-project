@@ -49,7 +49,7 @@ export function CartPage() {
       { id: itemId, data: { qty } },
       {
         onSuccess: () => setActionError(null),
-        onError: (e) => setActionError(getCartErrorMessage(e)),
+        onError: (e) => setActionError(getCartErrorMessage(e, t)),
       }
     )
   }
@@ -58,7 +58,7 @@ export function CartPage() {
     setActionError(null)
     removeItem.mutate(item.id, {
       onSuccess: () => setActionError(null),
-      onError: (e) => setActionError(getCartErrorMessage(e, { stock: item.product.stock })),
+      onError: (e) => setActionError(getCartErrorMessage(e, t, { stock: item.product.stock })),
     })
   }
 
@@ -71,7 +71,7 @@ export function CartPage() {
     setActionError(null)
     clearCart.mutate(undefined, {
       onSuccess: () => setActionError(null),
-      onError: (e) => setActionError(getCartErrorMessage(e)),
+      onError: (e) => setActionError(getCartErrorMessage(e, t)),
     })
   }
 
@@ -260,9 +260,9 @@ export function CartPage() {
         <div className="cart-page__similar-section">
           <PageContainer size="page" as="section">
             <div className="cart-page__similar-header">
-            <h2 className="cart-page__similar-title">მსგავსი პროდუქტები</h2>
+            <h2 className="cart-page__similar-title">{t.cart.similarProducts}</h2>
             <Link to={ROUTES.catalog} className="cart-page__similar-link">
-              ყველას ნახვა
+              {t.cart.viewAll}
             </Link>
           </div>
           <Carousel itemsPerView={4} gap={24}>

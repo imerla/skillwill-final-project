@@ -45,7 +45,7 @@ function getItemsCount(order: Order) {
 
 function OrdersLoading() {
   return (
-    <div className="orders-page__loading" aria-label="იტვირთება">
+    <div className="orders-page__loading" aria-label="Loading">
       {[1, 2, 3].map((item) => (
         <Skeleton
           key={item}
@@ -111,7 +111,7 @@ export function OrdersPage() {
 
   if (error) {
     const errorMessage =
-      error instanceof ApiErrorClass ? error.message : 'შეცდომა მოხდა'
+      error instanceof ApiErrorClass ? error.message : t.orders.errorOccurred
 
     return (
       <PageContainer size="page" as="section">
@@ -165,10 +165,10 @@ export function OrdersPage() {
       <div className="orders-container">
         <h1 className="orders-page__title">{t.orders.title}</h1>
 
-        <section className="orders-page__overview" aria-label="შეკვეთების შეჯამება">
+        <section className="orders-page__overview" aria-label={t.orders.orderDetails}>
           <div className="orders-page__overview-copy">
             <span className="orders-page__overview-label">
-              ჯამურად შეკვეთების რაოდენობა
+              {t.orders.total}
             </span>
             <strong className="orders-page__overview-value">
               {orders.items.length}
@@ -179,7 +179,7 @@ export function OrdersPage() {
 
           <div className="orders-page__overview-copy">
             <span className="orders-page__overview-label">
-              ჯამურად შეძენილი ნივთების რაოდენობა
+              {t.orders.totalItemsPurchased}
             </span>
             <strong className="orders-page__overview-value">
               {totalItems}
@@ -223,7 +223,7 @@ function OrderCard({ order, t }: { order: Order; t: Translations }) {
     <Link
       to={ROUTES.order(order.id)}
       className="orders-page__card"
-      aria-label={`${t.orders.orderId} ${order.id.slice(0, 8)}, ${formatPrice(subtotal, order.currency)} — დეტალების ნახვა`}
+      aria-label={`${t.orders.orderId} ${order.id.slice(0, 8)}, ${formatPrice(subtotal, order.currency)} — ${t.orders.viewDetails}`}
     >
       <div className="orders-page__card-top">
         <div className="orders-page__card-identity">
@@ -254,7 +254,7 @@ function OrderCard({ order, t }: { order: Order; t: Translations }) {
 
           <div
             className="orders-page__card-thumbnails"
-            aria-label={`${totalItemsCount} ნივთი`}
+            aria-label={`${t.orders.itemCount(totalItemsCount)}`}
           >
             {visibleItems.map((item, index) => (
               <div
@@ -283,13 +283,13 @@ function OrderCard({ order, t }: { order: Order; t: Translations }) {
 
             {order.items.length === 0 && (
               <span className="orders-page__no-items">
-                პროდუქტები არ არის
+                {t.orders.noItems}
               </span>
             )}
           </div>
 
           <span className="orders-page__item-count">
-            {totalItemsCount} პროდუქტი
+            {t.orders.productCount(totalItemsCount)}
           </span>
         </div>
 
@@ -301,7 +301,7 @@ function OrderCard({ order, t }: { order: Order; t: Translations }) {
           </div>
 
           <span className="orders-page__card-open">
-            დეტალები
+            {t.orders.details}
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
@@ -396,7 +396,7 @@ function OrderDetail({
                 {t.orders.orderDetails}
               </h1>
               <p className="orders-page__detail-number">
-                შეკვეთის ID: <strong>#{order.id.slice(0, 8)}</strong>
+                {t.orders.orderId}: <strong>#{order.id.slice(0, 8)}</strong>
               </p>
             </div>
             <div className="orders-page__detail-status">
@@ -413,7 +413,7 @@ function OrderDetail({
                 </svg>
               </span>
               <span>
-                <span className="orders-page__fact-label">შეკვეთის თარიღი</span>
+                <span className="orders-page__fact-label">{t.orders.orderDate}</span>
                 <strong>{formatDate(order.createdAt, true)}</strong>
               </span>
             </div>
@@ -427,7 +427,7 @@ function OrderDetail({
                 </svg>
               </span>
               <span>
-                <span className="orders-page__fact-label">ნივთების რაოდენობა</span>
+                <span className="orders-page__fact-label">{t.orders.itemsCount}</span>
                 <strong>{totalItemsCount}</strong>
               </span>
             </div>
@@ -474,10 +474,10 @@ function OrderDetail({
                         </Link>
                       </h3>
                       <p className="orders-page__item-unit-price">
-                        {formatPrice(item.price, order.currency)} / ერთეული
+                        {formatPrice(item.price, order.currency)} / {t.orders.unitPrice}
                       </p>
                       <span className="orders-page__item-quantity">
-                        რაოდენობა: {item.qty}
+                        {t.orders.quantity}: {item.qty}
                       </span>
                     </div>
 
@@ -491,7 +491,7 @@ function OrderDetail({
               </div>
             ) : (
               <p className="orders-page__no-items">
-                შეკვეთაში პროდუქტები არ მოიძებნა.
+                {t.orders.noItemsInOrder}
               </p>
             )}
           </section>
@@ -505,16 +505,16 @@ function OrderDetail({
                 id="order-summary-heading"
                 className="orders-page__section-title"
               >
-                შეკვეთის შეჯამება
+                {t.orders.orderSummary}
               </h2>
 
               <div className="summary-row">
-                <span>ნივთების ღირებულება</span>
+                <span>{t.orders.itemsValue}</span>
                 <span>{formatPrice(subtotal, order.currency)}</span>
               </div>
 
               <div className="summary-row">
-                <span>მიწოდების საფასური</span>
+                <span>{t.orders.shippingFee}</span>
                 <span>{formatPrice(shippingFee, order.currency)}</span>
               </div>
 
@@ -542,7 +542,7 @@ function OrderDetail({
                   id="order-shipping-heading"
                   className="orders-page__section-title"
                 >
-                  მიწოდების მისამართი
+                  {t.orders.shippingAddressTitle}
                 </h2>
               </div>
 
@@ -573,19 +573,19 @@ function OrderDetail({
                   id="order-delivery-heading"
                   className="orders-page__section-title"
                 >
-                  მიწოდების მეთოდი
+                  {t.orders.shippingMethod}
                 </h2>
               </div>
 
               <div className="orders-page__shipping-content">
                 <p className="orders-page__shipping-name">
-                  სწრაფი მიწოდება
+                  {t.orders.fastDelivery}
                 </p>
                 <p className="orders-page__shipping-phone">
-                  1-3 სამუშაო დღე
+                  {t.orders.deliveryTime}
                 </p>
                 <p className="orders-page__shipping-address">
-                  უფასო
+                  {t.orders.free}
                 </p>
               </div>
             </section>

@@ -5,12 +5,14 @@ import { HeroBanner } from '../../../shared/ui/HeroBanner/HeroBanner'
 import { Button } from '../../../shared/ui/Button/Button'
 import { ProductCard } from '../../../features/catalog/components/ProductCard'
 import { Carousel } from '../../../shared/ui/Carousel/Carousel'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { ROUTES } from '../../../app/routes'
 import { useProducts } from '../../../features/catalog/hooks'
 import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import './HomePage.css'
 
 export function HomePage() {
+  const { t } = useLanguage()
   const { data: popularProducts, isLoading: popularLoading } = useProducts({ sort: 'popular', limit: 8 })
   const { data: topRatedProducts, isLoading: topRatedLoading } = useProducts({ sort: 'rating-desc', limit: 8 })
 
@@ -22,13 +24,13 @@ export function HomePage() {
       {/* Hero Section */}
       <PageContainer size="page" as="section">
         <HeroBanner
-          title="თქვენი საყვარელი პროდუქტები ერთ სივრცეში"
-          subtitle="მაღალი ხარისხი, საუკეთესო ფასები და სწრაფი მიწოდება"
+          title={t.home.heroTitle}
+          subtitle={t.home.heroSubtitle}
           image="https://images.unsplash.com/photo-1764779169349-a5adca68947c?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D"
           height="large"
         >
           <Button onClick={() => window.location.href = ROUTES.catalog} className="home-page__hero-cta">
-            კატალოგში გადასვლა
+            {t.home.heroCta}
             <ArrowRight size={20} />
           </Button>
         </HeroBanner>
@@ -41,36 +43,36 @@ export function HomePage() {
             <div className="home-page__feature-icon">
               <ShoppingBag size={32} />
             </div>
-            <h3 className="home-page__feature-title">ფართო არჩევანი</h3>
+            <h3 className="home-page__feature-title">{t.home.featureVarietyTitle}</h3>
             <p className="home-page__feature-description">
-              პროდუქტი ყველა გემოვნებისთვის
+              {t.home.featureVarietyDesc}
             </p>
           </div>
           <div className="home-page__feature">
             <div className="home-page__feature-icon">
               <Truck size={32} />
             </div>
-            <h3 className="home-page__feature-title">სწრაფი მიწოდება</h3>
+            <h3 className="home-page__feature-title">{t.home.featureShippingTitle}</h3>
             <p className="home-page__feature-description">
-              მიწოდება მთელ საქართველოში 1-3 სამუშაო დღეში
+              {t.home.featureShippingDesc}
             </p>
           </div>
           <div className="home-page__feature">
             <div className="home-page__feature-icon">
               <Shield size={32} />
             </div>
-            <h3 className="home-page__feature-title">ხარისხის გარანტია</h3>
+            <h3 className="home-page__feature-title">{t.home.featureQualityTitle}</h3>
             <p className="home-page__feature-description">
-              მხოლოდ ორიგინალი პროდუქტები
+              {t.home.featureQualityDesc}
             </p>
           </div>
           <div className="home-page__feature">
             <div className="home-page__feature-icon">
               <Heart size={32} />
             </div>
-            <h3 className="home-page__feature-title">მომხმარებლის მხარდაჭერა</h3>
+            <h3 className="home-page__feature-title">{t.home.featureSupportTitle}</h3>
             <p className="home-page__feature-description">
-              დახმარება ნებისმიერ კითხვაზე
+              {t.home.featureSupportDesc}
             </p>
           </div>
         </div>
@@ -81,10 +83,10 @@ export function HomePage() {
         <div className="home-page__section-header">
           <h2 className="home-page__section-title">
             <TrendingUp size={24} />
-            პოპულარული პროდუქტები
+            {t.home.popularTitle}
           </h2>
           <Link to={popularLink} className="home-page__section-link">
-            ყველას ნახვა
+            {t.home.popularLink}
             <ArrowRight size={16} />
           </Link>
         </div>
@@ -108,10 +110,10 @@ export function HomePage() {
         <div className="home-page__section-header">
           <h2 className="home-page__section-title">
             <Star size={24} />
-            საუკეთესო შეფასებები
+            {t.home.topRatedTitle}
           </h2>
           <Link to={topRatedLink} className="home-page__section-link">
-            ყველას ნახვა
+            {t.home.topRatedLink}
             <ArrowRight size={16} />
           </Link>
         </div>

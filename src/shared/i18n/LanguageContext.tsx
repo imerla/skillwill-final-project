@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { ka } from './ka'
 import { en } from './en'
+import { setApiLanguage } from '../api/client'
 
 export type Language = 'ka' | 'en'
 
@@ -41,10 +42,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const setLanguage = (lang: Language) => {
     setLanguageState(lang)
     localStorage.setItem('language', lang)
+    setApiLanguage(lang)
   }
 
   useEffect(() => {
     document.documentElement.lang = language
+    setApiLanguage(language)
   }, [language])
 
   const value: LanguageContextType = {

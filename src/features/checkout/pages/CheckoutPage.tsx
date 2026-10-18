@@ -60,6 +60,7 @@ function AddressFormModal({
   isLoading: boolean
   serverError: ApiErrorClass | null
 }) {
+  const { t } = useLanguage()
   const {
     register,
     handleSubmit,
@@ -114,7 +115,7 @@ function AddressFormModal({
   const validatePhone = (value: string) => {
     const cleaned = value.replace(/\D/g, '')
     if (cleaned.length < 9) {
-      return 'ტელეფონის ნომერი უნდა შეიცავდეს მინიმუმ 9 ციფრს'
+      return t.checkout.addressForm.phoneMin
     }
     return true
   }
@@ -125,7 +126,7 @@ function AddressFormModal({
     <div className="checkout-page__address-modal">
       <div className="checkout-page__address-modal-content">
         <h3 className="checkout-page__modal-title">
-          {editingAddress ? 'მისამართის რედაქტირება' : 'ახალი მისამართი'}
+          {editingAddress ? t.checkout.addressForm.editTitle : t.checkout.addressForm.newTitle}
         </h3>
         <button
           className="checkout-page__modal-close"
@@ -134,37 +135,37 @@ function AddressFormModal({
           ✕
         </button>
         <form onSubmit={handleSubmit(onSubmit)} className="checkout-page__address-form" noValidate onChange={handleFormChange}>
-          <FormField label="სახელწოდება" error={errors.label?.message}>
+          <FormField label={t.checkout.addressForm.label} error={errors.label?.message}>
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
                 id={id}
                 type="text"
-                placeholder="მაგ: სახლი, ოფისი"
+                placeholder={t.checkout.addressForm.labelPlaceholder}
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.label}
                 disabled={isLoading}
-                {...register('label', { required: 'სახელწოდება სავალდებულოა' })}
+                {...register('label', { required: t.checkout.addressForm.labelRequired })}
               />
             )}
           </FormField>
 
-          <FormField label="სრული სახელი" error={errors.fullName?.message}>
+          <FormField label={t.checkout.addressForm.fullName} error={errors.fullName?.message}>
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
                 id={id}
                 type="text"
-                placeholder="სახელი და გვარი"
+                placeholder={t.checkout.addressForm.fullNamePlaceholder}
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.fullName}
                 disabled={isLoading}
-                {...register('fullName', { required: 'სრული სახელი სავალდებულოა' })}
+                {...register('fullName', { required: t.checkout.addressForm.fullNameRequired })}
               />
             )}
           </FormField>
 
-          <FormField label="ტელეფონი" error={errors.phone?.message}>
+          <FormField label={t.checkout.addressForm.phone} error={errors.phone?.message}>
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
                 id={id}
@@ -175,7 +176,7 @@ function AddressFormModal({
                 error={!!errors.phone}
                 disabled={isLoading}
                 {...register('phone', {
-                  required: 'ტელეფონი სავალდებულოა',
+                  required: t.checkout.addressForm.phoneRequired,
                   onChange: (e) => {
                     e.target.value = formatPhone(e.target.value)
                   },
@@ -185,32 +186,32 @@ function AddressFormModal({
             )}
           </FormField>
 
-          <FormField label="ქალაქი" error={errors.city?.message}>
+          <FormField label={t.checkout.addressForm.city} error={errors.city?.message}>
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
                 id={id}
                 type="text"
-                placeholder="ქალაქი"
+                placeholder={t.checkout.addressForm.cityPlaceholder}
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.city}
                 disabled={isLoading}
-                {...register('city', { required: 'ქალაქი სავალდებულოა' })}
+                {...register('city', { required: t.checkout.addressForm.cityRequired })}
               />
             )}
           </FormField>
 
-          <FormField label="მისამართი" error={errors.address?.message}>
+          <FormField label={t.checkout.addressForm.address} error={errors.address?.message}>
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
                 id={id}
                 type="text"
-                placeholder="მისამართი"
+                placeholder={t.checkout.addressForm.addressPlaceholder}
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.address}
                 disabled={isLoading}
-                {...register('address', { required: 'მისამართი სავალდებულოა' })}
+                {...register('address', { required: t.checkout.addressForm.addressRequired })}
               />
             )}
           </FormField>
@@ -221,14 +222,14 @@ function AddressFormModal({
               loading={isLoading}
               disabled={isLoading}
             >
-              {editingAddress ? 'შენახება' : 'დამატება'}
+              {editingAddress ? t.checkout.addressForm.save : t.checkout.addressForm.add}
             </Button>
             <Button
               type="button"
               variant="secondary"
               onClick={onClose}
             >
-              გაუქმება
+              {t.checkout.addressForm.cancel}
             </Button>
           </div>
         </form>
@@ -290,7 +291,7 @@ export function CheckoutPage() {
         if (year < currentYear) return false
         if (year === currentYear && month < currentMonth) return false
         return true
-      }, 'ბარათის ვადა გასულია'),
+      }, t.checkout.cardExpiryExpired),
     cvc: z.string().regex(/^\d{3,4}$/, t.validation.cvcInvalid),
   })
 
@@ -417,10 +418,10 @@ export function CheckoutPage() {
         if (err.status === 422) {
           setAddressServerError(err)
         } else {
-          setActionError(err.message || 'მისამართის შენახვა ვერ მოხერხდა')
+          setActionError(err.message || t.checkout.addressForm.saveError)
         }
       } else {
-        setActionError('მისამართის შენახვა ვერ მოხერხდა')
+        setActionError(t.checkout.addressForm.saveError)
       }
     }
   }
@@ -454,7 +455,7 @@ export function CheckoutPage() {
           form.setError(key as keyof CheckoutFormData, { type: 'server', message })
         })
       }
-      setSubmitError(getCheckoutErrorMessage(err))
+      setSubmitError(getCheckoutErrorMessage(err, t))
     }
   }
 
@@ -469,7 +470,7 @@ export function CheckoutPage() {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       setStep('success')
     } catch (err) {
-      setSubmitError(getCheckoutErrorMessage(err))
+      setSubmitError(getCheckoutErrorMessage(err, t))
     }
   }
 
@@ -482,7 +483,7 @@ export function CheckoutPage() {
       }
       setResendTimer(30)
     } catch (err) {
-      setSubmitError(getCheckoutErrorMessage(err))
+      setSubmitError(getCheckoutErrorMessage(err, t))
     }
   }
 
@@ -513,7 +514,7 @@ export function CheckoutPage() {
           setActionError(null)
           refetch()
         },
-        onError: (e) => setActionError(getCartErrorMessage(e)),
+        onError: (e) => setActionError(getCartErrorMessage(e, t)),
       }
     )
   }
@@ -525,7 +526,7 @@ export function CheckoutPage() {
         setActionError(null)
         refetch()
       },
-      onError: (e) => setActionError(getCartErrorMessage(e)),
+      onError: (e) => setActionError(getCartErrorMessage(e, t)),
     })
   }
 
@@ -571,7 +572,7 @@ export function CheckoutPage() {
 
           <div className="checkout-page__left-column">
             <div className="checkout-page__summary">
-            <h2 className="checkout-page__section-title">შეკვეთის პროდუქტები</h2>
+            <h2 className="checkout-page__section-title">{t.checkout.orderProducts}</h2>
             <div className="checkout-page__items">
               {checkout?.items.map((item) => {
                 const maxQty = Math.min(item.product.stock, 99)
@@ -614,11 +615,11 @@ export function CheckoutPage() {
             </div>
             <div className="checkout-page__totals">
               <div className="checkout-page__total-row">
-                <span>{t.cart.subtotal} ({checkout?.totalQty} ცალი)</span>
+                <span>{t.cart.subtotal} ({t.common.items(checkout?.totalQty || 0)})</span>
                 <span>{formatPrice(checkout?.subtotal || 0, checkout?.currency)}</span>
               </div>
               <div className="checkout-page__total-row">
-                <span>მიწოდების საფასური</span>
+                <span>{t.checkout.shippingFee}</span>
                 <span>{formatPrice(0, checkout?.currency)}</span>
               </div>
               <div className="checkout-page__total-row checkout-page__total-row--total">
@@ -629,17 +630,17 @@ export function CheckoutPage() {
           </div>
 
           <div className="checkout-page__delivery-section">
-            <h2 className="checkout-page__section-title">მიწოდება</h2>
+            <h2 className="checkout-page__section-title">{t.checkout.delivery.title}</h2>
             <div className="checkout-page__delivery-info">
-              <p className="checkout-page__delivery-name">სწრაფი მიწოდება</p>
-              <p className="checkout-page__delivery-description">1-3 სამუშაო დღე</p>
-              <p className="checkout-page__delivery-price">უფასო</p>
+              <p className="checkout-page__delivery-name">{t.checkout.delivery.fastDelivery}</p>
+              <p className="checkout-page__delivery-description">{t.checkout.delivery.fastDeliveryDesc}</p>
+              <p className="checkout-page__delivery-price">{t.checkout.delivery.free}</p>
             </div>
           </div>
           </div>
 
           <div className="checkout-page__form-section">
-            <h2 className="checkout-page__section-title">მიწოდების ინფორმაცია</h2>
+            <h2 className="checkout-page__section-title">{t.checkout.delivery.info}</h2>
 
             {/* Address Selector */}
             <div className="checkout-page__address-selector">
@@ -648,7 +649,7 @@ export function CheckoutPage() {
                 onClick={() => setShowAddressSelector(!showAddressSelector)}
                 className="checkout-page__address-selector-btn"
               >
-                {showAddressSelector ? 'დახურვა' : 'მისამართის არჩევა'}
+                {showAddressSelector ? t.checkout.delivery.close : t.checkout.delivery.selectAddress}
               </Button>
 
               {showAddressSelector && (
@@ -665,14 +666,14 @@ export function CheckoutPage() {
                           <div className="checkout-page__address-item-phone">{address.phone}</div>
                           <div className="checkout-page__address-item-location">{address.city}, {address.address}</div>
                           {address.isDefault && (
-                            <span className="checkout-page__address-item-default">მთავარი</span>
+                            <span className="checkout-page__address-item-default">{t.checkout.defaultAddress}</span>
                           )}
                         </div>
                       </div>
                     ))
                   ) : (
                     <div className="checkout-page__no-addresses">
-                      <p>მისამართები არ არის დამატებული</p>
+                      <p>{t.checkout.delivery.noAddresses}</p>
                     </div>
                   )}
                   <Button
@@ -683,7 +684,7 @@ export function CheckoutPage() {
                     disabled={isAnyMutationPending}
                     className="checkout-page__address-new"
                   >
-                    + ახალი მისამართი
+                    {t.checkout.delivery.newAddress}
                   </Button>
                 </div>
               )}
@@ -756,7 +757,7 @@ export function CheckoutPage() {
 
               {selectedAddressId && (
                 <div className="checkout-page__selected-address-info">
-                  <span className="checkout-page__selected-address-label">მისამართი:</span>
+                  <span className="checkout-page__selected-address-label">{t.checkout.delivery.addressLabel}</span>
                   <span className="checkout-page__selected-address-value">
                     {addresses?.items?.find((a: Address) => a.id === selectedAddressId)?.fullName}, {addresses?.items?.find((a: Address) => a.id === selectedAddressId)?.phone}, {addresses?.items?.find((a: Address) => a.id === selectedAddressId)?.city}, {addresses?.items?.find((a: Address) => a.id === selectedAddressId)?.address}
                   </span>
@@ -767,7 +768,7 @@ export function CheckoutPage() {
                     }}
                     className="checkout-page__change-address"
                   >
-                    შეცვლა
+                    {t.checkout.delivery.change}
                   </Button>
                 </div>
               )}
@@ -801,7 +802,7 @@ export function CheckoutPage() {
                     id={id}
                     type="text"
                     autoComplete="cc-name"
-                    placeholder="ბარათის მფლობელი"
+                    placeholder={t.checkout.cardHolderPlaceholder}
                     aria-describedby={ariaDescribedby}
                     aria-invalid={ariaInvalid}
                     error={!!form.formState.errors.card?.holder}

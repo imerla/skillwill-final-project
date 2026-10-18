@@ -5,9 +5,14 @@ import { getAccessToken } from '../auth/tokenStorage'
 const API_URL = import.meta.env.VITE_API_URL
 
 let onUnauthorized: ((code?: string) => void) | null = null
+let currentLanguage: string = 'ka'
 
 export function setUnauthorizedHandler(handler: (code?: string) => void): void {
   onUnauthorized = handler
+}
+
+export function setApiLanguage(lang: string): void {
+  currentLanguage = lang
 }
 
 async function request<T>(
@@ -30,6 +35,7 @@ async function request<T>(
   const token = getAccessToken()
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Accept-Language': currentLanguage,
     ...(options.headers as Record<string, string>),
   }
 

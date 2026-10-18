@@ -4,6 +4,7 @@ import { Checkbox } from '../../../shared/ui/Checkbox/Checkbox'
 import { Radio } from '../../../shared/ui/Radio/Radio'
 import { Input } from '../../../shared/ui/Input/Input'
 import { useLanguage } from '../../../shared/i18n/LanguageContext'
+import { translateFilterLabel, translateFilterOption } from '../../../shared/i18n/apiTranslations'
 import './Filter.css'
 
 interface FilterProps {
@@ -20,6 +21,9 @@ interface FilterProps {
 export function Filter({ filter, selectedValues, onChange, onClear, minValue, maxValue, onRangeChange }: FilterProps) {
   const { t } = useLanguage()
   const selectedSet = new Set(selectedValues.split(',').filter(Boolean))
+
+  // Translate filter label
+  const translatedLabel = translateFilterLabel(filter.label, t)
 
   // Special handling for price filter - use controlled values from URL state
   const isPriceFilter = filter.key === 'price'
@@ -62,12 +66,12 @@ export function Filter({ filter, selectedValues, onChange, onClear, minValue, ma
   return (
     <fieldset className="filter">
       <legend className="filter__legend">
-        {filter.label}
+        {translatedLabel}
         {hasSelection && (
           <Button
             variant="secondary"
             onClick={() => onClear(filter.key)}
-            aria-label={t.catalog.clearFilterAria(filter.label)}
+            aria-label={t.catalog.clearFilterAria(translatedLabel)}
             className="filter__clear"
           >
             {t.catalog.clear}
@@ -80,7 +84,7 @@ export function Filter({ filter, selectedValues, onChange, onClear, minValue, ma
           {filter.options.map((option) => (
             <Checkbox
               key={option.value}
-              label={option.label}
+              label={translateFilterOption(option.label, t)}
               count={option.count}
               checked={selectedSet.has(option.value)}
               onChange={(e) => handleCheckboxChange(option.value, e.target.checked)}
@@ -95,7 +99,7 @@ export function Filter({ filter, selectedValues, onChange, onClear, minValue, ma
             <Radio
               key={option.value}
               name={filter.key}
-              label={option.label}
+              label={translateFilterOption(option.label, t)}
               count={option.count}
               checked={selectedValues === option.value}
               onChange={() => handleRadioChange(option.value)}
@@ -113,14 +117,14 @@ export function Filter({ filter, selectedValues, onChange, onClear, minValue, ma
                 checked={selectedSet.has(option.value)}
                 onChange={(e) => handleColorChange(option.value, e.target.checked)}
                 className="filter__color-checkbox"
-                aria-label={option.label}
+                aria-label={translateFilterOption(option.label, t)}
               />
               <span
                 className="filter__color-swatch"
                 style={{ backgroundColor: option.value }}
                 aria-hidden="true"
               />
-              <span className="filter__color-label">{option.label}</span>
+              <span className="filter__color-label">{translateFilterOption(option.label, t)}</span>
             </label>
           ))}
         </div>

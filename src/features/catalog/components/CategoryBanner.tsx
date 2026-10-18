@@ -1,4 +1,6 @@
 import type { Category } from '../types'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
+import { translateCategoryName, translateCategoryDescription } from '../../../shared/i18n/apiTranslations'
 import './CategoryBanner.css'
 
 interface CategoryBannerProps {
@@ -6,6 +8,7 @@ interface CategoryBannerProps {
 }
 
 export function CategoryBanner({ category }: CategoryBannerProps) {
+  const { t } = useLanguage()
   return (
     <div className="category-banner">
       <div className="category-banner__background">
@@ -17,12 +20,12 @@ export function CategoryBanner({ category }: CategoryBannerProps) {
         <div className="category-banner__overlay" />
       </div>
       <div className="category-banner__content">
-        <h1 className="category-banner__title">{category.name}</h1>
+        <h1 className="category-banner__title">{translateCategoryName(category.name, t)}</h1>
         {category.description && (
-          <p className="category-banner__description">{category.description}</p>
+          <p className="category-banner__description">{translateCategoryDescription(category.description, t)}</p>
         )}
         <div className="category-banner__meta">
-          <span className="category-banner__count">{category.productsCount} პროდუქტი</span>
+          <span className="category-banner__count">{t.catalog.productCount(category.productsCount)}</span>
         </div>
       </div>
     </div>

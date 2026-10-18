@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '../Button/Button'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import './ConfirmDialog.css'
 
 interface ConfirmDialogProps {
@@ -18,12 +19,15 @@ export function ConfirmDialog({
   isOpen,
   title,
   message,
-  confirmLabel = 'დადასტურება',
-  cancelLabel = 'გაუქმება',
+  confirmLabel,
+  cancelLabel,
   onConfirm,
   onCancel,
   variant = 'danger'
 }: ConfirmDialogProps) {
+  const { t } = useLanguage()
+  const finalConfirmLabel = confirmLabel || t.common.confirm
+  const finalCancelLabel = cancelLabel || t.common.cancel
   const dialogRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -71,7 +75,7 @@ export function ConfirmDialog({
             type="button"
             className="confirm-dialog__close"
             onClick={onCancel}
-            aria-label="დახურვა"
+            aria-label={t.common.close}
           >
             <X size={20} />
           </button>
@@ -83,13 +87,13 @@ export function ConfirmDialog({
         </div>
         <div className="confirm-dialog__footer">
           <Button variant="secondary" onClick={onCancel}>
-            {cancelLabel}
+            {finalCancelLabel}
           </Button>
           <Button
             variant={variant === 'danger' ? 'primary' : 'secondary'}
             onClick={onConfirm}
           >
-            {confirmLabel}
+            {finalConfirmLabel}
           </Button>
         </div>
       </div>

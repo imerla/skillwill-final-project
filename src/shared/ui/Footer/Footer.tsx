@@ -14,13 +14,13 @@ export function Footer() {
           <div className="footer__section">
             <h3 className="footer__title">{t.nav.brand}</h3>
             <p className="footer__description">
-              თქვენი საყვარელი პროდუქტების საიმედო მაღაზია. მაღალი ხარისხი, საუკეთესო ფასები და სწრაფი მიწოდება.
+              {t.footer.description}
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="footer__section">
-            <h3 className="footer__title">სწრაფი ბმულები</h3>
+            <h3 className="footer__title">{t.footer.quickLinks}</h3>
             <ul className="footer__links">
               <li>
                 <Link to={ROUTES.catalog} className="footer__link">
@@ -42,7 +42,7 @@ export function Footer() {
 
           {/* Contact Info */}
           <div className="footer__section">
-            <h3 className="footer__title">კონტაქტი</h3>
+            <h3 className="footer__title">{t.footer.contact}</h3>
             <ul className="footer__contact">
               <li className="footer__contact-item">
                 <Phone size={18} className="footer__icon" />
@@ -54,14 +54,14 @@ export function Footer() {
               </li>
               <li className="footer__contact-item">
                 <MapPin size={18} className="footer__icon" />
-                <span>თბილისი, რუსთაველის გამზირი 17</span>
+                <span>{t.footer.address}</span>
               </li>
             </ul>
           </div>
 
           {/* Social Links */}
           <div className="footer__section">
-            <h3 className="footer__title">სოციალური ქსელები</h3>
+            <h3 className="footer__title">{t.footer.social}</h3>
             <div className="footer__social">
               <a href="#" className="footer__social-link" aria-label="Facebook">
                 <Facebook size={24} />
@@ -78,7 +78,7 @@ export function Footer() {
 
         <div className="footer__bottom">
           <p className="footer__copyright">
-            © {new Date().getFullYear()} {t.nav.brand}. ყველა უფლება დაცულია.
+            {t.footer.copyright(new Date().getFullYear(), t.nav.brand)}
           </p>
         </div>
       </div>

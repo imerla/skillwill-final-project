@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useDocumentTitle } from '../shared/lib/useDocumentTitle'
+import { useLanguage } from '../shared/i18n/LanguageContext'
 import { Button } from '../shared/ui/Button/Button'
 import { Input } from '../shared/ui/Input/Input'
 import { PasswordInput } from '../shared/ui/PasswordInput/PasswordInput'
@@ -21,6 +22,7 @@ import { PageContainer } from '../shared/ui/PageContainer/PageContainer'
 import './UiDemoPage.css'
 
 export function UiDemoPage() {
+  const { t } = useLanguage()
   useDocumentTitle('UI')
 
   const [checkboxChecked, setCheckboxChecked] = useState(false)
@@ -38,7 +40,7 @@ export function UiDemoPage() {
   return (
     <PageContainer size="page" as="main">
       <div className="ui-demo">
-        <p className="ui-demo__instruction">ჰოვერის და ფოკუსის შესამოწმებლად გამოიყენეთ მაუსი და Tab</p>
+        <p className="ui-demo__instruction">{t.uiDemo.hoverFocusInstruction}</p>
 
         <section className="ui-demo__section">
           <h2 className="ui-demo__section-title">Button</h2>

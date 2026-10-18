@@ -105,7 +105,7 @@ export function ProductCard({ product, onQuickAdd, t: propT }: ProductCardProps)
         <button
           className={`product-card__favorite ${isFavorite ? 'product-card__favorite--active' : ''}`}
           onClick={handleToggleFavorite}
-          aria-label={isFavorite ? 'ფავორიტებიდან წაშლა' : 'ფავორიტებში დამატება'}
+          aria-label={isFavorite ? t.product.removeFromFavorites : t.product.addToFavorites}
         >
           <Heart size={18} fill={isFavorite ? 'var(--color-primary)' : 'none'} />
         </button>
@@ -128,7 +128,7 @@ export function ProductCard({ product, onQuickAdd, t: propT }: ProductCardProps)
           <div className="product-card__rating">
             <Star size={14} className="product-card__star-icon" fill="#ff7a00" />
             <span className="product-card__rating-value">{rating.toFixed(1)}</span>
-            <span className="product-card__reviews-count">({reviewsCount})</span>
+            <span className="product-card__reviews-count">{t.catalog.reviews(reviewsCount)}</span>
           </div>
         )}
       </div>

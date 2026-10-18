@@ -186,19 +186,19 @@ export function ProfilePage() {
             className={`profile-page__nav-item ${activeTab === 'profile' ? 'profile-page__nav-item--active' : ''}`}
             onClick={() => setActiveTab('profile')}
           >
-            პირადი ინფორმაცია
+            {t.profile.personal}
           </button>
           <button
             className={`profile-page__nav-item ${activeTab === 'addresses' ? 'profile-page__nav-item--active' : ''}`}
             onClick={() => setActiveTab('addresses')}
           >
-            მისამართები
+            {t.profile.addresses}
           </button>
           <button
             className={`profile-page__nav-item ${activeTab === 'password' ? 'profile-page__nav-item--active' : ''}`}
             onClick={() => setActiveTab('password')}
           >
-            პაროლის შეცვლა
+            {t.profile.passwordSection}
           </button>
         </nav>
 
@@ -284,9 +284,9 @@ export function ProfilePage() {
             <>
               <div className="profile-page__addresses">
                 <div className="profile-page__addresses-header">
-                  <h2 className="profile-page__section-title">მისამართები</h2>
+                  <h2 className="profile-page__section-title">{t.profile.addresses}</h2>
                   <Button onClick={() => { setShowAddressForm(true); setAddressError(null); setAddressServerError(null) }} variant="secondary">
-                    + დამატება
+                    {t.profile.addAddress}
                   </Button>
                 </div>
 
@@ -308,7 +308,7 @@ export function ProfilePage() {
                           <div className="profile-page__address-header">
                             <h3 className="profile-page__address-name">{address.label}</h3>
                             {address.isDefault && (
-                              <Badge variant="success">მთავარი</Badge>
+                              <Badge variant="success">{t.profile.defaultAddress}</Badge>
                             )}
                           </div>
                           <p className="profile-page__address-name-sub">{address.fullName}</p>
@@ -334,7 +334,7 @@ export function ProfilePage() {
                               }}
                               disabled={setDefaultAddress.isPending}
                             >
-                              მთავარი
+                              {t.profile.setDefault}
                             </Button>
                           )}
                           <Button
@@ -344,13 +344,13 @@ export function ProfilePage() {
                               setShowAddressForm(true)
                             }}
                           >
-                            რედაქტირება
+                            {t.profile.editAddress}
                           </Button>
                           <Button
                             variant="danger"
                             onClick={() => setShowDeleteConfirm(address)}
                           >
-                            წაშლა
+                            {t.profile.deleteAddress}
                           </Button>
                         </div>
                       </div>
@@ -358,9 +358,9 @@ export function ProfilePage() {
                   </div>
                 ) : (
                   <div className="profile-page__addresses-empty">
-                    <p>მისამართები არ არის</p>
+                    <p>{t.profile.noAddresses}</p>
                     <Button onClick={() => { setShowAddressForm(true); setAddressError(null); setAddressServerError(null) }} variant="secondary">
-                      პირველი მისამართის დამატება
+                      {t.profile.addFirstAddress}
                     </Button>
                   </div>
                 )}
@@ -445,7 +445,7 @@ export function ProfilePage() {
         <div className="profile-page__address-modal">
           <div className="profile-page__address-modal-content">
             <h2 className="profile-page__modal-title">
-              {editingAddress ? 'მისამართის რედაქტირება' : 'ახალი მისამართის დამატება'}
+              {editingAddress ? t.profile.editAddressTitle : t.profile.newAddressTitle}
             </h2>
             <button
               className="profile-page__modal-close"
@@ -488,10 +488,10 @@ export function ProfilePage() {
                           if (err.status === 422) {
                             setAddressServerError(err)
                           } else {
-                            setAddressError(err.message || 'მისამართის რედაქტირება ვერ მოხერხდა')
+                            setAddressError(err.message || t.profile.editAddressError)
                           }
                         } else {
-                          setAddressError('მისამართის რედაქტირება ვერ მოხერხდა')
+                          setAddressError(t.profile.editAddressError)
                         }
                       },
                     }
@@ -506,10 +506,10 @@ export function ProfilePage() {
                         if (err.status === 422) {
                           setAddressServerError(err)
                         } else {
-                          setAddressError(err.message || 'მისამართის დამატება ვერ მოხერხდა')
+                          setAddressError(err.message || t.profile.addAddressError)
                         }
                       } else {
-                        setAddressError('მისამართის დამატება ვერ მოხერხდა')
+                        setAddressError(t.profile.addAddressError)
                       }
                     },
                   })
@@ -524,10 +524,10 @@ export function ProfilePage() {
       {showDeleteConfirm && (
         <ConfirmDialog
           isOpen={true}
-          title="მისამართის წაშლა"
-          message="ნამდვილად გსურთ წაშლოთ ეს მისამართი?"
-          confirmLabel="წაშლა"
-          cancelLabel="გაუქმება"
+          title={t.profile.deleteAddressTitle}
+          message={t.profile.deleteAddressMessage}
+          confirmLabel={t.profile.deleteAddressConfirm}
+          cancelLabel={t.profile.deleteAddressCancel}
           onConfirm={() => {
             deleteAddress.mutate(showDeleteConfirm.id, {
               onSuccess: () => {
@@ -545,6 +545,7 @@ export function ProfilePage() {
 
 // Address Form Component
 function AddressForm({ address, onSubmit, isLoading, onCancel, serverError }: { address: Address | null; onSubmit: (data: { label: string; fullName: string; phone: string; city: string; address: string }) => void; isLoading: boolean; onCancel: () => void; serverError: ApiErrorClass | null }) {
+  const { t } = useLanguage()
   const {
     register,
     handleSubmit,
@@ -602,42 +603,42 @@ function AddressForm({ address, onSubmit, isLoading, onCancel, serverError }: { 
   const validatePhone = (value: string) => {
     const cleaned = value.replace(/\D/g, '')
     if (cleaned.length < 9) {
-      return 'ტელეფონის ნომერი უნდა შეიცავდეს მინიმუმ 9 ციფრს'
+      return t.checkout.addressForm.phoneMin
     }
     return true
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="profile-page__address-form" noValidate onChange={handleFormChange}>
-      <FormField label="სახელწოდება" error={errors.label?.message}>
+      <FormField label={t.checkout.addressForm.label} error={errors.label?.message}>
         {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
           <Input
             id={id}
             type="text"
-            placeholder="მაგ: სახლი, ოფისი"
+            placeholder={t.checkout.addressForm.labelPlaceholder}
             aria-describedby={ariaDescribedby}
             aria-invalid={ariaInvalid}
             error={!!errors.label}
-            {...register('label', { required: 'სახელწოდება სავალდებულოა' })}
+            {...register('label', { required: t.checkout.addressForm.labelRequired })}
           />
         )}
       </FormField>
 
-      <FormField label="სრული სახელი" error={errors.fullName?.message}>
+      <FormField label={t.checkout.addressForm.fullName} error={errors.fullName?.message}>
         {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
           <Input
             id={id}
             type="text"
-            placeholder="სახელი და გვარი"
+            placeholder={t.checkout.addressForm.fullNamePlaceholder}
             aria-describedby={ariaDescribedby}
             aria-invalid={ariaInvalid}
             error={!!errors.fullName}
-            {...register('fullName', { required: 'სრული სახელი სავალდებულოა' })}
+            {...register('fullName', { required: t.checkout.addressForm.fullNameRequired })}
           />
         )}
       </FormField>
 
-      <FormField label="ტელეფონი" error={errors.phone?.message}>
+      <FormField label={t.checkout.addressForm.phone} error={errors.phone?.message}>
         {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
           <Input
             id={id}
@@ -647,7 +648,7 @@ function AddressForm({ address, onSubmit, isLoading, onCancel, serverError }: { 
             aria-invalid={ariaInvalid}
             error={!!errors.phone}
             {...register('phone', {
-              required: 'ტელეფონი სავალდებულოა',
+              required: t.checkout.addressForm.phoneRequired,
               onChange: (e) => {
                 e.target.value = formatPhone(e.target.value)
               },
@@ -657,30 +658,30 @@ function AddressForm({ address, onSubmit, isLoading, onCancel, serverError }: { 
         )}
       </FormField>
 
-      <FormField label="ქალაქი" error={errors.city?.message}>
+      <FormField label={t.checkout.addressForm.city} error={errors.city?.message}>
         {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
           <Input
             id={id}
             type="text"
-            placeholder="ქალაქი"
+            placeholder={t.checkout.addressForm.cityPlaceholder}
             aria-describedby={ariaDescribedby}
             aria-invalid={ariaInvalid}
             error={!!errors.city}
-            {...register('city', { required: 'ქალაქი სავალდებულოა' })}
+            {...register('city', { required: t.checkout.addressForm.cityRequired })}
           />
         )}
       </FormField>
 
-      <FormField label="მისამართი" error={errors.address?.message}>
+      <FormField label={t.checkout.addressForm.address} error={errors.address?.message}>
         {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
           <Input
             id={id}
             type="text"
-            placeholder="მისამართი"
+            placeholder={t.checkout.addressForm.addressPlaceholder}
             aria-describedby={ariaDescribedby}
             aria-invalid={ariaInvalid}
             error={!!errors.address}
-            {...register('address', { required: 'მისამართი სავალდებულოა' })}
+            {...register('address', { required: t.checkout.addressForm.addressRequired })}
           />
         )}
       </FormField>
@@ -691,14 +692,14 @@ function AddressForm({ address, onSubmit, isLoading, onCancel, serverError }: { 
           loading={isLoading}
           disabled={isLoading}
         >
-          {address ? 'შენახება' : 'დამატება'}
+          {address ? t.checkout.addressForm.save : t.checkout.addressForm.add}
         </Button>
         <Button
           type="button"
           variant="secondary"
           onClick={onCancel}
         >
-          გაუქმება
+          {t.checkout.addressForm.cancel}
         </Button>
       </div>
     </form>

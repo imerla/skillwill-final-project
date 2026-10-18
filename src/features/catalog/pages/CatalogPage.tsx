@@ -165,9 +165,9 @@ export function CatalogPage() {
             {categoryError ? (
               <ErrorState onAction={() => refetchCategory()} />
             ) : category?.filters?.sort((a, b) => {
-              // Put "ვისთვის" first
-              if (a.label === 'ვისთვის') return -1
-              if (b.label === 'ვისთვის') return 1
+              // Put "forWhom" first
+              if (a.label === t.catalog.forWhom) return -1
+              if (b.label === t.catalog.forWhom) return 1
               return 0
             }).map((filter) => (
               <Filter
@@ -202,7 +202,7 @@ export function CatalogPage() {
           ) : productsData?.items && productsData.items.length === 0 ? (
             <EmptyState
               title={t.catalog.empty}
-              description={params.q ? 'სცადეთ სხვა საძიებო სიტყვა ან გაასუფთავეთ ფილტრები' : undefined}
+              description={params.q ? t.catalog.emptySearchSuggestion : undefined}
               actionLabel={t.catalog.clearAll}
               onAction={handleClearAll}
               illustration={params.q ? 'search' : 'package'}

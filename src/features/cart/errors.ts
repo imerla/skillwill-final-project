@@ -1,5 +1,5 @@
 import { ApiErrorClass } from '../../shared/api/types'
-import { ka } from '../../shared/i18n/ka'
+import type { Translations } from '../../shared/i18n/LanguageContext'
 
 export function getAvailableStock(error: unknown): number | undefined {
   if (error instanceof ApiErrorClass) {
@@ -14,27 +14,27 @@ export function getAvailableStock(error: unknown): number | undefined {
   return undefined
 }
 
-export function getCartErrorMessage(error: unknown, ctx?: { stock?: number }): string {
+export function getCartErrorMessage(error: unknown, t: Translations, ctx?: { stock?: number }): string {
   if (!(error instanceof ApiErrorClass)) {
-    return ka.common.networkError
+    return t.common.networkError
   }
 
   const stock = getAvailableStock(error) ?? ctx?.stock ?? 0
 
   switch (error.code) {
     case 'INSUFFICIENT_STOCK':
-      return stock > 0 ? ka.cart.onlyN(stock) : ka.cart.stockChanged
+      return stock > 0 ? t.cart.onlyN(stock) : t.cart.stockChanged
     case 'OUT_OF_STOCK':
-      return ka.cart.outOfStock
+      return t.cart.outOfStock
     case 'PRODUCT_NOT_FOUND':
-      return ka.cart.productGone
+      return t.cart.productGone
     case 'CART_ITEM_NOT_FOUND':
-      return ka.cart.itemGone
+      return t.cart.itemGone
     default:
       if (error.status === 422) {
-        return ka.cart.qtyRange
+        return t.cart.qtyRange
       }
-      return ka.common.genericError
+      return t.common.genericError
   }
 }
 

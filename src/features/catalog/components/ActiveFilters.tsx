@@ -2,6 +2,7 @@ import type { Category } from '../types'
 import { Button } from '../../../shared/ui/Button/Button'
 import { X } from 'lucide-react'
 import { useLanguage, type Translations } from '../../../shared/i18n/LanguageContext'
+import { translateFilterLabel, translateFilterOption } from '../../../shared/i18n/apiTranslations'
 import './ActiveFilters.css'
 
 interface ActiveFiltersProps {
@@ -83,16 +84,16 @@ export function ActiveFilters({ category, params, onClearFilter, onClearAll, t: 
           const option = filter.options?.find((opt) => opt.value === v)
           activeFilters.push({
             key: `${filter.key}:${v}`,
-            label: filter.label,
-            value: option?.label || v
+            label: translateFilterLabel(filter.label, t),
+            value: translateFilterOption(option?.label || v, t)
           })
         })
       } else if (filter.type === 'radio') {
         const option = filter.options?.find((opt) => opt.value === value)
         activeFilters.push({
           key: filter.key,
-          label: filter.label,
-          value: option?.label || value
+          label: translateFilterLabel(filter.label, t),
+          value: translateFilterOption(option?.label || value, t)
         })
       }
     }

@@ -20,6 +20,7 @@ import { EmptyState } from '../../../shared/ui/EmptyState/EmptyState'
 import { ErrorState } from '../../../shared/ui/ErrorState/ErrorState'
 import { QuantityStepper } from '../../../shared/ui/QuantityStepper/QuantityStepper'
 import { useLanguage } from '../../../shared/i18n/LanguageContext'
+import { translateCategoryName, translateSpecKey, translateSpecValue } from '../../../shared/i18n/apiTranslations'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
 import './ProductDetailsPage.css'
@@ -170,7 +171,7 @@ export function ProductDetailsPage() {
           messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
         },
         onError: (error) => {
-          setAddToCartMessage({ type: 'error', text: getCartErrorMessage(error, { stock: product?.stock ?? 0 }) })
+          setAddToCartMessage({ type: 'error', text: getCartErrorMessage(error, t, { stock: product?.stock ?? 0 }) })
           // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
@@ -194,7 +195,7 @@ export function ProductDetailsPage() {
       { id: cartItem.id, data: { qty: newQty } },
       {
         onSuccess: () => {
-          setAddToCartMessage({ type: 'success', text: 'რაოდენობა განახლდა' })
+          setAddToCartMessage({ type: 'success', text: t.product.quantityUpdated })
           // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
@@ -203,7 +204,7 @@ export function ProductDetailsPage() {
           messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
         },
         onError: (error) => {
-          setAddToCartMessage({ type: 'error', text: getCartErrorMessage(error, { stock: product?.stock ?? 0 }) })
+          setAddToCartMessage({ type: 'error', text: getCartErrorMessage(error, t, { stock: product?.stock ?? 0 }) })
           // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
@@ -316,7 +317,7 @@ export function ProductDetailsPage() {
       <Breadcrumbs
         items={[
           { label: t.nav.products, href: ROUTES.catalog },
-          { label: product.category.name, href: ROUTES.catalog },
+          { label: translateCategoryName(product.category.name, t), href: ROUTES.catalog },
           { label: product.title }
         ]}
       />
@@ -341,7 +342,7 @@ export function ProductDetailsPage() {
             <button
               onClick={handleToggleFavorite}
               className={`product-details-page__favorite ${isFavorite ? 'product-details-page__favorite--active' : ''}`}
-              aria-label={isFavorite ? 'ფავორიტებიდან წაშლა' : 'ფავორიტებში დამატება'}
+              aria-label={isFavorite ? t.product.removeFromFavorites : t.product.addToFavorites}
             >
               <Heart size={20} fill={isFavorite ? 'var(--color-primary)' : 'none'} />
             </button>
@@ -393,7 +394,7 @@ export function ProductDetailsPage() {
           {cartQuantity > 0 && (
             <div className="product-details-page__cart-status">
               <span className="product-details-page__cart-status-text">
-                {t.cart.itemsCount(cartQuantity)} კალათაში
+                {t.cart.itemsCount(cartQuantity)} {t.catalog.inCart}
               </span>
             </div>
           )}
@@ -445,7 +446,7 @@ export function ProductDetailsPage() {
               className="product-details-page__add-to-cart product-details-page__add-to-cart--secondary"
               variant="secondary"
             >
-              კალათაში გადასვლა
+              {t.catalog.goToCart}
             </Button>
           )}
 
@@ -470,8 +471,8 @@ export function ProductDetailsPage() {
               <tbody>
                 {Object.entries(specs).map(([key, value]) => (
                   <tr key={key}>
-                    <th scope="row">{key}</th>
-                    <td>{value}</td>
+                    <th scope="row">{translateSpecKey(key, t)}</th>
+                    <td>{translateSpecValue(value, t)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -500,14 +501,14 @@ export function ProductDetailsPage() {
           <button
             className="product-details-page__lightbox-close"
             onClick={handleLightboxClose}
-            aria-label="დახურვა"
+            aria-label={t.product.close}
           >
             <X size={24} />
           </button>
           <button
             className="product-details-page__lightbox-nav product-details-page__lightbox-nav--prev"
             onClick={(e) => { e.stopPropagation(); handleLightboxPrev() }}
-            aria-label="წინა სურათი"
+            aria-label={t.product.prevImage}
           >
             <ChevronLeft size={32} />
           </button>
@@ -520,7 +521,7 @@ export function ProductDetailsPage() {
           <button
             className="product-details-page__lightbox-nav product-details-page__lightbox-nav--next"
             onClick={(e) => { e.stopPropagation(); handleLightboxNext() }}
-            aria-label="შემდეგი სურათი"
+            aria-label={t.product.nextImage}
           >
             <ChevronRight size={32} />
           </button>

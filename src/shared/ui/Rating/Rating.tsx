@@ -1,4 +1,4 @@
-import { ka } from '../../i18n/ka'
+import { useLanguage } from '../../i18n/LanguageContext'
 import './Rating.css'
 
 interface RatingProps {
@@ -7,12 +7,13 @@ interface RatingProps {
 }
 
 export function Rating({ value, count }: RatingProps) {
+  const { t } = useLanguage()
   return (
-    <div className="rating" aria-label={ka.common.ratingOf(value)}>
+    <div className="rating" aria-label={t.common.ratingOf(value)}>
       <span className="rating__star" aria-hidden="true">★</span>
       <span className="rating__value" aria-hidden="true">{value.toFixed(1)}</span>
       {count !== undefined && (
-        <span className="rating__count" aria-hidden="true">{ka.catalog.reviews(count)}</span>
+        <span className="rating__count" aria-hidden="true">{t.catalog.reviews(count)}</span>
       )}
     </div>
   )
