@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { Menu, X, Home, ShoppingBag, ShoppingCart, Package, User, LogIn, UserPlus, LogOut, Info, Heart } from 'lucide-react'
 import { useSession } from '../../../shared/auth'
@@ -30,32 +30,31 @@ export function Nav() {
   const isCatalogPage = location.pathname === ROUTES.catalog
   const searchQuery = searchParams.get('q') || ''
   const [searchInput, setSearchInput] = useState(searchQuery)
-  const isUserTypingRef = useRef(false)
 
-  // Sync search input with URL params when not typing
+  // Sync input with URL when URL changes externally (clear all, refresh, etc.)
   useEffect(() => {
-    if (!isUserTypingRef.current) {
-      setSearchInput(searchQuery)
-    }
+    setSearchInput(searchQuery)
   }, [searchQuery])
 
-  // Debounced search update
-  useEffect(() => {
-    if (!isCatalogPage) return
-    const timer = setTimeout(() => {
-      if (searchInput !== searchQuery) {
-        const newParams = new URLSearchParams(searchParams)
-        if (searchInput) {
-          newParams.set('q', searchInput)
-        } else {
-          newParams.delete('q')
-        }
-        newParams.delete('page') // Reset to page 1 on search
-        setSearchParams(newParams)
+  // Search on Enter key press
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const newParams = new URLSearchParams(searchParams)
+      if (searchInput.trim()) {
+        newParams.set('q', searchInput.trim())
+        // Clear all filters when typing new search term
+        newParams.forEach((_, key) => {
+          if (key !== 'q' && key !== 'page') {
+            newParams.delete(key)
+          }
+        })
+      } else {
+        newParams.delete('q')
       }
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [searchInput, searchQuery, searchParams, setSearchParams, isCatalogPage])
+      newParams.delete('page')
+      setSearchParams(newParams)
+    }
+  }
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -102,10 +101,8 @@ export function Nav() {
                 type="search"
                 placeholder={t.catalog.searchPlaceholder}
                 value={searchInput}
-                onChange={(e) => {
-                  isUserTypingRef.current = true
-                  setSearchInput(e.target.value)
-                }}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
                 aria-label={t.catalog.searchLabel}
                 className="nav__search-input"
               />
