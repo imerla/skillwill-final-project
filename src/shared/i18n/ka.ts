@@ -361,6 +361,7 @@ export const ka = {
       newAddress: '+ ახალი მისამართი',
       addressLabel: 'მისამართი:',
       change: 'შეცვლა',
+      addressRequired: 'გთხოვთ აირჩიოთ მისამართი',
     },
     cardExpiryExpired: 'ბარათის ვადა გასულია',
     shippingFee: 'მიწოდების საფასური',

@@ -372,6 +372,12 @@
   font-size: var(--font-size-sm);
 }
 
+.checkout-page__edit-address {
+  align-self: flex-start;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
+}
+
 .checkout-page__address-modal {
   position: fixed;
   top: 0;

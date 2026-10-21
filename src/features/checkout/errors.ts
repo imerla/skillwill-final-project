@@ -5,7 +5,7 @@ export function getCheckoutErrorMessage(error: unknown, t: Translations): string
   if (!(error instanceof ApiErrorClass)) {
     return t.common.networkError
   }
-
+  
   switch (error.code) {
     case 'INSUFFICIENT_STOCK':
     case 'OUT_OF_STOCK':

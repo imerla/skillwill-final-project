@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -66,6 +66,7 @@ function AddressFormModal({
     handleSubmit,
     setError,
     clearErrors,
+    setValue,
     formState: { errors },
   } = useForm<{ label: string; fullName: string; phone: string; city: string; address: string }>({
     defaultValues: editingAddress
@@ -91,6 +92,36 @@ function AddressFormModal({
       applyServerErrors(serverError, setError, ['label', 'fullName', 'phone', 'city', 'address'])
     }
   }, [serverError, setError])
+
+  // Reset form when editingAddress changes
+  useEffect(() => {
+    if (show && editingAddress) {
+      // When editing, reset with address data
+      const currentValues = {
+        label: editingAddress.label,
+        fullName: editingAddress.fullName,
+        phone: editingAddress.phone,
+        city: editingAddress.city,
+        address: editingAddress.address,
+      }
+      // The form is already initialized with defaultValues, so we just need to update
+      Object.entries(currentValues).forEach(([key, value]) => {
+        setValue(key as any, value)
+      })
+    } else if (show && !editingAddress) {
+      // When adding new, reset to empty
+      const emptyValues = {
+        label: '',
+        fullName: '',
+        phone: '',
+        city: '',
+        address: '',
+      }
+      Object.entries(emptyValues).forEach(([key, value]) => {
+        setValue(key as any, value)
+      })
+    }
+  }, [show, editingAddress, setValue])
 
   const handleFormChange = () => {
     clearErrors()
@@ -268,6 +299,16 @@ export function CheckoutPage() {
 
   useDocumentTitle(t.checkout.title)
 
+  // Auto-select default address if available
+  useEffect(() => {
+    if (addresses?.items && addresses.items.length > 0 && !selectedAddressId) {
+      const defaultAddress = addresses.items.find((a: Address) => a.isDefault)
+      if (defaultAddress) {
+        setSelectedAddressId(defaultAddress.id)
+      }
+    }
+  }, [addresses, selectedAddressId])
+
   // Define schemas with dynamic translations
   const shippingSchema = z.object({
     fullName: z.string().min(2, t.validation.nameMin),
@@ -331,31 +372,10 @@ export function CheckoutPage() {
     return cleaned.slice(0, 4)
   }
 
-  // Prepare shipping data from either backend or selected address
-  const currentShippingValues = useMemo(() => {
-    if (selectedAddressId && addresses?.items) {
-      const addr = addresses.items.find((a: Address) => a.id === selectedAddressId)
-      if (addr) {
-        return {
-          fullName: addr.fullName,
-          phone: addr.phone,
-          city: addr.city,
-          address: addr.address,
-        }
-      }
-    }
-    return {
-      fullName: checkout?.shipping?.fullName || '',
-      phone: checkout?.shipping?.phone || '',
-      city: checkout?.shipping?.city || '',
-      address: checkout?.shipping?.address || '',
-    }
-  }, [checkout, selectedAddressId, addresses])
-
   const form = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
-    mode: 'onSubmit',
-    reValidateMode: 'onChange',
+    mode: 'onTouched',
+    reValidateMode: 'onSubmit',
     defaultValues: {
       shipping: {
         fullName: '',
@@ -370,17 +390,15 @@ export function CheckoutPage() {
         cvc: '',
       },
     },
-    values: {
-      shipping: currentShippingValues,
-      card: {
-        number: '',
-        holder: '',
-        expiry: '',
-        cvc: '',
-      },
-    },
     resetOptions: { keepDirtyValues: true },
   })
+
+  // Clear main form errors when address modal opens
+  useEffect(() => {
+    if (showAddressForm) {
+      form.clearErrors()
+    }
+  }, [showAddressForm, form])
 
   const codeForm = useForm<CodeFormData>({
     resolver: zodResolver(codeSchema),
@@ -391,6 +409,7 @@ export function CheckoutPage() {
 
   const handleAddressSelect = (addressId: string) => {
     setSelectedAddressId(addressId)
+    setShowAddressSelector(false)
   }
 
   const handleNewAddress = () => {
@@ -428,6 +447,13 @@ export function CheckoutPage() {
 
   const handleCheckoutSubmit = async (data: CheckoutFormData) => {
     setSubmitError(null)
+
+    // Check if address is selected
+    if (!selectedAddressId) {
+      setSubmitError(t.checkout.delivery.addressRequired)
+      return
+    }
+
     try {
       // Clean the data before sending - remove spaces from card number
       const cleanedData = {
@@ -691,70 +717,6 @@ export function CheckoutPage() {
             </div>
 
             <form onSubmit={form.handleSubmit(handleCheckoutSubmit)} className="checkout-page__form" noValidate>
-              {!selectedAddressId && (
-                <>
-                  <FormField label={t.checkout.fullName} error={form.formState.errors.shipping?.fullName?.message}>
-                    {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
-                      <Input
-                        id={id}
-                        type="text"
-                        autoComplete="name"
-                        aria-describedby={ariaDescribedby}
-                        aria-invalid={ariaInvalid}
-                        error={!!form.formState.errors.shipping?.fullName}
-                        disabled={createOrder.isPending}
-                        {...form.register('shipping.fullName')}
-                      />
-                    )}
-                  </FormField>
-
-                  <FormField label={t.checkout.phone} error={form.formState.errors.shipping?.phone?.message}>
-                    {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
-                      <Input
-                        id={id}
-                        type="tel"
-                        autoComplete="tel"
-                        aria-describedby={ariaDescribedby}
-                        aria-invalid={ariaInvalid}
-                        error={!!form.formState.errors.shipping?.phone}
-                        disabled={createOrder.isPending}
-                        {...form.register('shipping.phone')}
-                      />
-                    )}
-                  </FormField>
-
-                  <FormField label={t.checkout.city} error={form.formState.errors.shipping?.city?.message}>
-                    {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
-                      <Input
-                        id={id}
-                        type="text"
-                        autoComplete="address-level2"
-                        aria-describedby={ariaDescribedby}
-                        aria-invalid={ariaInvalid}
-                        error={!!form.formState.errors.shipping?.city}
-                        disabled={createOrder.isPending}
-                        {...form.register('shipping.city')}
-                      />
-                    )}
-                  </FormField>
-
-                  <FormField label={t.checkout.address} error={form.formState.errors.shipping?.address?.message}>
-                    {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
-                      <Input
-                        id={id}
-                        type="text"
-                        autoComplete="street-address"
-                        aria-describedby={ariaDescribedby}
-                        aria-invalid={ariaInvalid}
-                        error={!!form.formState.errors.shipping?.address}
-                        disabled={createOrder.isPending}
-                        {...form.register('shipping.address')}
-                      />
-                    )}
-                  </FormField>
-                </>
-              )}
-
               {selectedAddressId && (
                 <div className="checkout-page__selected-address-info">
                   <span className="checkout-page__selected-address-label">{t.checkout.delivery.addressLabel}</span>
@@ -763,12 +725,19 @@ export function CheckoutPage() {
                   </span>
                   <Button
                     variant="secondary"
-                    onClick={() => {
-                      setSelectedAddressId(null)
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      const address = addresses?.items?.find((a: Address) => a.id === selectedAddressId)
+                      if (address) {
+                        setEditingAddress(address)
+                        setShowAddressForm(true)
+                      }
                     }}
-                    className="checkout-page__change-address"
+                    className="checkout-page__edit-address"
                   >
-                    {t.checkout.delivery.change}
+                    {t.profile.editAddress}
                   </Button>
                 </div>
               )}
@@ -916,7 +885,7 @@ export function CheckoutPage() {
               )}
             </FormField>
 
-            {import.meta.env.DEV && devCode && (
+            {devCode && (
               <Alert variant="info" message={`${t.checkout.devCode}: ${devCode}`} className="checkout-page__alert" />
             )}
 

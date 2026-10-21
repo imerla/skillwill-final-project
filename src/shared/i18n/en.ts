@@ -361,6 +361,7 @@ export const en = {
       newAddress: '+ New address',
       addressLabel: 'Address:',
       change: 'Change',
+      addressRequired: 'Please select an address',
     },
     cardExpiryExpired: 'Card expiry date has passed',
     shippingFee: 'Shipping fee',
