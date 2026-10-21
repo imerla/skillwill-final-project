@@ -299,16 +299,6 @@ export function CheckoutPage() {
 
   useDocumentTitle(t.checkout.title)
 
-  // Auto-select default address if available
-  useEffect(() => {
-    if (addresses?.items && addresses.items.length > 0 && !selectedAddressId) {
-      const defaultAddress = addresses.items.find((a: Address) => a.isDefault)
-      if (defaultAddress) {
-        setSelectedAddressId(defaultAddress.id)
-      }
-    }
-  }, [addresses, selectedAddressId])
-
   // Define schemas with dynamic translations
   const shippingSchema = z.object({
     fullName: z.string().min(2, t.validation.nameMin),
@@ -400,6 +390,33 @@ export function CheckoutPage() {
     }
   }, [showAddressForm, form])
 
+  // Auto-select default address if available and populate form
+  useEffect(() => {
+    if (addresses?.items && addresses.items.length > 0 && !selectedAddressId) {
+      const defaultAddress = addresses.items.find((a: Address) => a.isDefault)
+      if (defaultAddress) {
+        setSelectedAddressId(defaultAddress.id)
+        // Populate form with default address
+        form.setValue('shipping.fullName', defaultAddress.fullName)
+        form.setValue('shipping.phone', defaultAddress.phone)
+        form.setValue('shipping.city', defaultAddress.city)
+        form.setValue('shipping.address', defaultAddress.address)
+      }
+    }
+  }, [addresses, selectedAddressId, form])
+
+  // Populate form from checkout.shipping if no addresses are saved
+  useEffect(() => {
+    if (!addresses?.items || addresses.items.length === 0) {
+      if (checkout?.shipping) {
+        form.setValue('shipping.fullName', checkout.shipping.fullName || '')
+        form.setValue('shipping.phone', checkout.shipping.phone || '')
+        form.setValue('shipping.city', checkout.shipping.city || '')
+        form.setValue('shipping.address', checkout.shipping.address || '')
+      }
+    }
+  }, [checkout, addresses, form])
+
   const codeForm = useForm<CodeFormData>({
     resolver: zodResolver(codeSchema),
     mode: 'onSubmit',
@@ -408,8 +425,16 @@ export function CheckoutPage() {
   })
 
   const handleAddressSelect = (addressId: string) => {
-    setSelectedAddressId(addressId)
-    setShowAddressSelector(false)
+    const address = addresses?.items?.find((a: Address) => a.id === addressId)
+    if (address) {
+      setSelectedAddressId(addressId)
+      setShowAddressSelector(false)
+      // Populate form with selected address
+      form.setValue('shipping.fullName', address.fullName)
+      form.setValue('shipping.phone', address.phone)
+      form.setValue('shipping.city', address.city)
+      form.setValue('shipping.address', address.address)
+    }
   }
 
   const handleNewAddress = () => {
@@ -467,6 +492,10 @@ export function CheckoutPage() {
       setOrderId(result.orderId)
       if (result.devCode) {
         setDevCode(result.devCode)
+      } else {
+        // Fallback: generate random 6-digit code for testing if backend doesn't return devCode
+        const randomCode = Math.floor(100000 + Math.random() * 900000).toString()
+        setDevCode(randomCode)
       }
       setStep('confirm')
       form.setValue('card.number', '')
@@ -506,6 +535,10 @@ export function CheckoutPage() {
       const result = await resendCode.mutateAsync(orderId)
       if (result.devCode) {
         setDevCode(result.devCode)
+      } else {
+        // Fallback: generate random 6-digit code for testing if backend doesn't return devCode
+        const randomCode = Math.floor(100000 + Math.random() * 900000).toString()
+        setDevCode(randomCode)
       }
       setResendTimer(30)
     } catch (err) {
