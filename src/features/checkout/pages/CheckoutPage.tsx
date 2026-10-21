@@ -498,6 +498,7 @@ export function CheckoutPage() {
         setDevCode(randomCode)
       }
       setStep('confirm')
+      setResendTimer(30) // Start timer immediately when entering confirm step
       form.setValue('card.number', '')
       form.setValue('card.holder', '')
       form.setValue('card.expiry', '')
@@ -531,6 +532,7 @@ export function CheckoutPage() {
 
   const handleResendCode = async () => {
     if (!orderId || resendTimer !== null) return
+    setSubmitError(null) // Clear any previous error
     try {
       const result = await resendCode.mutateAsync(orderId)
       if (result.devCode) {
