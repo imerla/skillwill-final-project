@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from 'react'
+import { useCallback, useRef, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useCategory, useProducts } from '../hooks'
 import { CATALOG_CATEGORY_SLUG } from '../config'
@@ -27,65 +27,33 @@ export function CatalogPage() {
 
   // პარამეტრების პარსინგი ფილტრების ობიექტისთვის
   const params = parseUrlParams(searchParams, category?.filters)
-  const lastProcessedSearchRef = useRef('')
 
-  // Auto-apply filter when search term matches filter options (supports multiple keywords)
-  useEffect(() => {
-    if (!category?.filters || !params.q) return
-
+  // Enrich params at render time: if q matches a filter option, also send that filter
+  // This does NOT touch the URL — it only enriches what we send to the API
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
+  const enrichedParams = useMemo(() => {
+    if (!params.q || !category?.filters) return params
     const searchTerm = params.q.toLowerCase().trim()
-    if (searchTerm === lastProcessedSearchRef.current) return
-    lastProcessedSearchRef.current = searchTerm
-
-    // Split search term into keywords
     const keywords = searchTerm.split(/\s+/).filter(Boolean)
-    const matchedFilters: Record<string, string> = {}
+    const extra: Record<string, string> = {}
 
     keywords.forEach((keyword) => {
       category.filters.forEach((filter) => {
-        if (!filter.options || matchedFilters[filter.key]) return // skip if already matched
-
-        const matchedOption = filter.options.find((option) => {
-          const labelLower = option.label.toLowerCase()
-          const valueLower = option.value.toLowerCase()
-          const translatedLabel = translateFilterOption(option.label, t).toLowerCase()
-
-          // EXACT match for each keyword
-          return (
-            labelLower === keyword ||
-            valueLower === keyword ||
-            translatedLabel === keyword
-          )
+        if (!filter.options || extra[filter.key] || params[filter.key]) return
+        const match = filter.options.find((opt) => {
+          const en = opt.label.toLowerCase()
+          const val = opt.value.toLowerCase()
+          const ka = translateFilterOption(opt.label, t).toLowerCase()
+          return en === keyword || val === keyword || ka === keyword
         })
-
-        if (matchedOption) {
-          matchedFilters[filter.key] = matchedOption.value
-        }
+        if (match) extra[filter.key] = match.value
       })
     })
 
-    // If search term matches any filters, clear all filters and add only the new ones
-    if (Object.keys(matchedFilters).length > 0) {
-      setSearchParams((prev) => {
-        const newParams = new URLSearchParams(prev)
-        newParams.delete('q')
-        newParams.set('page', '1')
-        // Clear all existing filters except page
-        newParams.forEach((_, key) => {
-          if (key !== 'page') {
-            newParams.delete(key)
-          }
-        })
-        // Add only the new matched filters
-        Object.entries(matchedFilters).forEach(([key, val]) => {
-          newParams.set(key, val)
-        })
-        return newParams
-      }, { replace: true })
-    }
-  }, [params.q, category?.filters, setSearchParams, t])
+    return Object.keys(extra).length > 0 ? { ...params, ...extra } : params
+  }, [params, category?.filters, t])
 
-  const { data: productsData, isPending: productsPending, isFetching: productsFetching, error: productsError, refetch: refetchProducts } = useProducts(params, { enabled: !categoryLoading })
+  const { data: productsData, isPending: productsPending, isFetching: productsFetching, error: productsError, refetch: refetchProducts } = useProducts(enrichedParams, { enabled: !categoryLoading })
 
   useDocumentTitle(category?.name ?? t.catalog.titleFallback)
 

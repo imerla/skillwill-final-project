@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '../../../shared/ui/Button'
 import { FormField } from '../../../shared/ui/FormField'
@@ -26,52 +26,62 @@ type RegisterFormData = {
 export function RegisterPage() {
   const { t } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitErrorKey, setSubmitErrorKey] = useState<'genericError' | 'networkError' | null>(null)
   const navigate = useNavigate()
   const { setUser } = useSession()
 
   useDocumentTitle(t.auth.register.title)
 
-  // Define schema with dynamic translations
-  const registerSchema = z
-    .object({
-      name: z
-        .string()
-        .min(1, t.validation.nameRequired)
-        .min(2, t.validation.nameMin),
-      email: z
-        .string()
-        .min(1, t.validation.emailRequired)
-        .email(t.validation.emailInvalid),
-      password: z
-        .string()
-        .min(1, t.validation.passwordRequired)
-        .min(8, t.validation.passwordMin)
-        .regex(/[a-zA-Z]/, t.validation.passwordLetter)
-        .regex(/\d/, t.validation.passwordDigit),
-      confirmPassword: z
-        .string()
-        .min(1, t.validation.confirmRequired),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-      message: t.validation.passwordsMismatch,
-      path: ['confirmPassword'],
-    })
+  // Define schema with dynamic translations - recreate when t changes
+  const registerSchema = useMemo(
+    () =>
+      z
+        .object({
+          name: z
+            .string()
+            .min(1, t.validation.nameRequired)
+            .min(2, t.validation.nameMin),
+          email: z
+            .string()
+            .min(1, t.validation.emailRequired)
+            .email(t.validation.emailInvalid),
+          password: z
+            .string()
+            .min(1, t.validation.passwordRequired)
+            .min(8, t.validation.passwordMin)
+            .regex(/[a-zA-Z]/, t.validation.passwordLetter)
+            .regex(/\d/, t.validation.passwordDigit),
+          confirmPassword: z
+            .string()
+            .min(1, t.validation.confirmRequired),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+          message: t.validation.passwordsMismatch,
+          path: ['confirmPassword'],
+        }),
+    [t]
+  )
 
   const {
     register: registerField,
     handleSubmit,
     formState: { errors },
     setError,
+    trigger,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     mode: 'onSubmit',
     reValidateMode: 'onChange',
   })
 
+  // Revalidate form when language changes
+  useEffect(() => {
+    trigger()
+  }, [t, trigger])
+
   const onSubmit = async (values: RegisterFormData) => {
     if (isLoading) return
-    setSubmitError(null)
+    setSubmitErrorKey(null)
     setIsLoading(true)
 
     try {
@@ -90,15 +100,15 @@ export function RegisterPage() {
         } else if (error.status === 422) {
           const result = applyServerErrors(error, setError, ['name', 'email', 'password'])
           if (result.formError) {
-            setSubmitError(result.formError)
+            setSubmitErrorKey('genericError')
           } else if (!result.fieldErrorsSet) {
-            setSubmitError(t.common.genericError)
+            setSubmitErrorKey('genericError')
           }
         } else {
-          setSubmitError(t.common.genericError)
+          setSubmitErrorKey('genericError')
         }
       } else {
-        setSubmitError(t.common.networkError)
+        setSubmitErrorKey('networkError')
       }
     } finally {
       setIsLoading(false)
@@ -110,8 +120,8 @@ export function RegisterPage() {
       <div className="register-page__container">
         <h1 className="register-page__title">{t.auth.register.title}</h1>
 
-        {submitError && (
-          <Alert variant="error" message={submitError} className="register-page__alert" />
+        {submitErrorKey && (
+          <Alert variant="error" message={submitErrorKey === 'networkError' ? t.common.networkError : t.common.genericError} className="register-page__alert" />
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="register-page__form" noValidate>

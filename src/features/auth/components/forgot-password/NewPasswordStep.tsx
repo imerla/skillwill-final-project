@@ -5,24 +5,37 @@ import { useEffect } from 'react'
 import { Button } from '../../../../shared/ui/Button'
 import { FormField } from '../../../../shared/ui/FormField'
 import { PasswordInput } from '../../../../shared/ui/PasswordInput'
-import { useLanguage } from '../../../../shared/i18n/LanguageContext'
+import { useLanguage, type Translations } from '../../../../shared/i18n/LanguageContext'
 
 const newPasswordSchema = z
   .object({
     newPassword: z
       .string()
-      .min(1, 'Password is required')
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
-      .regex(/\d/, 'Password must contain at least one digit'),
+      .min(1, 'password_required')
+      .min(8, 'password_min')
+      .regex(/[a-zA-Z]/, 'password_letter')
+      .regex(/\d/, 'password_digit'),
     confirmPassword: z
       .string()
-      .min(1, 'Please confirm your password'),
+      .min(1, 'confirm_required'),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Passwords do not match',
+    message: 'passwords_mismatch',
     path: ['confirmPassword'],
   })
+
+const getErrorMessage = (key: string, t: Translations): string => {
+  const map: Record<string, keyof Translations['validation']> = {
+    password_required: 'passwordRequired',
+    password_min: 'passwordMin',
+    password_letter: 'passwordLetter',
+    password_digit: 'passwordDigit',
+    confirm_required: 'confirmRequired',
+    passwords_mismatch: 'passwordsMismatch',
+  }
+  const translationKey = map[key]
+  return translationKey ? t.validation[translationKey] : t.common.genericError
+}
 
 type NewPasswordFormData = z.infer<typeof newPasswordSchema>
 
@@ -45,6 +58,11 @@ export function NewPasswordStep({ isLoading, onSubmit, fieldErrors }: NewPasswor
     reValidateMode: 'onChange',
   })
 
+  const translateErrorMessage = (msg: string | undefined): string | undefined => {
+    if (!msg) return undefined
+    return getErrorMessage(msg, t)
+  }
+
   useEffect(() => {
     if (fieldErrors?.newPassword) {
       setError('newPassword', { type: 'server', message: fieldErrors.newPassword }, { shouldFocus: true })
@@ -60,7 +78,7 @@ export function NewPasswordStep({ isLoading, onSubmit, fieldErrors }: NewPasswor
     <form onSubmit={handleSubmit(submitHandler)} className="forgot-password-page__form" noValidate>
       <FormField
         label={t.auth.forgot.newPasswordLabel}
-        error={errors.newPassword?.message}
+        error={translateErrorMessage(errors.newPassword?.message)}
       >
         {(props: { id: string; 'aria-describedby'?: string; 'aria-invalid': boolean }) => (
           <PasswordInput
@@ -77,7 +95,7 @@ export function NewPasswordStep({ isLoading, onSubmit, fieldErrors }: NewPasswor
 
       <FormField
         label={t.auth.forgot.confirmNewPasswordLabel}
-        error={errors.confirmPassword?.message}
+        error={translateErrorMessage(errors.confirmPassword?.message)}
       >
         {(props: { id: string; 'aria-describedby'?: string; 'aria-invalid': boolean }) => (
           <PasswordInput

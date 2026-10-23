@@ -22,7 +22,7 @@ export function FavoritesPage() {
   const { data: favorites, isLoading, error, refetch } = useFavorites()
   const removeFromFavorites = useRemoveFromFavorites()
   const addToCart = useAddToCart()
-  const [actionError, setActionError] = useState<string | null>(null)
+  const [actionErrorKey, setActionErrorKey] = useState<'genericError' | 'networkError' | null>(null)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [itemToRemove, setItemToRemove] = useState<string | null>(null)
 
@@ -56,13 +56,13 @@ export function FavoritesPage() {
   const showLoading = isLoading || (favoriteIds.length > 0 && productsLoading)
 
   const handleRemove = (productId: string) => {
-    setActionError(null)
+    setActionErrorKey(null)
     setItemToRemove(productId)
     setShowRemoveConfirm(true)
   }
 
   const handleAddToCart = (productId: string) => {
-    setActionError(null)
+    setActionErrorKey(null)
     addToCart.mutate(
       { productId, qty: 1 },
       {
@@ -70,7 +70,7 @@ export function FavoritesPage() {
           // t.favorites.keepInFavoritesComment
         },
         onError: () => {
-          setActionError(t.favorites.addToCartError)
+          setActionErrorKey('genericError')
         },
       }
     )
@@ -85,7 +85,7 @@ export function FavoritesPage() {
         setItemToRemove(null)
       },
       onError: () => {
-        setActionError(t.favorites.removeError)
+        setActionErrorKey('genericError')
         setShowRemoveConfirm(false)
       },
     })
@@ -140,7 +140,7 @@ export function FavoritesPage() {
     <PageContainer size="page" as="section">
       <h1 className="favorites-page__page-title">{t.favorites.title}</h1>
 
-      {actionError && <Alert variant="error" message={actionError} className="favorites-page__alert" />}
+      {actionErrorKey && <Alert variant="error" message={actionErrorKey === 'networkError' ? t.common.networkError : t.common.genericError} className="favorites-page__alert" />}
 
       <div className="favorites-page__grid">
         {favoriteProducts.map((product) => (

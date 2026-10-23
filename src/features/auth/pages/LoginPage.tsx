@@ -11,7 +11,7 @@ import { Alert } from '../../../shared/ui/Alert'
 import { setAccessToken, useSession, hasSessionExpiredNotice, clearSessionExpiredNotice } from '../../../shared/auth'
 import { login } from '../api/login'
 import { ApiErrorClass, applyServerErrors } from '../../../shared/api'
-import { useLanguage } from '../../../shared/i18n/LanguageContext'
+import { useLanguage, type Translations } from '../../../shared/i18n/LanguageContext'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
 import './LoginPage.css'
@@ -19,12 +19,23 @@ import './LoginPage.css'
 const loginSchema = z.object({
   email: z
     .string()
-    .min(1, 'Email is required')
-    .email('Invalid email address'),
+    .min(1, 'email_required')
+    .email('email_invalid'),
   password: z
     .string()
-    .min(1, 'Password is required'),
+    .min(1, 'password_required'),
 })
+
+// Map placeholder error keys to translation keys
+const getErrorMessage = (key: string, t: Translations): string => {
+  const map: Record<string, keyof Translations['validation']> = {
+    email_required: 'emailRequired',
+    email_invalid: 'emailInvalid',
+    password_required: 'passwordRequired',
+  }
+  const translationKey = map[key]
+  return translationKey ? t.validation[translationKey] : t.common.genericError
+}
 
 type LoginFormData = z.infer<typeof loginSchema>
 
@@ -38,7 +49,7 @@ type LocationState = {
 
 export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitErrorKey, setSubmitErrorKey] = useState<'genericError' | 'networkError' | 'invalidCredentials' | null>(null)
   const [showExpiredNotice] = useState(() => hasSessionExpiredNotice())
   const navigate = useNavigate()
   const location = useLocation()
@@ -62,9 +73,15 @@ export function LoginPage() {
     reValidateMode: 'onChange',
   })
 
+  // Translate zod error messages
+  const translateErrorMessage = (msg: string | undefined): string | undefined => {
+    if (!msg) return undefined
+    return getErrorMessage(msg, t)
+  }
+
   const onSubmit = async (values: LoginFormData) => {
     if (isLoading) return
-    setSubmitError(null)
+    setSubmitErrorKey(null)
     setIsLoading(true)
 
     try {
@@ -78,19 +95,19 @@ export function LoginPage() {
     } catch (error) {
       if (error instanceof ApiErrorClass) {
         if (error.code === 'INVALID_CREDENTIALS') {
-          setSubmitError(t.auth.login.invalidCredentials)
+          setSubmitErrorKey('invalidCredentials')
         } else if (error.status === 422) {
           const result = applyServerErrors(error, setError, ['email', 'password'])
           if (result.formError) {
-            setSubmitError(result.formError)
+            setSubmitErrorKey('genericError')
           } else if (!result.fieldErrorsSet) {
-            setSubmitError(t.common.genericError)
+            setSubmitErrorKey('genericError')
           }
         } else {
-          setSubmitError(t.common.genericError)
+          setSubmitErrorKey('genericError')
         }
       } else {
-        setSubmitError(t.common.networkError)
+        setSubmitErrorKey('networkError')
       }
     } finally {
       setIsLoading(false)
@@ -106,14 +123,14 @@ export function LoginPage() {
           <Alert variant="info" message={t.auth.login.sessionExpired} />
         )}
 
-        {submitError && (
-          <Alert variant="error" message={submitError} className="login-page__alert" />
+        {submitErrorKey && (
+          <Alert variant="error" message={submitErrorKey === 'networkError' ? t.common.networkError : submitErrorKey === 'invalidCredentials' ? t.auth.login.invalidCredentials : t.common.genericError} className="login-page__alert" />
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="login-page__form" noValidate>
           <FormField
             label={t.auth.emailLabel}
-            error={errors.email?.message}
+            error={translateErrorMessage(errors.email?.message)}
           >
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
@@ -132,7 +149,7 @@ export function LoginPage() {
 
           <FormField
             label={t.auth.passwordLabel}
-            error={errors.password?.message}
+            error={translateErrorMessage(errors.password?.message)}
           >
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <PasswordInput

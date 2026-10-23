@@ -5,14 +5,22 @@ import { useEffect } from 'react'
 import { Button } from '../../../../shared/ui/Button'
 import { FormField } from '../../../../shared/ui/FormField'
 import { Input } from '../../../../shared/ui/Input'
-import { useLanguage } from '../../../../shared/i18n/LanguageContext'
+import { useLanguage, type Translations } from '../../../../shared/i18n/LanguageContext'
 
 const codeSchema = z.object({
   code: z
     .string()
     .trim()
-    .regex(/^\d{6}$/, 'Code must be 6 digits'),
+    .regex(/^\d{6}$/, 'code_invalid'),
 })
+
+const getErrorMessage = (key: string, t: Translations): string => {
+  const map: Record<string, keyof Translations['validation']> = {
+    code_invalid: 'codeInvalid',
+  }
+  const translationKey = map[key]
+  return translationKey ? t.validation[translationKey] : t.common.genericError
+}
 
 type CodeFormData = z.infer<typeof codeSchema>
 
@@ -38,6 +46,11 @@ export function CodeStep({ isLoading, onSubmit, onChangeEmail, onRequestNewCode,
     reValidateMode: 'onChange',
   })
 
+  const translateErrorMessage = (msg: string | undefined): string | undefined => {
+    if (!msg) return undefined
+    return getErrorMessage(msg, t)
+  }
+
   useEffect(() => {
     if (fieldError) {
       setError('code', { type: 'server', message: fieldError }, { shouldFocus: true })
@@ -54,7 +67,7 @@ export function CodeStep({ isLoading, onSubmit, onChangeEmail, onRequestNewCode,
       <form onSubmit={handleSubmit(submitHandler)} className="forgot-password-page__form" noValidate>
         <FormField
           label={t.auth.forgot.codeLabel}
-          error={errors.code?.message}
+          error={translateErrorMessage(errors.code?.message)}
         >
           {(props: { id: string; 'aria-describedby'?: string; 'aria-invalid': boolean }) => (
             <Input

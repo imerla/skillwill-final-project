@@ -5,7 +5,7 @@ import { useProduct } from '../hooks'
 import { useSession } from '../../../shared/auth'
 import { useAddToCart, useUpdateCartItemQuantity, useRemoveCartItem, useCart } from '../../cart/hooks'
 import { useAddToFavorites, useRemoveFromFavorites, useFavorites } from '../../favorites/hooks'
-import { getCartErrorMessage } from '../../cart/errors'
+import { getCartErrorMessage, getAvailableStock } from '../../cart/errors'
 import { CATALOG_CATEGORY_SLUG } from '../config'
 import { ProductCard } from '../components/ProductCard'
 import { PageContainer } from '../../../shared/ui/PageContainer/PageContainer'
@@ -59,7 +59,42 @@ export function ProductDetailsPage() {
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
-  const [addToCartMessage, setAddToCartMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [addToCartMessageKey, setAddToCartMessageKey] = useState<'outOfStockMessage' | 'stockChanged' | 'added' | 'genericError' | 'networkError' | 'quantityUpdated' | 'itemGone' | 'remove' | 'outOfStock' | 'productGone' | 'qtyRange' | null>(null)
+  const [addToCartMessageStock, setAddToCartMessageStock] = useState<number | undefined>(undefined)
+
+  const getAddToCartMessage = (): { type: 'success' | 'error'; text: string } | null => {
+    if (!addToCartMessageKey) return null
+    const type = ['added', 'quantityUpdated', 'itemGone'].includes(addToCartMessageKey) ? 'success' : 'error'
+    const text = (() => {
+      switch (addToCartMessageKey) {
+        case 'outOfStockMessage':
+          return t.product.outOfStockMessage
+        case 'stockChanged':
+          return addToCartMessageStock !== undefined
+            ? `${t.cart.stockChanged} ${t.cart.onlyN(addToCartMessageStock)}`
+            : t.cart.stockChanged
+        case 'added':
+          return t.product.added
+        case 'quantityUpdated':
+          return t.product.quantityUpdated
+        case 'itemGone':
+          return t.cart.itemGone
+        case 'remove':
+          return t.cart.remove
+        case 'networkError':
+          return t.common.networkError
+        case 'outOfStock':
+          return t.cart.outOfStock
+        case 'productGone':
+          return t.cart.productGone
+        case 'qtyRange':
+          return t.cart.qtyRange
+        default:
+          return t.common.genericError
+      }
+    })()
+    return { type, text }
+  }
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
 
@@ -116,6 +151,11 @@ export function ProductDetailsPage() {
     }
   }, [slug])
 
+  // Scroll to top when slug changes (e.g. clicking related product)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [slug])
+
   // Cleanup timer on unmount
   useEffect(() => {
     return () => {
@@ -136,13 +176,14 @@ export function ProductDetailsPage() {
     }
 
     if (!product.inStock || product.stock === 0) {
-      setAddToCartMessage({ type: 'error', text: t.product.outOfStockMessage })
+      setAddToCartMessageKey('outOfStockMessage')
+      setAddToCartMessageStock(undefined)
       // Clear previous timer
       if (messageTimerRef.current !== null) {
         clearTimeout(messageTimerRef.current)
       }
       // Set new timer
-      messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+      messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
       return
     }
 
@@ -150,13 +191,14 @@ export function ProductDetailsPage() {
     const totalQuantity = quantity + cartQuantity
     if (totalQuantity > product.stock) {
       // Notify user that requested quantity exceeds available stock
-      setAddToCartMessage({ type: 'error', text: `${t.cart.stockChanged} ${t.cart.onlyN(product.stock - cartQuantity)}` })
+      setAddToCartMessageKey('stockChanged')
+      setAddToCartMessageStock(product.stock - cartQuantity)
       // Clear previous timer
       if (messageTimerRef.current !== null) {
         clearTimeout(messageTimerRef.current)
       }
       // Set new timer
-      messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+      messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
       // Don't add to cart if total quantity would exceed stock
       return
     }
@@ -165,23 +207,32 @@ export function ProductDetailsPage() {
       { productId: product.id, qty: quantity },
       {
         onSuccess: () => {
-          setAddToCartMessage({ type: 'success', text: t.product.added })
+          setAddToCartMessageKey('added')
+          setAddToCartMessageStock(undefined)
           setQuantity(1)
           // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
           }
           // Set new timer
-          messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+          messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
         },
         onError: (error) => {
-          setAddToCartMessage({ type: 'error', text: getCartErrorMessage(error, t, { stock: product?.stock ?? 0 }) })
+          const errorMsg = getCartErrorMessage(error, t, { stock: product?.stock ?? 0 })
+          let messageKey: 'genericError' | 'networkError' | 'outOfStock' | 'productGone' | 'itemGone' | 'qtyRange' = 'genericError'
+          if (errorMsg === t.common.networkError) messageKey = 'networkError'
+          else if (errorMsg === t.cart.outOfStock) messageKey = 'outOfStock'
+          else if (errorMsg === t.cart.productGone) messageKey = 'productGone'
+          else if (errorMsg === t.cart.itemGone) messageKey = 'itemGone'
+          else if (errorMsg === t.cart.qtyRange) messageKey = 'qtyRange'
+          setAddToCartMessageKey(messageKey)
+          setAddToCartMessageStock(getAvailableStock(error))
           // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
           }
           // Set new timer
-          messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+          messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
         }
       }
     )
@@ -197,13 +248,14 @@ export function ProductDetailsPage() {
 
     // Validate against stock
     if (newQty > product.stock) {
-      setAddToCartMessage({ type: 'error', text: `${t.cart.stockChanged} ${t.cart.onlyN(product.stock)}` })
+      setAddToCartMessageKey('stockChanged')
+      setAddToCartMessageStock(product.stock)
       // Clear previous timer
       if (messageTimerRef.current !== null) {
         clearTimeout(messageTimerRef.current)
       }
       // Set new timer
-      messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+      messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
       // Don't call mutation if quantity exceeds stock
       return
     }
@@ -212,22 +264,31 @@ export function ProductDetailsPage() {
       { id: cartItem.id, data: { qty: newQty } },
       {
         onSuccess: () => {
-          setAddToCartMessage({ type: 'success', text: t.product.quantityUpdated })
+          setAddToCartMessageKey('quantityUpdated')
+          setAddToCartMessageStock(undefined)
           // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
           }
           // Set new timer
-          messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+          messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
         },
         onError: (error) => {
-          setAddToCartMessage({ type: 'error', text: getCartErrorMessage(error, t, { stock: product?.stock ?? 0 }) })
+          const errorMsg = getCartErrorMessage(error, t, { stock: product?.stock ?? 0 })
+          let messageKey: 'genericError' | 'networkError' | 'outOfStock' | 'productGone' | 'itemGone' | 'qtyRange' = 'genericError'
+          if (errorMsg === t.common.networkError) messageKey = 'networkError'
+          else if (errorMsg === t.cart.outOfStock) messageKey = 'outOfStock'
+          else if (errorMsg === t.cart.productGone) messageKey = 'productGone'
+          else if (errorMsg === t.cart.itemGone) messageKey = 'itemGone'
+          else if (errorMsg === t.cart.qtyRange) messageKey = 'qtyRange'
+          setAddToCartMessageKey(messageKey)
+          setAddToCartMessageStock(getAvailableStock(error))
           // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
           }
           // Set new timer
-          messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+          messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
         }
       }
     )
@@ -247,22 +308,24 @@ export function ProductDetailsPage() {
 
     removeFromCart.mutate(cartItem.id, {
       onSuccess: () => {
-        setAddToCartMessage({ type: 'success', text: t.cart.itemGone })
+        setAddToCartMessageKey('itemGone')
+        setAddToCartMessageStock(undefined)
         // Clear previous timer
         if (messageTimerRef.current !== null) {
           clearTimeout(messageTimerRef.current)
         }
         // Set new timer
-        messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+        messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
       },
       onError: () => {
-        setAddToCartMessage({ type: 'error', text: t.cart.remove })
+        setAddToCartMessageKey('remove')
+        setAddToCartMessageStock(undefined)
         // Clear previous timer
         if (messageTimerRef.current !== null) {
           clearTimeout(messageTimerRef.current)
         }
         // Set new timer
-        messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+        messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
       }
     })
   }
@@ -467,13 +530,16 @@ export function ProductDetailsPage() {
             </Button>
           )}
 
-          {addToCartMessage && (
-            <Alert
-              variant={addToCartMessage.type}
-              message={addToCartMessage.text}
-              className="product-details-page__message"
-            />
-          )}
+          {addToCartMessageKey && (() => {
+            const msg = getAddToCartMessage()
+            return msg ? (
+              <Alert
+                variant={msg.type}
+                message={msg.text}
+                className="product-details-page__message"
+              />
+            ) : null
+          })()}
 
           {warrantyMonths > 0 && (
             <p className="product-details-page__warranty">

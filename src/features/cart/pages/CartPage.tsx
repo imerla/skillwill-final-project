@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCart, useUpdateCartItemQuantity, useRemoveCartItem, useClearCart } from '../hooks'
-import { getCartErrorMessage } from '../errors'
+import { getCartErrorMessage, getAvailableStock } from '../errors'
 import { PageContainer } from '../../../shared/ui/PageContainer/PageContainer'
 import { Button } from '../../../shared/ui/Button/Button'
 import { QuantityStepper } from '../../../shared/ui/QuantityStepper/QuantityStepper'
@@ -29,8 +29,8 @@ export function CartPage() {
   const removeItem = useRemoveCartItem()
   const clearCart = useClearCart()
   const navigate = useNavigate()
-  const [actionError, setActionError] = useState<string | null>(null)
-  const [quantityErrors, setQuantityErrors] = useState<Record<string, string>>({})
+  const [actionErrorKey, setActionErrorKey] = useState<'genericError' | 'networkError' | null>(null)
+  const [quantityErrors, setQuantityErrors] = useState<Record<string, { type: 'stockChanged' | 'genericError' | 'networkError' | 'outOfStock' | 'productGone' | 'itemGone' | 'qtyRange'; stock?: number }>>({})
   const [showClearConfirm, setShowClearConfirm] = useState(false)
 
   // Get similar products based on first product's brand
@@ -45,8 +45,8 @@ export function CartPage() {
   const isAnyMutationPending = updateQuantity.isPending || removeItem.isPending || clearCart.isPending
 
   const handleQuantityChange = (itemId: string, qty: number) => {
-    setActionError(null)
-    setQuantityErrors((prev) => ({ ...prev, [itemId]: '' }))
+    setActionErrorKey(null)
+    setQuantityErrors((prev) => ({ ...prev, [itemId]: { type: 'stockChanged', stock: undefined } }))
     // Find the item to check stock
     const item = cart?.items.find((i) => i.id === itemId)
     const maxStock = item?.product.stock ?? 99
@@ -54,7 +54,7 @@ export function CartPage() {
     if (qty > maxStock) {
       setQuantityErrors((prev) => ({
         ...prev,
-        [itemId]: `${t.cart.stockChanged} ${t.cart.onlyN(maxStock)}`
+        [itemId]: { type: 'stockChanged', stock: maxStock }
       }))
       // Don't call mutation if quantity exceeds stock
       // The parent component (QuantityStepper) will reset the input to current value
@@ -64,14 +64,21 @@ export function CartPage() {
       { id: itemId, data: { qty } },
       {
         onSuccess: () => {
-          setActionError(null)
-          setQuantityErrors((prev) => ({ ...prev, [itemId]: '' }))
+          setActionErrorKey(null)
+          setQuantityErrors((prev) => ({ ...prev, [itemId]: { type: 'stockChanged', stock: undefined } }))
         },
         onError: (e) => {
-          setActionError(getCartErrorMessage(e, t))
+          const errorMsg = getCartErrorMessage(e, t)
+          let errorType: 'genericError' | 'networkError' | 'outOfStock' | 'productGone' | 'itemGone' | 'qtyRange' = 'genericError'
+          if (errorMsg === t.common.networkError) errorType = 'networkError'
+          else if (errorMsg === t.cart.outOfStock) errorType = 'outOfStock'
+          else if (errorMsg === t.cart.productGone) errorType = 'productGone'
+          else if (errorMsg === t.cart.itemGone) errorType = 'itemGone'
+          else if (errorMsg === t.cart.qtyRange) errorType = 'qtyRange'
+          setActionErrorKey(errorType === 'networkError' ? 'networkError' : 'genericError')
           setQuantityErrors((prev) => ({
             ...prev,
-            [itemId]: getCartErrorMessage(e, t)
+            [itemId]: { type: errorType, stock: getAvailableStock(e) }
           }))
         },
       }
@@ -79,10 +86,10 @@ export function CartPage() {
   }
 
   const handleRemove = (item: CartItem) => {
-    setActionError(null)
+    setActionErrorKey(null)
     removeItem.mutate(item.id, {
-      onSuccess: () => setActionError(null),
-      onError: (e) => setActionError(getCartErrorMessage(e, t, { stock: item.product.stock })),
+      onSuccess: () => setActionErrorKey(null),
+      onError: () => setActionErrorKey('genericError'),
     })
   }
 
@@ -92,10 +99,10 @@ export function CartPage() {
 
   const handleClearCartConfirm = () => {
     setShowClearConfirm(false)
-    setActionError(null)
+    setActionErrorKey(null)
     clearCart.mutate(undefined, {
-      onSuccess: () => setActionError(null),
-      onError: (e) => setActionError(getCartErrorMessage(e, t)),
+      onSuccess: () => setActionErrorKey(null),
+      onError: () => setActionErrorKey('genericError'),
     })
   }
 
@@ -107,7 +114,30 @@ export function CartPage() {
     (item) => !item.product.inStock || item.product.stock < item.qty
   ) ?? false
 
-  const hasQuantityError = Object.keys(quantityErrors).some((key) => quantityErrors[key] !== '')
+  const hasQuantityError = Object.keys(quantityErrors).some((key) => quantityErrors[key].type !== 'stockChanged' || quantityErrors[key].stock !== undefined)
+
+  const getQuantityErrorMessage = (error: { type: string; stock?: number }): string => {
+    switch (error.type) {
+      case 'stockChanged':
+        return error.stock !== undefined
+          ? `${t.cart.stockChanged} ${t.cart.onlyN(error.stock)}`
+          : t.cart.stockChanged
+      case 'outOfStock':
+        return t.cart.outOfStock
+      case 'productGone':
+        return t.cart.productGone
+      case 'itemGone':
+        return t.cart.itemGone
+      case 'qtyRange':
+        return t.cart.qtyRange
+      case 'networkError':
+        return t.common.networkError
+      case 'genericError':
+        return t.common.genericError
+      default:
+        return t.common.genericError
+    }
+  }
 
 
 
@@ -156,7 +186,7 @@ export function CartPage() {
     <PageContainer size="page" as="section">
       <h1 className="cart-page__page-title">{t.cart.title}</h1>
 
-      {actionError && <Alert variant="error" message={actionError} className="cart-page__alert" />}
+      {actionErrorKey && <Alert variant="error" message={actionErrorKey === 'networkError' ? t.common.networkError : t.common.genericError} className="cart-page__alert" />}
 
       <div className="cart-page__content">
         <ul className="cart-page__list">
@@ -215,7 +245,7 @@ export function CartPage() {
                       t={t}
                     />
                     {quantityErrors[item.id] && (
-                      <Alert variant="error" message={quantityErrors[item.id]} className="cart-page__quantity-error" />
+                      <Alert variant="error" message={getQuantityErrorMessage(quantityErrors[item.id])} className="cart-page__quantity-error" />
                     )}
                   </div>
                   <div className="cart-page__actions-wrapper">

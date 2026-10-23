@@ -63,17 +63,23 @@
   color: var(--color-primary);
   text-decoration: none;
   transition: color 0.15s ease;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .login-page__link:hover {
   color: var(--color-primary-hover);
   text-decoration: underline;
+  background: none;
 }
 
 .login-page__link:focus-visible {
   outline: 2px solid var(--focus-ring-color);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
+  background: none;
 }
 
 .login-page__register {

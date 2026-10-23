@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useUpdateProfile, useAddresses, useCreateAddress, useUpdateAddress, useDeleteAddress, useSetDefaultAddress } from '../hooks'
 import { useSession } from '../../../shared/auth'
@@ -46,30 +46,40 @@ export function ProfilePage() {
   const [showAddressForm, setShowAddressForm] = useState(false)
   const [editingAddress, setEditingAddress] = useState<Address | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<Address | null>(null)
-  const [addressError, setAddressError] = useState<string | null>(null)
+  const [addressErrorKey, setAddressErrorKey] = useState<'editAddressError' | 'addAddressError' | null>(null)
   const [addressServerError, setAddressServerError] = useState<ApiErrorClass | null>(null)
   const [activeTab, setActiveTab] = useState<'profile' | 'addresses' | 'password'>('profile')
 
   useDocumentTitle(t.profile.title)
 
-  // Define schemas with dynamic translations
-  const personalSchema = z.object({
-    name: z.string().min(2, t.validation.nameMin),
-    email: z.string().email(t.validation.emailInvalid),
-    currentPassword: z.string().min(1, t.profile.currentPasswordRequired),
-  })
+  // Define schemas with dynamic translations - recreate when t changes
+  const personalSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(2, t.validation.nameMin),
+        email: z.string().email(t.validation.emailInvalid),
+        currentPassword: z.string().min(1, t.profile.currentPasswordRequired),
+      }),
+    [t]
+  )
 
-  const passwordSchema = z.object({
-    newPassword: z.string()
-      .min(8, t.validation.passwordMin)
-      .regex(/[a-zA-Z]/, t.validation.passwordLetter)
-      .regex(/\d/, t.validation.passwordDigit),
-    confirmPassword: z.string(),
-    currentPassword: z.string().min(1, t.profile.currentPasswordRequired),
-  }).refine((data) => data.newPassword === data.confirmPassword, {
-    message: t.validation.passwordsMismatch,
-    path: ['confirmPassword'],
-  })
+  const passwordSchema = useMemo(
+    () =>
+      z
+        .object({
+          newPassword: z.string()
+            .min(8, t.validation.passwordMin)
+            .regex(/[a-zA-Z]/, t.validation.passwordLetter)
+            .regex(/\d/, t.validation.passwordDigit),
+          confirmPassword: z.string(),
+          currentPassword: z.string().min(1, t.profile.currentPasswordRequired),
+        })
+        .refine((data) => data.newPassword === data.confirmPassword, {
+          message: t.validation.passwordsMismatch,
+          path: ['confirmPassword'],
+        }),
+    [t]
+  )
 
   // Personal info form
   const personalForm = useForm<PersonalFormData>({
@@ -93,6 +103,18 @@ export function ProfilePage() {
     },
   })
 
+  const { trigger: personalTrigger } = personalForm
+  const { trigger: passwordTrigger } = passwordForm
+
+  // Revalidate forms when language changes
+  useEffect(() => {
+    personalTrigger()
+  }, [t, personalTrigger])
+
+  useEffect(() => {
+    passwordTrigger()
+  }, [t, passwordTrigger])
+
   const handlePersonalFormChange = () => {
     personalForm.clearErrors('root')
     if (showSuccess) {
@@ -109,13 +131,19 @@ export function ProfilePage() {
 
   const onPersonalSubmit = async (values: PersonalFormData) => {
     setShowSuccess(false)
+
+    // Nothing changed — should not happen since button is disabled when not dirty
+    // but guard anyway
+    const hasNameChange = personalForm.formState.dirtyFields.name
+    const hasEmailChange = personalForm.formState.dirtyFields.email
+    if (!hasNameChange && !hasEmailChange) return
+
     try {
-      const payload: Partial<PersonalFormData> = {}
-      if (personalForm.formState.dirtyFields.name) payload.name = values.name
-      if (personalForm.formState.dirtyFields.email) payload.email = values.email
-      if (personalForm.formState.dirtyFields.name || personalForm.formState.dirtyFields.email) {
-        payload.currentPassword = values.currentPassword
+      const payload: Record<string, string> = {
+        currentPassword: values.currentPassword,
       }
+      if (hasNameChange) payload.name = values.name
+      if (hasEmailChange) payload.email = values.email
 
       const response = await updateProfile.mutateAsync(payload)
 
@@ -285,7 +313,7 @@ export function ProfilePage() {
               <div className="profile-page__addresses">
                 <div className="profile-page__addresses-header">
                   <h2 className="profile-page__section-title">{t.profile.addresses}</h2>
-                  <Button onClick={() => { setShowAddressForm(true); setAddressError(null); setAddressServerError(null) }} variant="secondary">
+                  <Button onClick={() => { setShowAddressForm(true); setAddressErrorKey(null); setAddressServerError(null) }} variant="secondary">
                     {t.profile.addAddress}
                   </Button>
                 </div>
@@ -359,7 +387,7 @@ export function ProfilePage() {
                 ) : (
                   <div className="profile-page__addresses-empty">
                     <p>{t.profile.noAddresses}</p>
-                    <Button onClick={() => { setShowAddressForm(true); setAddressError(null); setAddressServerError(null) }} variant="secondary">
+                    <Button onClick={() => { setShowAddressForm(true); setAddressErrorKey(null); setAddressServerError(null) }} variant="secondary">
                       {t.profile.addFirstAddress}
                     </Button>
                   </div>
@@ -452,14 +480,14 @@ export function ProfilePage() {
               onClick={() => {
                 setShowAddressForm(false)
                 setEditingAddress(null)
-                setAddressError(null)
+                setAddressErrorKey(null)
                 setAddressServerError(null)
               }}
             >
               ✕
             </button>
-            {addressError && (
-              <Alert variant="error" message={addressError} className="profile-page__modal-alert" />
+            {addressErrorKey && (
+              <Alert variant="error" message={addressErrorKey === 'editAddressError' ? t.profile.editAddressError : t.profile.addAddressError} className="profile-page__modal-alert" />
             )}
             <AddressForm
               address={editingAddress}
@@ -468,11 +496,11 @@ export function ProfilePage() {
               onCancel={() => {
                 setShowAddressForm(false)
                 setEditingAddress(null)
-                setAddressError(null)
+                setAddressErrorKey(null)
                 setAddressServerError(null)
               }}
               onSubmit={(data) => {
-                setAddressError(null)
+                setAddressErrorKey(null)
                 setAddressServerError(null)
                 if (editingAddress) {
                   updateAddress.mutate(
@@ -488,10 +516,10 @@ export function ProfilePage() {
                           if (err.status === 422) {
                             setAddressServerError(err)
                           } else {
-                            setAddressError(err.message || t.profile.editAddressError)
+                            setAddressErrorKey('editAddressError')
                           }
                         } else {
-                          setAddressError(t.profile.editAddressError)
+                          setAddressErrorKey('editAddressError')
                         }
                       },
                     }
@@ -506,10 +534,10 @@ export function ProfilePage() {
                         if (err.status === 422) {
                           setAddressServerError(err)
                         } else {
-                          setAddressError(err.message || t.profile.addAddressError)
+                          setAddressErrorKey('addAddressError')
                         }
                       } else {
-                        setAddressError(t.profile.addAddressError)
+                        setAddressErrorKey('addAddressError')
                       }
                     },
                   })

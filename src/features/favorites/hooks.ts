@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSession } from '../../shared/auth'
 import { getFavorites, addToFavorites, removeFromFavorites } from './api/favorites'
+import { useLanguage } from '../../shared/i18n/LanguageContext'
 
 const FAVORITES_QUERY_KEY = ['favorites']
 const FAVORITES_STORAGE_KEY = 'favorites_ids'
@@ -25,6 +26,7 @@ const setStoredFavorites = (ids: Set<string>) => {
 
 export function useFavorites() {
   const { isAuthenticated, isLoading: isSessionLoading } = useSession()
+  const { t } = useLanguage()
 
   return useQuery({
     queryKey: FAVORITES_QUERY_KEY,
@@ -44,7 +46,7 @@ export function useFavorites() {
             product: {
               id: id,
               slug: '',
-              title: 'Product',
+              title: t.common.product || 'Product',
               description: '',
               brand: '',
               price: 0,

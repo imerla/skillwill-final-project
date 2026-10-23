@@ -8,6 +8,7 @@ import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { EmailStep } from '../components/forgot-password/EmailStep'
 import { CodeStep } from '../components/forgot-password/CodeStep'
 import { NewPasswordStep } from '../components/forgot-password/NewPasswordStep'
+import { translateApiData } from '../../../shared/i18n/apiTranslations'
 import './ForgotPasswordPage.css'
 
 type Step = 'email' | 'code' | 'newPassword' | 'success'
@@ -15,7 +16,8 @@ type Banner = { variant: 'error' | 'info'; message: string } | null
 
 const getMsg = (e: Record<string, string | string[]>, t: Translations): string => {
   const v = Object.values(e)[0]
-  return typeof v === 'string' ? v : Array.isArray(v) ? v[0] : t.common.genericError
+  const rawMsg = typeof v === 'string' ? v : Array.isArray(v) ? v[0] : t.common.genericError
+  return translateApiData(rawMsg, t)
 }
 
 export function ForgotPasswordPage() {

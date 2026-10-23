@@ -8,7 +8,7 @@ import { useCheckout, useCreateOrder, useConfirmOrder, useResendCode } from '../
 import { useUpdateCartItemQuantity, useRemoveCartItem } from '../../cart/hooks'
 import { useAddresses, useCreateAddress, useUpdateAddress, type Address, type CreateAddressRequest } from '../../profile/hooks'
 import { getCheckoutErrorMessage } from '../errors'
-import { getCartErrorMessage } from '../../cart/errors'
+import { getCartErrorMessage, getAvailableStock } from '../../cart/errors'
 import type { CreateOrderRequest, Order } from '../types'
 import { ApiErrorClass, applyServerErrors } from '../../../shared/api'
 import { PageContainer } from '../../../shared/ui/PageContainer/PageContainer'
@@ -327,13 +327,36 @@ export function CheckoutPage() {
       return null
     }
   })
-  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitErrorKey, setSubmitErrorKey] = useState<'genericError' | 'networkError' | 'stockError' | null>(null)
   const [resendTimer, setResendTimer] = useState<number | null>(null)
   const hasAutoResendAttemptedRef = useRef(false)
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null)
-  const [actionError, setActionError] = useState<string | null>(null)
-  const [quantityErrors, setQuantityErrors] = useState<Record<string, string>>({})
-  const hasQuantityError = Object.keys(quantityErrors).some((key) => quantityErrors[key] !== '')
+  const [actionErrorKey, setActionErrorKey] = useState<'addressFormSaveError' | 'cartGenericError' | 'cartNetworkError' | 'cartStockError' | 'cartProductGone' | 'cartItemGone' | 'cartQtyRange' | null>(null)
+  const [quantityErrors, setQuantityErrors] = useState<Record<string, { type: 'stockChanged' | 'genericError' | 'networkError' | 'outOfStock' | 'productGone' | 'itemGone' | 'qtyRange'; stock?: number }>>({})
+  const hasQuantityError = Object.keys(quantityErrors).some((key) => quantityErrors[key].type !== 'stockChanged' || quantityErrors[key].stock !== undefined)
+
+  const getQuantityErrorMessage = (error: { type: string; stock?: number }): string => {
+    switch (error.type) {
+      case 'stockChanged':
+        return error.stock !== undefined
+          ? `${t.cart.stockChanged} ${t.cart.onlyN(error.stock)}`
+          : t.cart.stockChanged
+      case 'outOfStock':
+        return t.cart.outOfStock
+      case 'productGone':
+        return t.cart.productGone
+      case 'itemGone':
+        return t.cart.itemGone
+      case 'qtyRange':
+        return t.cart.qtyRange
+      case 'networkError':
+        return t.common.networkError
+      case 'genericError':
+        return t.common.genericError
+      default:
+        return t.common.genericError
+    }
+  }
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [showAddressSelector, setShowAddressSelector] = useState(false)
   const [showAddressForm, setShowAddressForm] = useState(false)
@@ -351,7 +374,7 @@ export function CheckoutPage() {
 
   const handleResendCode = useCallback(async () => {
     if (!orderId || resendTimer !== null) return
-    setSubmitError(null) // Clear any previous error
+    setSubmitErrorKey(null) // Clear any previous error
     try {
       const result = await resendCode.mutateAsync(orderId)
       if (result.devCode) {
@@ -359,7 +382,12 @@ export function CheckoutPage() {
       }
       setResendTimer(30)
     } catch (err) {
-      setSubmitError(getCheckoutErrorMessage(err, t))
+      const errorMsg = getCheckoutErrorMessage(err, t)
+      if (errorMsg === t.checkout.stockError) {
+        setSubmitErrorKey('stockError')
+      } else {
+        setSubmitErrorKey('genericError')
+      }
     }
   }, [orderId, resendTimer, resendCode, t])
 
@@ -544,20 +572,20 @@ export function CheckoutPage() {
         if (err.status === 422) {
           setAddressServerError(err)
         } else {
-          setActionError(err.message || t.checkout.addressForm.saveError)
+          setActionErrorKey('addressFormSaveError')
         }
       } else {
-        setActionError(t.checkout.addressForm.saveError)
+        setActionErrorKey('addressFormSaveError')
       }
     }
   }
 
   const handleCheckoutSubmit = async (data: CheckoutFormData) => {
-    setSubmitError(null)
+    setSubmitErrorKey(null)
 
     // Check if address is selected
     if (!selectedAddressId) {
-      setSubmitError(t.checkout.delivery.addressRequired)
+      setSubmitErrorKey('genericError')
       return
     }
 
@@ -600,13 +628,18 @@ export function CheckoutPage() {
           form.setError(key as keyof CheckoutFormData, { type: 'server', message })
         })
       }
-      setSubmitError(getCheckoutErrorMessage(err, t))
+      const errorMsg = getCheckoutErrorMessage(err, t)
+      if (errorMsg === t.checkout.stockError) {
+        setSubmitErrorKey('stockError')
+      } else {
+        setSubmitErrorKey('genericError')
+      }
     }
   }
 
   const handleConfirmSubmit = async (data: CodeFormData) => {
     if (!orderId) return
-    setSubmitError(null)
+    setSubmitErrorKey(null)
     try {
       const result = await confirmOrder.mutateAsync({ orderId, data })
 
@@ -624,7 +657,12 @@ export function CheckoutPage() {
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       setStep('success')
     } catch (err) {
-      setSubmitError(getCheckoutErrorMessage(err, t))
+      const errorMsg = getCheckoutErrorMessage(err, t)
+      if (errorMsg === t.checkout.stockError) {
+        setSubmitErrorKey('stockError')
+      } else {
+        setSubmitErrorKey('genericError')
+      }
     }
   }
 
@@ -647,8 +685,8 @@ export function CheckoutPage() {
   }, [resendTimer])
 
   const handleQuantityChange = (itemId: string, qty: number) => {
-    setActionError(null)
-    setQuantityErrors((prev) => ({ ...prev, [itemId]: '' }))
+    setActionErrorKey(null)
+    setQuantityErrors((prev) => ({ ...prev, [itemId]: { type: 'stockChanged', stock: undefined } }))
     // Find the item to check stock
     const item = checkout?.items.find((i) => i.id === itemId)
     const maxStock = item?.product.stock ?? 99
@@ -656,7 +694,7 @@ export function CheckoutPage() {
     if (qty > maxStock) {
       setQuantityErrors((prev) => ({
         ...prev,
-        [itemId]: `${t.cart.stockChanged} ${t.cart.onlyN(maxStock)}`
+        [itemId]: { type: 'stockChanged', stock: maxStock }
       }))
       // Don't call mutation if quantity exceeds stock
       // The parent component (QuantityStepper) will reset the input to current value
@@ -666,15 +704,34 @@ export function CheckoutPage() {
       { id: itemId, data: { qty } },
       {
         onSuccess: () => {
-          setActionError(null)
-          setQuantityErrors((prev) => ({ ...prev, [itemId]: '' }))
+          setActionErrorKey(null)
+          setQuantityErrors((prev) => ({ ...prev, [itemId]: { type: 'stockChanged', stock: undefined } }))
           refetch()
         },
         onError: (e) => {
-          setActionError(getCartErrorMessage(e, t))
+          const errorMsg = getCartErrorMessage(e, t)
+          let errorType: 'cartGenericError' | 'cartNetworkError' | 'cartStockError' | 'cartProductGone' | 'cartItemGone' | 'cartQtyRange' = 'cartGenericError'
+          let quantityErrorType: 'genericError' | 'networkError' | 'outOfStock' | 'productGone' | 'itemGone' | 'qtyRange' = 'genericError'
+          if (errorMsg === t.common.networkError) {
+            errorType = 'cartNetworkError'
+            quantityErrorType = 'networkError'
+          } else if (errorMsg === t.checkout.stockError || errorMsg === t.cart.outOfStock) {
+            errorType = 'cartStockError'
+            quantityErrorType = 'outOfStock'
+          } else if (errorMsg === t.cart.productGone) {
+            errorType = 'cartProductGone'
+            quantityErrorType = 'productGone'
+          } else if (errorMsg === t.cart.itemGone) {
+            errorType = 'cartItemGone'
+            quantityErrorType = 'itemGone'
+          } else if (errorMsg === t.cart.qtyRange) {
+            errorType = 'cartQtyRange'
+            quantityErrorType = 'qtyRange'
+          }
+          setActionErrorKey(errorType)
           setQuantityErrors((prev) => ({
             ...prev,
-            [itemId]: getCartErrorMessage(e, t)
+            [itemId]: { type: quantityErrorType, stock: getAvailableStock(e) }
           }))
         },
       }
@@ -682,13 +739,13 @@ export function CheckoutPage() {
   }
 
   const handleRemove = (itemId: string) => {
-    setActionError(null)
+    setActionErrorKey(null)
     removeItem.mutate(itemId, {
       onSuccess: () => {
-        setActionError(null)
+        setActionErrorKey(null)
         refetch()
       },
-      onError: (e) => setActionError(getCartErrorMessage(e, t)),
+      onError: () => setActionErrorKey('cartGenericError'),
     })
   }
 
@@ -730,7 +787,29 @@ export function CheckoutPage() {
         <h1 className="checkout-page__page-title">{t.checkout.title}</h1>
 
         <div className="checkout-page__content">
-          {actionError && <Alert variant="error" message={actionError} className="checkout-page__alert" />}
+          {actionErrorKey && (
+            <Alert
+              variant="error"
+              message={
+                actionErrorKey === 'addressFormSaveError'
+                  ? t.checkout.addressForm.saveError
+                  : actionErrorKey === 'cartGenericError'
+                  ? t.common.genericError
+                  : actionErrorKey === 'cartNetworkError'
+                  ? t.common.networkError
+                  : actionErrorKey === 'cartStockError'
+                  ? t.checkout.stockError
+                  : actionErrorKey === 'cartProductGone'
+                  ? t.cart.productGone
+                  : actionErrorKey === 'cartItemGone'
+                  ? t.cart.itemGone
+                  : actionErrorKey === 'cartQtyRange'
+                  ? t.cart.qtyRange
+                  : t.common.genericError
+              }
+              className="checkout-page__alert"
+            />
+          )}
 
           <div className="checkout-page__left-column">
             <div className="checkout-page__summary">
@@ -759,7 +838,7 @@ export function CheckoutPage() {
                           t={t}
                         />
                         {quantityErrors[item.id] && (
-                          <Alert variant="error" message={quantityErrors[item.id]} className="checkout-page__quantity-error" />
+                          <Alert variant="error" message={getQuantityErrorMessage(quantityErrors[item.id])} className="checkout-page__quantity-error" />
                         )}
                         <Button
                           variant="secondary"
@@ -969,8 +1048,8 @@ export function CheckoutPage() {
                 </FormField>
               </div>
 
-              {submitError && (
-                <Alert variant="error" message={submitError} className="checkout-page__alert" />
+              {submitErrorKey && (
+                <Alert variant="error" message={submitErrorKey === 'stockError' ? t.checkout.stockError : t.common.genericError} className="checkout-page__alert" />
               )}
 
               <Button
@@ -1030,8 +1109,8 @@ export function CheckoutPage() {
               <Alert variant="info" message={`${t.checkout.devCode}: ${devCode}`} className="checkout-page__alert" />
             )}
 
-            {submitError && (
-              <Alert variant="error" message={submitError} className="checkout-page__alert" />
+            {submitErrorKey && (
+              <Alert variant="error" message={submitErrorKey === 'stockError' ? t.checkout.stockError : t.common.genericError} className="checkout-page__alert" />
             )}
 
             <Button
@@ -1066,6 +1145,11 @@ export function CheckoutPage() {
                 setPendingOrderCurrency(null)
                 setDevCode(null)
                 hasAutoResendAttemptedRef.current = false
+                // Clear card fields for security when going back
+                form.setValue('card.number', '')
+                form.setValue('card.holder', '')
+                form.setValue('card.expiry', '')
+                form.setValue('card.cvc', '')
                 setStep('form')
               }}
             >

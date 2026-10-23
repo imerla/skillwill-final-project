@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { Menu, X, Home, ShoppingBag, ShoppingCart, Package, User, LogIn, UserPlus, LogOut, Info, Heart } from 'lucide-react'
 import { useSession } from '../../../shared/auth'
@@ -30,32 +30,33 @@ export function Nav() {
   const isCatalogPage = location.pathname === ROUTES.catalog
   const searchQuery = searchParams.get('q') || ''
   const [searchInput, setSearchInput] = useState(searchQuery)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Sync input with URL when URL changes externally (clear all, refresh, etc.)
-  /* eslint-disable react-hooks/set-state-in-effect */
+  // Sync input from URL when it changes externally (clear all, F5, etc.)
+  // Use a ref to avoid feedback loop: only update if URL changed, not if we caused it
+  const lastCommittedRef = useRef(searchQuery)
   useEffect(() => {
-    setSearchInput(searchQuery)
+    if (searchQuery !== lastCommittedRef.current) {
+      lastCommittedRef.current = searchQuery
+      setSearchInput(searchQuery)
+    }
   }, [searchQuery])
-  /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Search on Enter key press
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      const trimmed = value.trim()
+      lastCommittedRef.current = trimmed
       const newParams = new URLSearchParams(searchParams)
-      if (searchInput.trim()) {
-        newParams.set('q', searchInput.trim())
-        // Clear all filters when typing new search term
-        newParams.forEach((_, key) => {
-          if (key !== 'q' && key !== 'page') {
-            newParams.delete(key)
-          }
-        })
+      if (trimmed) {
+        newParams.set('q', trimmed)
       } else {
         newParams.delete('q')
       }
       newParams.delete('page')
       setSearchParams(newParams)
-    }
+    }, 400)
   }
 
   useEffect(() => {
@@ -103,8 +104,7 @@ export function Nav() {
                 type="search"
                 placeholder={t.catalog.searchPlaceholder}
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={handleSearchKeyDown}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 aria-label={t.catalog.searchLabel}
                 className="nav__search-input"
               />
