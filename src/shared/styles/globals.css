@@ -19,6 +19,24 @@ body {
   width: 100%;
 }
 
+/* Language-specific fonts */
+html[lang="en"] body {
+  font-family: var(--font-family-en);
+}
+
+html[lang="ka"] body {
+  font-family: var(--font-family-ka);
+}
+
+/* Override font-family-base for language-specific components */
+html[lang="en"] {
+  --font-family-base: var(--font-family-base-en);
+}
+
+html[lang="ka"] {
+  --font-family-base: var(--font-family-base-ka);
+}
+
 html {
   overflow-x: hidden;
   width: 100%;

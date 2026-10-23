@@ -21,7 +21,7 @@
 }
 
 .register-page__title {
-  font-family: var(--font-family-base);
+  font-family: var(--font-family);
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-tight);
@@ -54,14 +54,14 @@
 }
 
 .register-page__login {
-  font-family: var(--font-family-base);
+  font-family: var(--font-family);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
   color: var(--text-color-secondary);
 }
 
 .register-page__link {
-  font-family: var(--font-family-base);
+  font-family: var(--font-family);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
   color: var(--color-primary);
