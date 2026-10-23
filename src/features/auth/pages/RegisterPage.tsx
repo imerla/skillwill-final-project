@@ -128,6 +128,7 @@ export function RegisterPage() {
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.name}
+                disabled={isLoading}
                 {...registerField('name')}
               />
             )}
@@ -146,6 +147,7 @@ export function RegisterPage() {
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.email}
+                disabled={isLoading}
                 {...registerField('email')}
               />
             )}
@@ -163,6 +165,7 @@ export function RegisterPage() {
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.password}
+                disabled={isLoading}
                 {...registerField('password', { deps: ['confirmPassword'] })}
               />
             )}
@@ -180,6 +183,7 @@ export function RegisterPage() {
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.confirmPassword}
+                disabled={isLoading}
                 {...registerField('confirmPassword')}
               />
             )}
@@ -189,6 +193,7 @@ export function RegisterPage() {
             <Button
               type="submit"
               loading={isLoading}
+              disabled={isLoading}
               className="register-page__submit"
             >
               {t.auth.register.submit}

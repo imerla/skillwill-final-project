@@ -124,6 +124,7 @@ export function LoginPage() {
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.email}
+                disabled={isLoading}
                 {...register('email')}
               />
             )}
@@ -141,6 +142,7 @@ export function LoginPage() {
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}
                 error={!!errors.password}
+                disabled={isLoading}
                 {...register('password')}
               />
             )}
@@ -150,6 +152,7 @@ export function LoginPage() {
             <Button
               type="submit"
               loading={isLoading}
+              disabled={isLoading}
               className="login-page__submit"
             >
               {t.auth.login.submit}
