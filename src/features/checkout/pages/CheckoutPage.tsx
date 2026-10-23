@@ -332,6 +332,8 @@ export function CheckoutPage() {
   const hasAutoResendAttemptedRef = useRef(false)
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [quantityErrors, setQuantityErrors] = useState<Record<string, string>>({})
+  const hasQuantityError = Object.keys(quantityErrors).some((key) => quantityErrors[key] !== '')
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [showAddressSelector, setShowAddressSelector] = useState(false)
   const [showAddressForm, setShowAddressForm] = useState(false)
@@ -646,14 +648,35 @@ export function CheckoutPage() {
 
   const handleQuantityChange = (itemId: string, qty: number) => {
     setActionError(null)
+    setQuantityErrors((prev) => ({ ...prev, [itemId]: '' }))
+    // Find the item to check stock
+    const item = checkout?.items.find((i) => i.id === itemId)
+    const maxStock = item?.product.stock ?? 99
+    // Don't auto-cap - reject if quantity exceeds stock
+    if (qty > maxStock) {
+      setQuantityErrors((prev) => ({
+        ...prev,
+        [itemId]: `${t.cart.stockChanged} ${t.cart.onlyN(maxStock)}`
+      }))
+      // Don't call mutation if quantity exceeds stock
+      // The parent component (QuantityStepper) will reset the input to current value
+      return
+    }
     updateQuantity.mutate(
       { id: itemId, data: { qty } },
       {
         onSuccess: () => {
           setActionError(null)
+          setQuantityErrors((prev) => ({ ...prev, [itemId]: '' }))
           refetch()
         },
-        onError: (e) => setActionError(getCartErrorMessage(e, t)),
+        onError: (e) => {
+          setActionError(getCartErrorMessage(e, t))
+          setQuantityErrors((prev) => ({
+            ...prev,
+            [itemId]: getCartErrorMessage(e, t)
+          }))
+        },
       }
     )
   }
@@ -735,6 +758,9 @@ export function CheckoutPage() {
                           disabled={isAnyMutationPending || !item.product.inStock}
                           t={t}
                         />
+                        {quantityErrors[item.id] && (
+                          <Alert variant="error" message={quantityErrors[item.id]} className="checkout-page__quantity-error" />
+                        )}
                         <Button
                           variant="secondary"
                           onClick={() => handleRemove(item.id)}
@@ -950,7 +976,7 @@ export function CheckoutPage() {
               <Button
                 type="submit"
                 loading={createOrder.isPending}
-                disabled={createOrder.isPending}
+                disabled={createOrder.isPending || hasQuantityError}
               >
                 {createOrder.isPending ? t.checkout.processing : t.checkout.placeOrder}
               </Button>

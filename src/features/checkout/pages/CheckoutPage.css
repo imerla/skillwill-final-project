@@ -82,9 +82,15 @@
 
 .checkout-page__item-controls {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-2);
   margin-top: var(--spacing-2);
+}
+
+.checkout-page__quantity-error {
+  margin-top: var(--spacing-2);
+  min-width: 200px;
 }
 
 .checkout-page__item-remove {
@@ -570,7 +576,14 @@
 
   .checkout-page__item-controls {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+    gap: var(--spacing-1);
+  }
+
+  .checkout-page__quantity-error {
+    max-width: 100%;
+    font-size: var(--font-size-xs);
+    line-height: 1.2;
   }
 
   .checkout-page__item-remove {

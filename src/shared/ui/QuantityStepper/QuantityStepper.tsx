@@ -40,8 +40,10 @@ export function QuantityStepper({ value, onChange, min = 1, max = 999, disabled 
       setInputValue(min.toString())
       onChange(min)
     } else if (numValue > max) {
-      setInputValue(max.toString())
-      onChange(max)
+      // Call onChange with invalid value so parent can detect and show error
+      onChange(numValue)
+      // But reset input display to current valid value
+      setInputValue(value.toString())
     } else {
       setInputValue(numValue.toString())
       onChange(numValue)

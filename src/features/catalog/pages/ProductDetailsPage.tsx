@@ -146,14 +146,18 @@ export function ProductDetailsPage() {
       return
     }
 
-    if (quantity > product.stock) {
-      setAddToCartMessage({ type: 'error', text: t.cart.onlyN(product.stock) })
+    // Check if adding this quantity would exceed stock (considering existing cart quantity)
+    const totalQuantity = quantity + cartQuantity
+    if (totalQuantity > product.stock) {
+      // Notify user that requested quantity exceeds available stock
+      setAddToCartMessage({ type: 'error', text: `${t.cart.stockChanged} ${t.cart.onlyN(product.stock - cartQuantity)}` })
       // Clear previous timer
       if (messageTimerRef.current !== null) {
         clearTimeout(messageTimerRef.current)
       }
       // Set new timer
       messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+      // Don't add to cart if total quantity would exceed stock
       return
     }
 
@@ -188,6 +192,19 @@ export function ProductDetailsPage() {
 
     if (newQty === 0) {
       handleRemoveFromCart()
+      return
+    }
+
+    // Validate against stock
+    if (newQty > product.stock) {
+      setAddToCartMessage({ type: 'error', text: `${t.cart.stockChanged} ${t.cart.onlyN(product.stock)}` })
+      // Clear previous timer
+      if (messageTimerRef.current !== null) {
+        clearTimeout(messageTimerRef.current)
+      }
+      // Set new timer
+      messageTimerRef.current = window.setTimeout(() => setAddToCartMessage(null), 3000)
+      // Don't call mutation if quantity exceeds stock
       return
     }
 

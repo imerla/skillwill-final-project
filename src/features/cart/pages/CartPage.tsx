@@ -30,6 +30,7 @@ export function CartPage() {
   const clearCart = useClearCart()
   const navigate = useNavigate()
   const [actionError, setActionError] = useState<string | null>(null)
+  const [quantityErrors, setQuantityErrors] = useState<Record<string, string>>({})
   const [showClearConfirm, setShowClearConfirm] = useState(false)
 
   // Get similar products based on first product's brand
@@ -45,11 +46,34 @@ export function CartPage() {
 
   const handleQuantityChange = (itemId: string, qty: number) => {
     setActionError(null)
+    setQuantityErrors((prev) => ({ ...prev, [itemId]: '' }))
+    // Find the item to check stock
+    const item = cart?.items.find((i) => i.id === itemId)
+    const maxStock = item?.product.stock ?? 99
+    // Don't auto-cap - reject if quantity exceeds stock
+    if (qty > maxStock) {
+      setQuantityErrors((prev) => ({
+        ...prev,
+        [itemId]: `${t.cart.stockChanged} ${t.cart.onlyN(maxStock)}`
+      }))
+      // Don't call mutation if quantity exceeds stock
+      // The parent component (QuantityStepper) will reset the input to current value
+      return
+    }
     updateQuantity.mutate(
       { id: itemId, data: { qty } },
       {
-        onSuccess: () => setActionError(null),
-        onError: (e) => setActionError(getCartErrorMessage(e, t)),
+        onSuccess: () => {
+          setActionError(null)
+          setQuantityErrors((prev) => ({ ...prev, [itemId]: '' }))
+        },
+        onError: (e) => {
+          setActionError(getCartErrorMessage(e, t))
+          setQuantityErrors((prev) => ({
+            ...prev,
+            [itemId]: getCartErrorMessage(e, t)
+          }))
+        },
       }
     )
   }
@@ -82,6 +106,8 @@ export function CartPage() {
   const hasStockIssue = cart?.items.some(
     (item) => !item.product.inStock || item.product.stock < item.qty
   ) ?? false
+
+  const hasQuantityError = Object.keys(quantityErrors).some((key) => quantityErrors[key] !== '')
 
 
 
@@ -188,6 +214,9 @@ export function CartPage() {
                       disabled={isAnyMutationPending || !item.product.inStock}
                       t={t}
                     />
+                    {quantityErrors[item.id] && (
+                      <Alert variant="error" message={quantityErrors[item.id]} className="cart-page__quantity-error" />
+                    )}
                   </div>
                   <div className="cart-page__actions-wrapper">
                     <div className="cart-page__total" aria-label={t.cart.lineTotal}>
@@ -230,17 +259,18 @@ export function CartPage() {
               onClick={() => navigate(ROUTES.checkout)}
               disabled={
                 hasStockIssue ||
+                hasQuantityError ||
                 isAnyMutationPending ||
                 (cart?.items.length ?? 0) === 0
               }
-              aria-describedby={hasStockIssue ? 'cart-checkout-blocked' : undefined}
+              aria-describedby={(hasStockIssue || hasQuantityError) ? 'cart-checkout-blocked' : undefined}
               className="cart-page__checkout"
             >
               {t.cart.checkout}
             </Button>
-            {hasStockIssue && (
+            {(hasStockIssue || hasQuantityError) && (
               <p id="cart-checkout-blocked" className="cart-page__blocked-text">
-                {t.cart.checkoutBlocked}
+                {hasQuantityError ? t.cart.stockChanged : t.cart.checkoutBlocked}
               </p>
             )}
             <Button
