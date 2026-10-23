@@ -50,7 +50,7 @@ export function EmailStep({ defaultEmail, isLoading, onSubmit }: EmailStepProps)
           <Input
             id={props.id}
             type="email"
-            placeholder="you@example.com"
+            placeholder={t.auth.emailPlaceholder}
             autoComplete="email"
             aria-describedby={props['aria-describedby']}
             aria-invalid={props['aria-invalid']}

@@ -32,9 +32,11 @@ export function Nav() {
   const [searchInput, setSearchInput] = useState(searchQuery)
 
   // Sync input with URL when URL changes externally (clear all, refresh, etc.)
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setSearchInput(searchQuery)
   }, [searchQuery])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Search on Enter key press
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -115,7 +117,7 @@ export function Nav() {
               type="button"
               className="nav__link nav__link--language nav__language-switcher-mobile"
               onClick={() => setLanguage(language === 'ka' ? 'en' : 'ka')}
-              aria-label="Switch language"
+              aria-label={t.common.switchLanguage}
             >
               <img
                 src={language === 'ka' 
@@ -200,7 +202,7 @@ export function Nav() {
                   type="button"
                   className="nav__link nav__link--language nav__language-switcher-desktop"
                   onClick={() => setLanguage(language === 'ka' ? 'en' : 'ka')}
-                  aria-label="Switch language"
+                  aria-label={t.common.switchLanguage}
                 >
                   <img
                     src={language === 'ka' 
@@ -232,7 +234,7 @@ export function Nav() {
                   type="button"
                   className="nav__link nav__link--language nav__language-switcher-desktop"
                   onClick={() => setLanguage(language === 'ka' ? 'en' : 'ka')}
-                  aria-label="Switch language"
+                  aria-label={t.common.switchLanguage}
                 >
                   <img
                     src={language === 'ka' 

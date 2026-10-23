@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { getOrders, getOrder } from './api/orders'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getOrders, getOrder, cancelOrder } from './api/orders'
 import type { Order } from './types'
 
 const ORDERS_QUERY_KEY = ['orders']
@@ -19,6 +19,16 @@ export function useOrder(orderId: string) {
     queryFn: ({ signal }) => getOrder(orderId, signal),
     enabled: !!orderId,
     staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function useCancelOrder() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: cancelOrder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY })
+    },
   })
 }
 

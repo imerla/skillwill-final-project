@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -25,6 +25,9 @@ import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { ROUTES } from '../../../app/routes'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import './CheckoutPage.css'
+
+const PENDING_ORDER_ID_STORAGE_KEY = 'pending_checkout_order_id'
+const PENDING_ORDER_DETAILS_STORAGE_KEY = 'pending_checkout_order_details'
 
 type CheckoutFormData = {
   shipping: {
@@ -106,7 +109,7 @@ function AddressFormModal({
       }
       // The form is already initialized with defaultValues, so we just need to update
       Object.entries(currentValues).forEach(([key, value]) => {
-        setValue(key as any, value)
+        setValue(key as keyof typeof currentValues, value)
       })
     } else if (show && !editingAddress) {
       // When adding new, reset to empty
@@ -118,7 +121,7 @@ function AddressFormModal({
         address: '',
       }
       Object.entries(emptyValues).forEach(([key, value]) => {
-        setValue(key as any, value)
+        setValue(key as keyof typeof emptyValues, value)
       })
     }
   }, [show, editingAddress, setValue])
@@ -284,11 +287,49 @@ export function CheckoutPage() {
   const createAddress = useCreateAddress()
   const updateAddress = useUpdateAddress()
 
-  const [step, setStep] = useState<'form' | 'confirm' | 'success'>('form')
-  const [orderId, setOrderId] = useState<string | null>(null)
-  const [devCode, setDevCode] = useState<string | null>(null)
+  const [orderId, setOrderId] = useState<string | null>(
+    () => sessionStorage.getItem(PENDING_ORDER_ID_STORAGE_KEY)
+  )
+
+  const [step, setStep] = useState<'form' | 'confirm' | 'success'>(() => {
+    const savedOrderId = sessionStorage.getItem(PENDING_ORDER_ID_STORAGE_KEY)
+    const savedDetails = sessionStorage.getItem(PENDING_ORDER_DETAILS_STORAGE_KEY)
+    // Only go to confirm if both orderId and details are present
+    if (savedOrderId && savedDetails) {
+      return 'confirm'
+    }
+    // Clear incomplete storage and go to form
+    sessionStorage.removeItem(PENDING_ORDER_ID_STORAGE_KEY)
+    sessionStorage.removeItem(PENDING_ORDER_DETAILS_STORAGE_KEY)
+    return 'form'
+  })
+  const [devCode, setDevCode] = useState<string | null>(() => {
+    try {
+      const savedDetails = sessionStorage.getItem(PENDING_ORDER_DETAILS_STORAGE_KEY)
+      return savedDetails ? JSON.parse(savedDetails).devCode : null
+    } catch {
+      return null
+    }
+  })
+  const [pendingOrderTotal, setPendingOrderTotal] = useState<number | null>(() => {
+    try {
+      const savedDetails = sessionStorage.getItem(PENDING_ORDER_DETAILS_STORAGE_KEY)
+      return savedDetails ? JSON.parse(savedDetails).total : null
+    } catch {
+      return null
+    }
+  })
+  const [pendingOrderCurrency, setPendingOrderCurrency] = useState<string | null>(() => {
+    try {
+      const savedDetails = sessionStorage.getItem(PENDING_ORDER_DETAILS_STORAGE_KEY)
+      return savedDetails ? JSON.parse(savedDetails).currency : null
+    } catch {
+      return null
+    }
+  })
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [resendTimer, setResendTimer] = useState<number | null>(null)
+  const hasAutoResendAttemptedRef = useRef(false)
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
@@ -298,6 +339,37 @@ export function CheckoutPage() {
   const [addressServerError, setAddressServerError] = useState<ApiErrorClass | null>(null)
 
   useDocumentTitle(t.checkout.title)
+
+  // Reset auto resend flag when step changes to form
+  useEffect(() => {
+    if (step === 'form') {
+      hasAutoResendAttemptedRef.current = false
+    }
+  }, [step])
+
+  const handleResendCode = useCallback(async () => {
+    if (!orderId || resendTimer !== null) return
+    setSubmitError(null) // Clear any previous error
+    try {
+      const result = await resendCode.mutateAsync(orderId)
+      if (result.devCode) {
+        setDevCode(result.devCode)
+      }
+      setResendTimer(30)
+    } catch (err) {
+      setSubmitError(getCheckoutErrorMessage(err, t))
+    }
+  }, [orderId, resendTimer, resendCode, t])
+
+  // Auto-resend code when entering confirm step with pending order
+  useEffect(() => {
+    if (step === 'confirm' && orderId && !devCode && !hasAutoResendAttemptedRef.current) {
+      hasAutoResendAttemptedRef.current = true
+      setTimeout(() => {
+        handleResendCode()
+      }, 100)
+    }
+  }, [step, orderId, devCode, handleResendCode])
 
   // Define schemas with dynamic translations
   const shippingSchema = z.object({
@@ -391,11 +463,13 @@ export function CheckoutPage() {
   }, [showAddressForm, form])
 
   // Auto-select default address if available and populate form
-  useEffect(() => {
-    if (addresses?.items && addresses.items.length > 0 && !selectedAddressId) {
+  const processedDefaultAddressRef = useRef(false)
+  const autoSelectDefaultAddress = useCallback(() => {
+    if (addresses?.items && addresses.items.length > 0 && !selectedAddressId && !processedDefaultAddressRef.current) {
       const defaultAddress = addresses.items.find((a: Address) => a.isDefault)
       if (defaultAddress) {
-        setSelectedAddressId(defaultAddress.id)
+        processedDefaultAddressRef.current = true
+        setSelectedAddressId((prev) => prev || defaultAddress.id)
         // Populate form with default address
         form.setValue('shipping.fullName', defaultAddress.fullName)
         form.setValue('shipping.phone', defaultAddress.phone)
@@ -404,6 +478,12 @@ export function CheckoutPage() {
       }
     }
   }, [addresses, selectedAddressId, form])
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    autoSelectDefaultAddress()
+  }, [autoSelectDefaultAddress])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Populate form from checkout.shipping if no addresses are saved
   useEffect(() => {
@@ -489,14 +569,21 @@ export function CheckoutPage() {
         },
       }
       const result = await createOrder.mutateAsync(cleanedData as CreateOrderRequest)
+
+      sessionStorage.setItem(PENDING_ORDER_ID_STORAGE_KEY, result.orderId)
+      sessionStorage.setItem(PENDING_ORDER_DETAILS_STORAGE_KEY, JSON.stringify({
+        total: result.total - (checkout?.shippingFee || 0),
+        currency: result.currency,
+        expiresInMinutes: result.expiresInMinutes,
+        devCode: result.devCode
+      }))
       setOrderId(result.orderId)
+      setPendingOrderTotal(result.total - (checkout?.shippingFee || 0))
+      setPendingOrderCurrency(result.currency)
       if (result.devCode) {
         setDevCode(result.devCode)
-      } else {
-        // Fallback: generate random 6-digit code for testing if backend doesn't return devCode
-        const randomCode = Math.floor(100000 + Math.random() * 900000).toString()
-        setDevCode(randomCode)
       }
+      hasAutoResendAttemptedRef.current = false
       setStep('confirm')
       setResendTimer(30) // Start timer immediately when entering confirm step
       form.setValue('card.number', '')
@@ -520,29 +607,20 @@ export function CheckoutPage() {
     setSubmitError(null)
     try {
       const result = await confirmOrder.mutateAsync({ orderId, data })
+
+      sessionStorage.removeItem(PENDING_ORDER_ID_STORAGE_KEY)
+      sessionStorage.removeItem(PENDING_ORDER_DETAILS_STORAGE_KEY)
+
+      setOrderId(null)
+      setPendingOrderTotal(null)
+      setPendingOrderCurrency(null)
+      setDevCode(null)
+      hasAutoResendAttemptedRef.current = false
       setConfirmedOrder(result.order)
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['checkout'] })
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       setStep('success')
-    } catch (err) {
-      setSubmitError(getCheckoutErrorMessage(err, t))
-    }
-  }
-
-  const handleResendCode = async () => {
-    if (!orderId || resendTimer !== null) return
-    setSubmitError(null) // Clear any previous error
-    try {
-      const result = await resendCode.mutateAsync(orderId)
-      if (result.devCode) {
-        setDevCode(result.devCode)
-      } else {
-        // Fallback: generate random 6-digit code for testing if backend doesn't return devCode
-        const randomCode = Math.floor(100000 + Math.random() * 900000).toString()
-        setDevCode(randomCode)
-      }
-      setResendTimer(30)
     } catch (err) {
       setSubmitError(getCheckoutErrorMessage(err, t))
     }
@@ -751,6 +829,7 @@ export function CheckoutPage() {
               )}
             </div>
 
+            {/* eslint-disable-next-line react-hooks/refs */}
             <form onSubmit={form.handleSubmit(handleCheckoutSubmit)} className="checkout-page__form" noValidate>
               {selectedAddressId && (
                 <div className="checkout-page__selected-address-info">
@@ -898,9 +977,10 @@ export function CheckoutPage() {
         <div className="checkout-page__confirm-section">
           <p className="checkout-page__confirm-message">{t.checkout.confirmMessage}</p>
           <p className="checkout-page__confirm-total">
-            {t.checkout.total}: {formatPrice((createOrder.data?.total || 0) - (checkout?.shippingFee || 0), checkout?.currency)}
+            {t.checkout.total}: {formatPrice(pendingOrderTotal ?? 0, pendingOrderCurrency ?? checkout?.currency)}
           </p>
 
+          {/* eslint-disable-next-line react-hooks/refs */}
           <form onSubmit={codeForm.handleSubmit(handleConfirmSubmit)} className="checkout-page__code-form" noValidate>
             <FormField label={t.checkout.confirmCode} error={codeForm.formState.errors.code?.message}>
               {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
@@ -947,6 +1027,23 @@ export function CheckoutPage() {
                 : resendCode.isPending
                 ? t.checkout.sending
                 : t.checkout.resendCode}
+            </Button>
+
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                sessionStorage.removeItem(PENDING_ORDER_ID_STORAGE_KEY)
+                sessionStorage.removeItem(PENDING_ORDER_DETAILS_STORAGE_KEY)
+                setOrderId(null)
+                setPendingOrderTotal(null)
+                setPendingOrderCurrency(null)
+                setDevCode(null)
+                hasAutoResendAttemptedRef.current = false
+                setStep('form')
+              }}
+            >
+              {t.common.cancel}
             </Button>
           </form>
         </div>

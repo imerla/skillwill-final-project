@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Input } from '../Input'
-import { ka } from '../../i18n/ka'
+import { useLanguage } from '../../i18n/LanguageContext'
 import './PasswordInput.css'
 
 interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -8,6 +8,7 @@ interface PasswordInputProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
 }
 
 export function PasswordInput({ error = false, disabled, className = '', ...props }: PasswordInputProps) {
+  const { t } = useLanguage()
   const [isVisible, setIsVisible] = useState(false)
 
   const toggleVisibility = () => {
@@ -27,9 +28,9 @@ export function PasswordInput({ error = false, disabled, className = '', ...prop
         className="password-input__toggle"
         onClick={toggleVisibility}
         disabled={disabled}
-        aria-label={isVisible ? ka.common.hidePassword : ka.common.showPassword}
+        aria-label={isVisible ? t.common.hidePassword : t.common.showPassword}
       >
-        {isVisible ? ka.common.hide : ka.common.show}
+        {isVisible ? t.common.hide : t.common.show}
       </button>
     </div>
   )

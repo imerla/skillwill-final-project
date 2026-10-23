@@ -63,13 +63,13 @@ export function Footer() {
           <div className="footer__section">
             <h3 className="footer__title">{t.footer.social}</h3>
             <div className="footer__social">
-              <a href="#" className="footer__social-link" aria-label="Facebook">
+              <a href="#" className="footer__social-link" aria-label={t.footer.facebook}>
                 <Facebook size={24} />
               </a>
-              <a href="#" className="footer__social-link" aria-label="Instagram">
+              <a href="#" className="footer__social-link" aria-label={t.footer.instagram}>
                 <Instagram size={24} />
               </a>
-              <a href="#" className="footer__social-link" aria-label="YouTube">
+              <a href="#" className="footer__social-link" aria-label={t.footer.youtube}>
                 <Youtube size={24} />
               </a>
             </div>

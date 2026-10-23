@@ -119,7 +119,7 @@ export function LoginPage() {
               <Input
                 id={id}
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t.auth.emailPlaceholder}
                 autoComplete="email"
                 aria-describedby={ariaDescribedby}
                 aria-invalid={ariaInvalid}

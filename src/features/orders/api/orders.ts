@@ -9,3 +9,7 @@ export async function getOrder(orderId: string, signal?: AbortSignal): Promise<{
   return api.get<{ order: Order }>(`/orders/${orderId}`, signal ? { signal } : undefined)
 }
 
+export async function cancelOrder(orderId: string): Promise<{ message: string }> {
+  return api.post<{ message: string }>(`/orders/${orderId}/cancel`, {})
+}
+

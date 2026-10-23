@@ -14,7 +14,7 @@ export interface OrderItem {
   qty: number
 }
 
-export type OrderStatus = 'pending' | 'paid' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled' | 'failed'
+export type OrderStatus = 'pending' | 'pending_payment' | 'paid' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled' | 'failed'
 
 export interface Order {
   id: string

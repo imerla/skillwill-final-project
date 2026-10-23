@@ -23,6 +23,7 @@ function getStatusBadge(status: OrderStatus, t: Translations) {
     { label: string; variant: 'neutral' | 'success' | 'accent' | 'danger' }
   > = {
     pending: { label: t.orders.statusPending, variant: 'neutral' },
+    pending_payment: { label: t.orders.statusPendingPayment || 'Pending Payment', variant: 'neutral' },
     paid: { label: t.orders.statusPaid, variant: 'success' },
     confirmed: { label: t.orders.statusConfirmed, variant: 'success' },
     shipped: { label: t.orders.statusShipped, variant: 'accent' },
@@ -44,8 +45,9 @@ function getItemsCount(order: Order) {
 }
 
 function OrdersLoading() {
+  const { t } = useLanguage()
   return (
-    <div className="orders-page__loading" aria-label="Loading">
+    <div className="orders-page__loading" aria-label={t.common.loadingStatus}>
       {[1, 2, 3].map((item) => (
         <Skeleton
           key={item}
@@ -325,6 +327,7 @@ function OrderDetail({
   onBack: () => void
   t: Translations
 }) {
+  const navigate = useNavigate()
   if (isLoading) {
     return (
       <PageContainer size="page" as="section">
@@ -375,8 +378,9 @@ function OrderDetail({
     0,
   )
   const totalItemsCount = getItemsCount(order)
+  // Backend adds shipping fee to total, but we display it as free
   const shippingFee = 0
-  const displayTotal = subtotal + shippingFee
+  const displayTotal = subtotal
 
   return (
     <PageContainer size="page" as="section">
@@ -401,6 +405,28 @@ function OrderDetail({
             </div>
             <div className="orders-page__detail-status">
               {getStatusBadge(order.status, t)}
+              {order.status === 'pending_payment' && (
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    const subtotal = order.items.reduce(
+                      (sum, item) => sum + item.price * item.qty,
+                      0,
+                    )
+                    sessionStorage.setItem('pending_checkout_order_id', order.id)
+                    sessionStorage.setItem('pending_checkout_order_details', JSON.stringify({
+                      total: subtotal,
+                      currency: order.currency,
+                      items: order.items,
+                      shipping: order.shipping
+                    }))
+                    navigate(ROUTES.checkout)
+                  }}
+                  className="orders-page__pay-button"
+                >
+                  {t.checkout.payNow || "Pay Now"}
+                </Button>
+              )}
             </div>
           </div>
 

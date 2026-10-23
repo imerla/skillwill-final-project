@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import './Carousel.css'
 
 interface CarouselProps {
@@ -9,6 +10,7 @@ interface CarouselProps {
 }
 
 export function Carousel({ children, itemsPerView = 4, gap = 24 }: CarouselProps) {
+  const { t } = useLanguage()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [responsiveItemsPerView, setResponsiveItemsPerView] = useState(itemsPerView)
   const [itemWidth, setItemWidth] = useState(0)
@@ -66,7 +68,7 @@ export function Carousel({ children, itemsPerView = 4, gap = 24 }: CarouselProps
         className="carousel__nav carousel__nav--prev"
         onClick={handlePrev}
         disabled={!canScrollLeft}
-        aria-label="Previous"
+        aria-label={t.common.previous}
       >
         <ChevronLeft size={24} />
       </button>
@@ -96,7 +98,7 @@ export function Carousel({ children, itemsPerView = 4, gap = 24 }: CarouselProps
         className="carousel__nav carousel__nav--next"
         onClick={handleNext}
         disabled={!canScrollRight}
-        aria-label="Next"
+        aria-label={t.common.next}
       >
         <ChevronRight size={24} />
       </button>
