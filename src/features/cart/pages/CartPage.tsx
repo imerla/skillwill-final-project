@@ -45,7 +45,11 @@ export function CartPage() {
 
   const handleQuantityChange = (itemId: string, qty: number) => {
     setActionErrorKey(null)
-    setQuantityErrors((prev) => ({ ...prev, [itemId]: { type: 'stockChanged', stock: undefined } }))
+    setQuantityErrors((prev) => {
+      const next = { ...prev }
+      delete next[itemId]
+      return next
+    })
     // Find the item to check stock
     const item = cart?.items.find((i) => i.id === itemId)
     const maxStock = item?.product.stock ?? 99
@@ -62,7 +66,11 @@ export function CartPage() {
       {
         onSuccess: () => {
           setActionErrorKey(null)
-          setQuantityErrors((prev) => ({ ...prev, [itemId]: { type: 'stockChanged', stock: undefined } }))
+          setQuantityErrors((prev) => {
+            const next = { ...prev }
+            delete next[itemId]
+            return next
+          })
         },
         onError: (e) => {
           const errorMsg = getCartErrorMessage(e, t)
