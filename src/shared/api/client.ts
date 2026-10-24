@@ -41,8 +41,6 @@ async function request<T>(
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
-  } else {
-    console.warn('No token found for request:', endpoint)
   }
 
   const response = await fetch(url.toString(), {

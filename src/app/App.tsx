@@ -17,8 +17,6 @@ import { Nav } from './layout/Nav/Nav'
 import { Footer } from '../shared/ui/Footer/Footer'
 import { LegacyCatalogRedirect } from './LegacyCatalogRedirect'
 import { ROUTES } from './routes'
-
-// DEV-only UI demo page
 import { UiDemoPage } from './UiDemoPage'
 
 function App() {

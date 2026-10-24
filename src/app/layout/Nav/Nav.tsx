@@ -26,13 +26,10 @@ export function Nav() {
   const favoritesCount = favorites?.total || 0
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  // Search functionality - only show on catalog page
   const isCatalogPage = location.pathname === ROUTES.catalog
   const searchQuery = searchParams.get('q') || ''
   const [searchInput, setSearchInput] = useState(searchQuery)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Sync input from URL when it changes externally (clear all, F5, etc.)
   // Use a ref to avoid feedback loop: only update if URL changed, not if we caused it
   const lastCommittedRef = useRef(searchQuery)
   useEffect(() => {

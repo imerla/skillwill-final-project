@@ -12,7 +12,6 @@ interface FilterProps {
   selectedValues: string
   onChange: (key: string, value: string) => void
   onClear: (key: string) => void
-  // For price filter: controlled values from URL state
   minValue?: number
   maxValue?: number
   onRangeChange?: (min?: number, max?: number) => void
@@ -22,10 +21,8 @@ export function Filter({ filter, selectedValues, onChange, onClear, minValue, ma
   const { t } = useLanguage()
   const selectedSet = new Set(selectedValues.split(',').filter(Boolean))
 
-  // Translate filter label
   const translatedLabel = translateFilterLabel(filter.label, t)
 
-  // Special handling for price filter - use controlled values from URL state
   const isPriceFilter = filter.key === 'price'
 
   const handleCheckboxChange = (value: string, checked: boolean) => {
@@ -59,8 +56,6 @@ export function Filter({ filter, selectedValues, onChange, onClear, minValue, ma
     onChange(filter.key, parts.join(','))
   }
 
-  // For price filter, check if minValue or maxValue is set
-  // For other filters, check if selectedSet has values
   const hasSelection = isPriceFilter ? (minValue !== undefined || maxValue !== undefined) : selectedSet.size > 0
 
   return (

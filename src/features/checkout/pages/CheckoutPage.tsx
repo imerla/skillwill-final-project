@@ -696,8 +696,6 @@ export function CheckoutPage() {
         ...prev,
         [itemId]: { type: 'stockChanged', stock: maxStock }
       }))
-      // Don't call mutation if quantity exceeds stock
-      // The parent component (QuantityStepper) will reset the input to current value
       return
     }
     updateQuantity.mutate(

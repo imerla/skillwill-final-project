@@ -30,7 +30,6 @@ export function FavoritesPage() {
 
   const isAnyMutationPending = removeFromFavorites.isPending || addToCart.isPending
 
-  // Get stored favorite IDs from localStorage as fallback
   const getStoredFavoriteIds = (): string[] => {
     try {
       const stored = localStorage.getItem('favorites_ids')
@@ -40,19 +39,15 @@ export function FavoritesPage() {
     }
   }
 
-  // Use API favorites if available, otherwise use localStorage
   const favoriteIds = favorites?.items.map((f) => f.productId) ?? getStoredFavoriteIds()
 
-  // Fetch products (only if we have favorite IDs)
   const { data: products, isLoading: productsLoading } = useProducts(
     favoriteIds.length > 0 ? { limit: 100 } : {},
     { enabled: favoriteIds.length > 0 }
   )
 
-  // Filter products to only show favorited ones
   const favoriteProducts = products?.items.filter((p) => favoriteIds.includes(p.id)) ?? []
 
-  // Show loading if either favorites or products are loading
   const showLoading = isLoading || (favoriteIds.length > 0 && productsLoading)
 
   const handleRemove = (productId: string) => {
@@ -67,7 +62,7 @@ export function FavoritesPage() {
       { productId, qty: 1 },
       {
         onSuccess: () => {
-          // t.favorites.keepInFavoritesComment
+          // Keep product in favorites after adding to cart
         },
         onError: () => {
           setActionErrorKey('genericError')

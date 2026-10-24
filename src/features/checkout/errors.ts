@@ -13,7 +13,6 @@ export function getCheckoutErrorMessage(error: unknown, t: Translations): string
     case 'PRODUCT_NOT_FOUND':
       return t.cart.productGone
     default:
-      // TODO: Remove this backward-compatibility check once server always sends code
       if (!error.code && error.message && error.message.includes('NotEnoughStock')) {
         return t.checkout.stockError
       }

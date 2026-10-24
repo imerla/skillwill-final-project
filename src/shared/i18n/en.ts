@@ -425,7 +425,6 @@ export const en = {
   api: {
     clothingAndFootwear: 'Clothing and Footwear',
     clothingAndFootwearDesc: 'Everyday and sportswear for women and men.',
-    // Filter labels
     forWhom: 'For whom',
     color: 'Color',
     size: 'Size',
@@ -433,19 +432,16 @@ export const en = {
     price: 'Price',
     type: 'Type',
     season: 'Season',
-    // Spec keys
     material: 'Material',
     washing: 'Washing',
     manufacturer: 'Manufacturer',
     warranty: 'Warranty',
-    // Filter options - For whom
     women: 'Women',
     men: 'Men',
     unisex: 'Unisex',
     kids: 'Kids',
     womenPossessive: "Women's",
     menPossessive: "Men's",
-    // Filter options - Type
     tshirt: 'T-shirt',
     jacket: 'Jacket',
     sweatshirt: 'Sweatshirt',
@@ -453,7 +449,6 @@ export const en = {
     dress: 'Dress',
     sportShoes: 'Sport shoes',
     hoodie: 'Hoodie',
-    // Filter options - Color
     black: 'Black',
     white: 'White',
     blue: 'Blue',
@@ -461,12 +456,10 @@ export const en = {
     beige: 'Beige',
     green: 'Green',
     red: 'Red',
-    // Filter options - Season
     spring: 'Spring',
     winter: 'Winter',
     allSeason: 'All-season',
     allSeasons: 'All seasons',
-    // Spec values
     cotton: 'Cotton',
     machineWash40: 'Machine wash 40°C',
     vietnam: 'Vietnam',

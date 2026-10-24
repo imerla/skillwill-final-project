@@ -81,7 +81,6 @@ export function ProfilePage() {
     [t]
   )
 
-  // Personal info form
   const personalForm = useForm<PersonalFormData>({
     resolver: zodResolver(personalSchema),
     mode: 'onSubmit',
@@ -92,7 +91,6 @@ export function ProfilePage() {
     },
   })
 
-  // Password form
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
     mode: 'onSubmit',
@@ -511,7 +509,6 @@ export function ProfilePage() {
                         setEditingAddress(null)
                       },
                       onError: (err) => {
-                        console.error('Update address error:', err)
                         if (err instanceof ApiErrorClass) {
                           if (err.status === 422) {
                             setAddressServerError(err)
@@ -571,7 +568,6 @@ export function ProfilePage() {
   )
 }
 
-// Address Form Component
 function AddressForm({ address, onSubmit, isLoading, onCancel, serverError }: { address: Address | null; onSubmit: (data: { label: string; fullName: string; phone: string; city: string; address: string }) => void; isLoading: boolean; onCancel: () => void; serverError: ApiErrorClass | null }) {
   const { t } = useLanguage()
   const {
@@ -601,10 +597,7 @@ function AddressForm({ address, onSubmit, isLoading, onCancel, serverError }: { 
   // Apply server errors when they change
   useEffect(() => {
     if (serverError && serverError.status === 422) {
-      const result = applyServerErrors(serverError, setError, ['label', 'fullName', 'phone', 'city', 'address'])
-      if (result.formError) {
-        console.error('Address form error:', result.formError)
-      }
+      applyServerErrors(serverError, setError, ['label', 'fullName', 'phone', 'city', 'address'])
     }
   }, [serverError, setError])
 

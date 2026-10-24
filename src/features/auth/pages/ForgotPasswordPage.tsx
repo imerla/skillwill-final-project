@@ -55,16 +55,23 @@ export function ForgotPasswordPage() {
     setEmail(emailValue)
     try {
       await forgotPassword({ email: emailValue })
-      setStep('code')
-      setBanner({ variant: 'info', message: t.auth.forgot.codeSent })
     } catch (error) {
-      if (error instanceof ApiErrorClass) {
-        if (error.status === 422 && error.errors) setBanner({ variant: 'error', message: getMsg(error.errors, t) })
-        else setBanner({ variant: 'error', message: t.common.genericError })
-      } else setBanner({ variant: 'error', message: t.common.networkError })
+      // Intentionally swallow all errors except network/validation
+      // Never reveal whether email exists or not
+      if (error instanceof ApiErrorClass && error.status === 422 && error.errors) {
+        // Only show validation errors (malformed email format)
+        setBanner({ variant: 'error', message: getMsg(error.errors, t) })
+        setIsLoading(false)
+        return
+      }
+      // For all other errors (404, 500 etc.) — still proceed to code step
+      // as if the email was found, per security requirements
     } finally {
       setIsLoading(false)
     }
+    // Always move to code step regardless of outcome
+    setStep('code')
+    setBanner({ variant: 'info', message: t.auth.forgot.codeSent })
   }
 
   const submitCode = async (code: string) => {

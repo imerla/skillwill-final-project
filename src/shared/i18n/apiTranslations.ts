@@ -5,12 +5,9 @@ import type { Translations } from './LanguageContext'
  * This is a temporary solution until the backend supports Accept-Language header
  */
 export function translateApiData(text: string, t: Translations): string {
-  // Create a mapping of text to translation keys (both Georgian and English)
   const translations: Record<string, string> = {
-    // Georgian
     'ტანსაცმელი და ფეხსაცმელი': 'api.clothingAndFootwear',
     'ყოველდღიური და სპორტული ტანსაცმელი ქალებისა და მამაკაცებისთვის.': 'api.clothingAndFootwearDesc',
-    // Filter labels (Georgian)
     'ვისთვის': 'api.forWhom',
     'ფერი': 'api.color',
     'ზომა': 'api.size',
@@ -18,19 +15,16 @@ export function translateApiData(text: string, t: Translations): string {
     'ფასი': 'api.price',
     'ტიპი': 'api.type',
     'სეზონი': 'api.season',
-    // Spec keys (Georgian)
     'მასალა': 'api.material',
     'რეცხვა': 'api.washing',
     'წარმოება': 'api.manufacturer',
     'გარანტია': 'api.warranty',
-    // Filter options - For whom (Georgian)
     'ქალბატონები': 'api.women',
     'მამაკაცები': 'api.men',
     'უნისექსი': 'api.unisex',
     'ბავშვები': 'api.kids',
     'ქალის': 'api.womenPossessive',
     'მამაკაცის': 'api.menPossessive',
-    // Filter options - Type (Georgian)
     'მაისური': 'api.tshirt',
     'პერანგი': 'api.jacket',
     'ქურთუკი': 'api.sweatshirt',
@@ -38,7 +32,6 @@ export function translateApiData(text: string, t: Translations): string {
     'კაბა': 'api.dress',
     'სპორტული ფეხსაცმელი': 'api.sportShoes',
     'ჰუდი': 'api.hoodie',
-    // Filter options - Color (Georgian)
     'შავი': 'api.black',
     'თეთრი': 'api.white',
     'ლურჯი': 'api.blue',
@@ -46,19 +39,16 @@ export function translateApiData(text: string, t: Translations): string {
     'ბეჟი': 'api.beige',
     'მწვანე': 'api.green',
     'წითელი': 'api.red',
-    // Filter options - Season (Georgian)
     'ზაფხული': 'api.spring',
     'ზამთარი': 'api.winter',
     'დემისეზონური': 'api.allSeason',
     'ყველა სეზონი': 'api.allSeasons',
-    // Spec values (Georgian)
     'ბამბუკის ბოჭკო': 'api.cotton',
     '40°C მანქანით': 'api.machineWash40',
     'ვიეტნამი': 'api.vietnam',
     '6 თვე': 'api.sixMonths',
     'ტყავი': 'api.leather',
     'პორტუგალია': 'api.portugal',
-    // English translations
     'Type': 'api.type',
     'Size': 'api.size',
     'Color': 'api.color',
@@ -109,7 +99,6 @@ export function translateApiData(text: string, t: Translations): string {
 
   const key = translations[text]
   if (key) {
-    // Access nested property using key path (e.g., 'api.clothingAndFootwear')
     const keys = key.split('.')
     let value: unknown = t
     for (const k of keys) {
@@ -120,7 +109,6 @@ export function translateApiData(text: string, t: Translations): string {
     }
   }
 
-  // Return original text if no translation found
   return text
 }
 

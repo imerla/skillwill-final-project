@@ -25,12 +25,8 @@ export function CatalogPage() {
   const categorySlug = CATALOG_CATEGORY_SLUG
   const { data: category, isLoading: categoryLoading, error: categoryError, refetch: refetchCategory } = useCategory(categorySlug)
 
-  // პარამეტრების პარსინგი ფილტრების ობიექტისთვის
   const params = parseUrlParams(searchParams, category?.filters)
 
-  // Enrich params at render time: if q matches a filter option, also send that filter
-  // This does NOT touch the URL — it only enriches what we send to the API
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const enrichedParams = useMemo(() => {
     if (!params.q || !category?.filters) return params
     const searchTerm = params.q.toLowerCase().trim()
@@ -51,7 +47,7 @@ export function CatalogPage() {
     })
 
     return Object.keys(extra).length > 0 ? { ...params, ...extra } : params
-  }, [params, category?.filters, t])
+  }, [params, category, t])
 
   const { data: productsData, isPending: productsPending, isFetching: productsFetching, error: productsError, refetch: refetchProducts } = useProducts(enrichedParams, { enabled: !categoryLoading })
 
@@ -60,10 +56,8 @@ export function CatalogPage() {
   const currentPage = productsData?.page ?? 1
   const resultsRef = useRef<HTMLDivElement>(null)
 
-  // 2. ფიქსი: URL პარამეტრების განახლების ფუნქცია ფუნქციონალური setSearchParams-ით
   const handleUpdateParams = useCallback((updates: Parameters<typeof updateUrlParams>[1], resetPage = true) => {
     setSearchParams((prevSearchParams) => {
-      // ვიღებთ მიმდინარე აქტუალურ პარამეტრებს პირდაპირ React-ის სთეითიდან
       const currentParamsParsed = parseUrlParams(prevSearchParams, category?.filters)
       const newParamsObj = updateUrlParams(currentParamsParsed, updates, resetPage)
       return serializeUrlParams(newParamsObj)

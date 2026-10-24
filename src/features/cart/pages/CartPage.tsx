@@ -33,7 +33,6 @@ export function CartPage() {
   const [quantityErrors, setQuantityErrors] = useState<Record<string, { type: 'stockChanged' | 'genericError' | 'networkError' | 'outOfStock' | 'productGone' | 'itemGone' | 'qtyRange'; stock?: number }>>({})
   const [showClearConfirm, setShowClearConfirm] = useState(false)
 
-  // Get similar products based on first product's brand
   const firstProductBrand = cart?.items[0]?.product.brand
   const { data: similarProducts, isLoading: similarLoading } = useProducts(
     firstProductBrand ? { brand: firstProductBrand, limit: 8 } : {},
@@ -56,8 +55,6 @@ export function CartPage() {
         ...prev,
         [itemId]: { type: 'stockChanged', stock: maxStock }
       }))
-      // Don't call mutation if quantity exceeds stock
-      // The parent component (QuantityStepper) will reset the input to current value
       return
     }
     updateQuantity.mutate(

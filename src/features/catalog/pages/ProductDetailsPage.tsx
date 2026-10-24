@@ -37,16 +37,13 @@ export function ProductDetailsPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Favorites
   const { data: favorites } = useFavorites()
   const addToFavorites = useAddToFavorites()
   const removeFromFavorites = useRemoveFromFavorites()
 
-  // Get cart item for this product if it exists
   const cartItem = cart?.items.find((item) => item.productId === product?.id)
   const cartQuantity = cartItem?.qty ?? 0
 
-  // Check if product is favorited
   const getStoredFavoriteIds = (): Set<string> => {
     try {
       const stored = localStorage.getItem('favorites_ids')
@@ -118,7 +115,6 @@ export function ProductDetailsPage() {
     setLightboxIndex((prev) => (prev - 1 + len) % len)
   }, [product?.images?.length])
 
-  // Handle keyboard navigation for lightbox
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!lightboxOpen) return
@@ -136,12 +132,10 @@ export function ProductDetailsPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [lightboxOpen, handleLightboxNext, handleLightboxPrev, handleLightboxClose])
 
-  // Timer ref for auto-dismissing messages
   const messageTimerRef = useRef<number | null>(null)
 
   useDocumentTitle(product?.title ?? t.common.loading)
 
-  // Track previous slug to detect when product changes
   const prevSlugRef = useRef(slug)
   useEffect(() => {
     if (prevSlugRef.current !== slug) {
@@ -156,7 +150,6 @@ export function ProductDetailsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [slug])
 
-  // Cleanup timer on unmount
   useEffect(() => {
     return () => {
       if (messageTimerRef.current !== null) {
@@ -178,11 +171,9 @@ export function ProductDetailsPage() {
     if (!product.inStock || product.stock === 0) {
       setAddToCartMessageKey('outOfStockMessage')
       setAddToCartMessageStock(undefined)
-      // Clear previous timer
       if (messageTimerRef.current !== null) {
         clearTimeout(messageTimerRef.current)
       }
-      // Set new timer
       messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
       return
     }
@@ -190,16 +181,12 @@ export function ProductDetailsPage() {
     // Check if adding this quantity would exceed stock (considering existing cart quantity)
     const totalQuantity = quantity + cartQuantity
     if (totalQuantity > product.stock) {
-      // Notify user that requested quantity exceeds available stock
       setAddToCartMessageKey('stockChanged')
       setAddToCartMessageStock(product.stock - cartQuantity)
-      // Clear previous timer
       if (messageTimerRef.current !== null) {
         clearTimeout(messageTimerRef.current)
       }
-      // Set new timer
       messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
-      // Don't add to cart if total quantity would exceed stock
       return
     }
 
@@ -210,11 +197,9 @@ export function ProductDetailsPage() {
           setAddToCartMessageKey('added')
           setAddToCartMessageStock(undefined)
           setQuantity(1)
-          // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
           }
-          // Set new timer
           messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
         },
         onError: (error) => {
@@ -227,11 +212,9 @@ export function ProductDetailsPage() {
           else if (errorMsg === t.cart.qtyRange) messageKey = 'qtyRange'
           setAddToCartMessageKey(messageKey)
           setAddToCartMessageStock(getAvailableStock(error))
-          // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
           }
-          // Set new timer
           messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
         }
       }
@@ -250,13 +233,10 @@ export function ProductDetailsPage() {
     if (newQty > product.stock) {
       setAddToCartMessageKey('stockChanged')
       setAddToCartMessageStock(product.stock)
-      // Clear previous timer
       if (messageTimerRef.current !== null) {
         clearTimeout(messageTimerRef.current)
       }
-      // Set new timer
       messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
-      // Don't call mutation if quantity exceeds stock
       return
     }
 
@@ -266,11 +246,9 @@ export function ProductDetailsPage() {
         onSuccess: () => {
           setAddToCartMessageKey('quantityUpdated')
           setAddToCartMessageStock(undefined)
-          // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
           }
-          // Set new timer
           messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
         },
         onError: (error) => {
@@ -283,11 +261,9 @@ export function ProductDetailsPage() {
           else if (errorMsg === t.cart.qtyRange) messageKey = 'qtyRange'
           setAddToCartMessageKey(messageKey)
           setAddToCartMessageStock(getAvailableStock(error))
-          // Clear previous timer
           if (messageTimerRef.current !== null) {
             clearTimeout(messageTimerRef.current)
           }
-          // Set new timer
           messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
         }
       }
@@ -310,21 +286,17 @@ export function ProductDetailsPage() {
       onSuccess: () => {
         setAddToCartMessageKey('itemGone')
         setAddToCartMessageStock(undefined)
-        // Clear previous timer
         if (messageTimerRef.current !== null) {
           clearTimeout(messageTimerRef.current)
         }
-        // Set new timer
         messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
       },
       onError: () => {
         setAddToCartMessageKey('remove')
         setAddToCartMessageStock(undefined)
-        // Clear previous timer
         if (messageTimerRef.current !== null) {
           clearTimeout(messageTimerRef.current)
         }
-        // Set new timer
         messageTimerRef.current = window.setTimeout(() => setAddToCartMessageKey(null), 3000)
       }
     })

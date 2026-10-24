@@ -18,7 +18,6 @@ export function ActiveFilters({ category, params, onClearFilter, onClearAll, t: 
   const t = propT || hookT
   const activeFilters: Array<{ key: string; label: string; value: string }> = []
 
-  // Add search query
   if (params.q) {
     activeFilters.push({
       key: 'q',
@@ -27,7 +26,6 @@ export function ActiveFilters({ category, params, onClearFilter, onClearAll, t: 
     })
   }
 
-  // Add sort
   if (params.sort) {
     const sortLabels: Record<string, string> = {
       'newest': t.catalog.sort.newest,
@@ -45,7 +43,6 @@ export function ActiveFilters({ category, params, onClearFilter, onClearAll, t: 
     })
   }
 
-  // Add price range
   if (params.minPrice !== undefined || params.maxPrice !== undefined) {
     const priceParts: string[] = []
     if (params.minPrice !== undefined) priceParts.push(`${params.minPrice}₾`)
@@ -57,7 +54,6 @@ export function ActiveFilters({ category, params, onClearFilter, onClearAll, t: 
     })
   }
 
-  // Add boolean filters (inStock, onSale)
   if (params.inStock === true) {
     activeFilters.push({
       key: 'inStock',
@@ -74,7 +70,6 @@ export function ActiveFilters({ category, params, onClearFilter, onClearAll, t: 
     })
   }
 
-  // Add attribute filters
   category?.filters?.forEach((filter) => {
     const value = params[filter.key]
     if (value && typeof value === 'string') {

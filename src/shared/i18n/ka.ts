@@ -425,7 +425,6 @@ export const ka = {
   api: {
     clothingAndFootwear: 'ტანსაცმელი და ფეხსაცმელი',
     clothingAndFootwearDesc: 'ყოველდღიური და სპორტული ტანსაცმელი ქალებისა და მამაკაცებისთვის.',
-    // Filter labels
     forWhom: 'ვისთვის',
     color: 'ფერი',
     size: 'ზომა',
@@ -433,19 +432,16 @@ export const ka = {
     price: 'ფასი',
     type: 'ტიპი',
     season: 'სეზონი',
-    // Spec keys
     material: 'მასალა',
     washing: 'რეცხვა',
     manufacturer: 'წარმოება',
     warranty: 'გარანტია',
-    // Filter options - For whom
     women: 'ქალბატონები',
     men: 'მამაკაცები',
     unisex: 'უნისექსი',
     kids: 'ბავშვები',
     womenPossessive: 'ქალის',
     menPossessive: 'მამაკაცის',
-    // Filter options - Type
     tshirt: 'მაისური',
     jacket: 'პერანგი',
     sweatshirt: 'ქურთუკი',
@@ -453,7 +449,6 @@ export const ka = {
     dress: 'კაბა',
     sportShoes: 'სპორტული ფეხსაცმელი',
     hoodie: 'ჰუდი',
-    // Filter options - Color
     black: 'შავი',
     white: 'თეთრი',
     blue: 'ლურჯი',
@@ -461,12 +456,10 @@ export const ka = {
     beige: 'ბეჟი',
     green: 'მწვანე',
     red: 'წითელი',
-    // Filter options - Season
     spring: 'ზაფხული',
     winter: 'ზამთარი',
     allSeason: 'დემისეზონური',
     allSeasons: 'ყველა სეზონი',
-    // Spec values
     cotton: 'ბამბუკის ბოჭკო',
     machineWash40: '40°C მანქანით',
     vietnam: 'ვიეტნამი',

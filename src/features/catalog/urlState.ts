@@ -7,12 +7,10 @@ export function parseUrlParams(searchParams: URLSearchParams, categoryFilters?: 
   for (const [key, value] of searchParams.entries()) {
     if (!value) continue
 
-    // Skip category - it's not user-controlled
     if (key === 'category') {
       continue
     }
 
-    // Skip price - it's handled specially as minPrice/maxPrice
     if (key === 'price') {
       continue
     }
@@ -23,7 +21,6 @@ export function parseUrlParams(searchParams: URLSearchParams, categoryFilters?: 
       params[key] = value as ProductsQuery['sort']
     } else if (key === 'minPrice' || key === 'maxPrice' || key === 'minRating') {
       const num = parseFloat(value)
-      // Only accept if fully valid number (no trailing non-numeric characters)
       if (!isNaN(num) && String(num) === value) {
         params[key] = num
       }
@@ -31,12 +28,10 @@ export function parseUrlParams(searchParams: URLSearchParams, categoryFilters?: 
       params[key] = value === 'true'
     } else if (key === 'page' || key === 'limit') {
       const num = parseInt(value, 10)
-      // Only accept positive integers (>= 1) with no trailing non-numeric characters
       if (!isNaN(num) && num >= 1 && String(num) === value) {
         params[key] = num
       }
     } else if (validFilterKeys.has(key)) {
-      // Only accept known category attribute filters
       params[key] = value
     }
   }

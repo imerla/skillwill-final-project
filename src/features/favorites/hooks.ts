@@ -6,7 +6,6 @@ import { useLanguage } from '../../shared/i18n/LanguageContext'
 const FAVORITES_QUERY_KEY = ['favorites']
 const FAVORITES_STORAGE_KEY = 'favorites_ids'
 
-// localStorage helpers
 const getStoredFavorites = (): Set<string> => {
   try {
     const stored = localStorage.getItem(FAVORITES_STORAGE_KEY)
@@ -119,7 +118,6 @@ export function useRemoveFromFavorites() {
   })
 }
 
-// Helper to check if a product is favorited (for ProductCard)
 export function useIsFavorite(productId: string) {
   const { data: favorites } = useFavorites()
   return favorites?.items.some((f) => f.productId === productId) ?? false
