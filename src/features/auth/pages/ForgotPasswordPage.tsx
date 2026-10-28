@@ -42,7 +42,6 @@ export function ForgotPasswordPage() {
   const [banner, setBanner] = useState<Banner>(null)
   const [codeFieldError, setCodeFieldError] = useState<string | null>(null)
   const [passwordFieldErrors, setPasswordFieldErrors] = useState<{ newPassword?: string; confirmPassword?: string } | undefined>(undefined)
-  const [tooManyAttempts, setTooManyAttempts] = useState(false)
   const [devCode, setDevCode] = useState<string | null>(null)
   const [resendTimer, setResendTimer] = useState<number | null>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
@@ -72,7 +71,6 @@ export function ForgotPasswordPage() {
   const resetToEmail = () => {
     setStep('email')
     setResetToken(null)
-    setTooManyAttempts(false)
     setBanner(null)
     setCodeFieldError(null)
   }
@@ -118,7 +116,6 @@ export function ForgotPasswordPage() {
       if (error instanceof ApiErrorClass) {
         if (error.code === 'INVALID_RESET_CODE') setCodeFieldError(t.auth.forgot.codeWrong)
         else if (error.code === 'TOO_MANY_ATTEMPTS') {
-          setTooManyAttempts(true)
           setBanner({ variant: 'error', messageKey: 'tooManyAttempts' })
         } else if (error.status === 422 && error.errors) setCodeFieldError(getMsg(error.errors, t))
         else setBanner({ variant: 'error', messageKey: 'genericError' })
@@ -211,7 +208,7 @@ export function ForgotPasswordPage() {
         {step === 'code' && <p className="forgot-password-page__subtitle">{t.auth.forgot.subtitleCode(email)}</p>}
         {banner && <Alert variant={banner.variant} message={getBannerMessage(banner.messageKey, t)} className="forgot-password-page__alert" />}
         {step === 'email' && <EmailStep defaultEmail={email} isLoading={isLoading} onSubmit={submitEmail} />}
-        {step === 'code' && <CodeStep isLoading={isLoading} onSubmit={submitCode} onChangeEmail={resetToEmail} onRequestNewCode={handleResendCode} tooManyAttempts={tooManyAttempts} fieldError={codeFieldError} devCode={devCode} resendTimer={resendTimer} />}
+        {step === 'code' && <CodeStep isLoading={isLoading} onSubmit={submitCode} onChangeEmail={resetToEmail} onRequestNewCode={handleResendCode} fieldError={codeFieldError} devCode={devCode} resendTimer={resendTimer} />}
         {step === 'newPassword' && <NewPasswordStep isLoading={isLoading} onSubmit={submitNewPassword} fieldErrors={passwordFieldErrors} />}
         <div className="forgot-password-page__links">
           <Link to="/login" className="forgot-password-page__link">{t.auth.forgot.backToSignIn}</Link>
