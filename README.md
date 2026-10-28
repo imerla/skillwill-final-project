@@ -1,4 +1,4 @@
-# Cyber — E-commerce Frontend
+# SkillWill E-commerce Frontend
 
 A full-featured e-commerce frontend built with React, TypeScript, and Vite as a final project for the SkillWill frontend course.
 
