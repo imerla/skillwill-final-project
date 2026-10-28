@@ -1,11 +1,11 @@
 :root {
   /* Font Family */
-  --font-family: 'Nunito', 'Poppins', system-ui, -apple-system, sans-serif;
-  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-family-en: 'Inter', 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-family-ka: 'Nunito', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-family-base-en: 'Inter', 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-family-base-ka: 'Nunito', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family: 'Nunito', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-base: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-en: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-ka: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-base-en: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-base-ka: 'Nunito', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Font Sizes - Enhanced Hierarchy */
   --font-size-xs: 0.75rem;
@@ -24,6 +24,8 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --font-weight-base-en: 600;
+  --font-weight-base-ka: 500;
 
   /* Line Heights */
   --line-height-tight: 1.25;
