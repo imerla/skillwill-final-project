@@ -4,6 +4,12 @@ export interface ForgotPasswordRequest {
   email: string
 }
 
+export interface ForgotPasswordResponse {
+  message: string
+  expiresInMinutes: number
+  devCode: string
+}
+
 export interface VerifyResetCodeRequest {
   email: string
   code: string
@@ -15,11 +21,11 @@ export interface VerifyResetCodeResponse {
 
 export interface ResetPasswordRequest {
   resetToken: string
-  newPassword: string
+  password: string
 }
 
-export async function forgotPassword(data: ForgotPasswordRequest): Promise<void> {
-  return api.post<void>('/auth/forgot-password', data)
+export async function forgotPassword(data: ForgotPasswordRequest): Promise<ForgotPasswordResponse> {
+  return api.post<ForgotPasswordResponse>('/auth/forgot-password', data)
 }
 
 export async function verifyResetCode(data: VerifyResetCodeRequest): Promise<VerifyResetCodeResponse> {

@@ -65,7 +65,7 @@ export function RegisterPage() {
   const {
     register: registerField,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, submitCount },
     setError,
     trigger,
   } = useForm<RegisterFormData>({
@@ -74,10 +74,12 @@ export function RegisterPage() {
     reValidateMode: 'onChange',
   })
 
-  // Revalidate form when language changes
+  // Revalidate form on language change only after the user has submitted it
   useEffect(() => {
-    trigger()
-  }, [t, trigger])
+    if (submitCount > 0) {
+      void trigger()
+    }
+  }, [t, trigger, submitCount])
 
   const onSubmit = async (values: RegisterFormData) => {
     if (isLoading) return

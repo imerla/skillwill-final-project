@@ -42,7 +42,7 @@ type NewPasswordFormData = z.infer<typeof newPasswordSchema>
 interface NewPasswordStepProps {
   isLoading: boolean
   onSubmit(newPassword: string): void
-  fieldErrors?: { newPassword?: string }
+  fieldErrors?: { newPassword?: string; confirmPassword?: string }
 }
 
 export function NewPasswordStep({ isLoading, onSubmit, fieldErrors }: NewPasswordStepProps) {
@@ -66,6 +66,9 @@ export function NewPasswordStep({ isLoading, onSubmit, fieldErrors }: NewPasswor
   useEffect(() => {
     if (fieldErrors?.newPassword) {
       setError('newPassword', { type: 'server', message: fieldErrors.newPassword }, { shouldFocus: true })
+    }
+    if (fieldErrors?.confirmPassword) {
+      setError('confirmPassword', { type: 'server', message: fieldErrors.confirmPassword }, { shouldFocus: true })
     }
   }, [fieldErrors, setError])
 
@@ -105,7 +108,7 @@ export function NewPasswordStep({ isLoading, onSubmit, fieldErrors }: NewPasswor
             aria-describedby={props['aria-describedby']}
             aria-invalid={props['aria-invalid']}
             error={!!errors.confirmPassword}
-            {...register('confirmPassword')}
+            {...register('confirmPassword', { deps: ['newPassword'] })}
           />
         )}
       </FormField>

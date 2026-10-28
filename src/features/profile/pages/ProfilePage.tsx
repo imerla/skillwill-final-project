@@ -101,17 +101,21 @@ export function ProfilePage() {
     },
   })
 
-  const { trigger: personalTrigger } = personalForm
-  const { trigger: passwordTrigger } = passwordForm
+  const { trigger: personalTrigger, formState: { submitCount: personalSubmitCount } } = personalForm
+  const { trigger: passwordTrigger, formState: { submitCount: passwordSubmitCount } } = passwordForm
 
-  // Revalidate forms when language changes
+  // Revalidate forms when language changes only after submit
   useEffect(() => {
-    personalTrigger()
-  }, [t, personalTrigger])
+    if (personalSubmitCount > 0) {
+      void personalTrigger()
+    }
+  }, [t, personalTrigger, personalSubmitCount])
 
   useEffect(() => {
-    passwordTrigger()
-  }, [t, passwordTrigger])
+    if (passwordSubmitCount > 0) {
+      void passwordTrigger()
+    }
+  }, [t, passwordTrigger, passwordSubmitCount])
 
   const handlePersonalFormChange = () => {
     personalForm.clearErrors('root')
@@ -287,7 +291,7 @@ export function ProfilePage() {
                         aria-invalid={ariaInvalid}
                         error={!!personalForm.formState.errors.currentPassword}
                         disabled={updateProfile.isPending}
-                        {...personalForm.register('currentPassword')}
+                        {...personalForm.register('currentPassword', { deps: ['name', 'email'] })}
                       />
                     )}
                   </FormField>
@@ -413,7 +417,7 @@ export function ProfilePage() {
                         aria-invalid={ariaInvalid}
                         error={!!passwordForm.formState.errors.newPassword}
                         disabled={updateProfile.isPending}
-                        {...passwordForm.register('newPassword', { deps: ['confirmPassword'] })}
+                        {...passwordForm.register('newPassword', { deps: ['confirmPassword', 'currentPassword'] })}
                       />
                     )}
                   </FormField>
@@ -427,7 +431,7 @@ export function ProfilePage() {
                         aria-invalid={ariaInvalid}
                         error={!!passwordForm.formState.errors.confirmPassword}
                         disabled={updateProfile.isPending}
-                        {...passwordForm.register('confirmPassword')}
+                        {...passwordForm.register('confirmPassword', { deps: ['newPassword'] })}
                       />
                     )}
                   </FormField>
@@ -445,7 +449,7 @@ export function ProfilePage() {
                         aria-invalid={ariaInvalid}
                         error={!!passwordForm.formState.errors.currentPassword}
                         disabled={updateProfile.isPending}
-                        {...passwordForm.register('currentPassword')}
+                        {...passwordForm.register('currentPassword', { deps: ['newPassword', 'confirmPassword'] })}
                       />
                     )}
                   </FormField>

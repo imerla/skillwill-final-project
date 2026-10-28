@@ -12,7 +12,20 @@ import { translateApiData } from '../../../shared/i18n/apiTranslations'
 import './ForgotPasswordPage.css'
 
 type Step = 'email' | 'code' | 'newPassword' | 'success'
-type Banner = { variant: 'error' | 'info'; message: string } | null
+type BannerMessageKey = 'genericError' | 'networkError' | 'codeSent' | 'tooManyAttempts' | 'invalidSession' | 'resetTokenExpired'
+type Banner = { variant: 'error' | 'info'; messageKey: BannerMessageKey } | null
+
+const getBannerMessage = (key: BannerMessageKey, t: Translations): string => {
+  const messages: Record<BannerMessageKey, string> = {
+    genericError: t.common.genericError,
+    networkError: t.common.networkError,
+    codeSent: t.auth.forgot.codeSent,
+    tooManyAttempts: t.auth.forgot.tooManyAttempts,
+    invalidSession: t.auth.forgot.invalidSession,
+    resetTokenExpired: t.auth.forgot.resetTokenExpired,
+  }
+  return messages[key]
+}
 
 const getMsg = (e: Record<string, string | string[]>, t: Translations): string => {
   const v = Object.values(e)[0]
@@ -28,8 +41,10 @@ export function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [banner, setBanner] = useState<Banner>(null)
   const [codeFieldError, setCodeFieldError] = useState<string | null>(null)
-  const [passwordFieldErrors, setPasswordFieldErrors] = useState<{ newPassword?: string } | undefined>(undefined)
+  const [passwordFieldErrors, setPasswordFieldErrors] = useState<{ newPassword?: string; confirmPassword?: string } | undefined>(undefined)
   const [tooManyAttempts, setTooManyAttempts] = useState(false)
+  const [devCode, setDevCode] = useState<string | null>(null)
+  const [resendTimer, setResendTimer] = useState<number | null>(null)
   const headingRef = useRef<HTMLHeadingElement>(null)
   const isInitialMount = useRef(true)
 
@@ -39,6 +54,20 @@ export function ForgotPasswordPage() {
     if (!isInitialMount.current) headingRef.current?.focus()
     isInitialMount.current = false
   }, [step])
+
+  // Resend timer countdown
+  useEffect(() => {
+    if (resendTimer === null) return
+    const interval = setInterval(() => {
+      setResendTimer((prev) => {
+        if (prev === null || prev <= 1) {
+          return null
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [resendTimer])
 
   const resetToEmail = () => {
     setStep('email')
@@ -54,13 +83,15 @@ export function ForgotPasswordPage() {
     setIsLoading(true)
     setEmail(emailValue)
     try {
-      await forgotPassword({ email: emailValue })
+      const response = await forgotPassword({ email: emailValue })
+      setDevCode(response.devCode)
+      setResendTimer(30)
     } catch (error) {
       // Intentionally swallow all errors except network/validation
       // Never reveal whether email exists or not
       if (error instanceof ApiErrorClass && error.status === 422 && error.errors) {
         // Only show validation errors (malformed email format)
-        setBanner({ variant: 'error', message: getMsg(error.errors, t) })
+        setBanner({ variant: 'error', messageKey: 'genericError' })
         setIsLoading(false)
         return
       }
@@ -71,7 +102,7 @@ export function ForgotPasswordPage() {
     }
     // Always move to code step regardless of outcome
     setStep('code')
-    setBanner({ variant: 'info', message: t.auth.forgot.codeSent })
+    setBanner({ variant: 'info', messageKey: 'codeSent' })
   }
 
   const submitCode = async (code: string) => {
@@ -88,10 +119,26 @@ export function ForgotPasswordPage() {
         if (error.code === 'INVALID_RESET_CODE') setCodeFieldError(t.auth.forgot.codeWrong)
         else if (error.code === 'TOO_MANY_ATTEMPTS') {
           setTooManyAttempts(true)
-          setBanner({ variant: 'error', message: t.auth.forgot.tooManyAttempts })
+          setBanner({ variant: 'error', messageKey: 'tooManyAttempts' })
         } else if (error.status === 422 && error.errors) setCodeFieldError(getMsg(error.errors, t))
-        else setBanner({ variant: 'error', message: t.common.genericError })
-      } else setBanner({ variant: 'error', message: t.common.networkError })
+        else setBanner({ variant: 'error', messageKey: 'genericError' })
+      } else setBanner({ variant: 'error', messageKey: 'networkError' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleResendCode = async () => {
+    if (isLoading || resendTimer !== null) return
+    setBanner(null)
+    setIsLoading(true)
+    try {
+      const response = await forgotPassword({ email })
+      setDevCode(response.devCode)
+      setResendTimer(30)
+      setBanner({ variant: 'info', messageKey: 'codeSent' })
+    } catch {
+      setBanner({ variant: 'error', messageKey: 'genericError' })
     } finally {
       setIsLoading(false)
     }
@@ -104,11 +151,11 @@ export function ForgotPasswordPage() {
     setIsLoading(true)
     try {
       if (!resetToken) {
-        setBanner({ variant: 'error', message: t.auth.forgot.invalidSession })
+        setBanner({ variant: 'error', messageKey: 'invalidSession' })
         setStep('email')
         return
       }
-      await resetPassword({ resetToken, newPassword })
+      await resetPassword({ resetToken, password: newPassword })
       setResetToken(null)
       setStep('success')
     } catch (error) {
@@ -116,15 +163,24 @@ export function ForgotPasswordPage() {
         if (error.code === 'INVALID_RESET_TOKEN') {
           setResetToken(null)
           setStep('email')
-          setBanner({ variant: 'error', message: t.auth.forgot.resetTokenExpired })
+          setBanner({ variant: 'error', messageKey: 'resetTokenExpired' })
         } else if (error.status === 422 && error.errors) {
+          const errors: { newPassword?: string; confirmPassword?: string } = {}
           if (error.errors.newPassword) {
             const msg = typeof error.errors.newPassword === 'string' ? error.errors.newPassword : Array.isArray(error.errors.newPassword) ? error.errors.newPassword[0] : undefined
-            if (msg) setPasswordFieldErrors({ newPassword: msg })
-            else setBanner({ variant: 'error', message: getMsg(error.errors, t) })
-          } else setBanner({ variant: 'error', message: getMsg(error.errors, t) })
-        } else setBanner({ variant: 'error', message: t.common.genericError })
-      } else setBanner({ variant: 'error', message: t.common.networkError })
+            if (msg) errors.newPassword = translateApiData(msg, t)
+          }
+          if (error.errors.confirmPassword) {
+            const msg = typeof error.errors.confirmPassword === 'string' ? error.errors.confirmPassword : Array.isArray(error.errors.confirmPassword) ? error.errors.confirmPassword[0] : undefined
+            if (msg) errors.confirmPassword = translateApiData(msg, t)
+          }
+          if (errors.newPassword || errors.confirmPassword) {
+            setPasswordFieldErrors(errors)
+          } else {
+            setBanner({ variant: 'error', messageKey: 'genericError' })
+          }
+        } else setBanner({ variant: 'error', messageKey: 'genericError' })
+      } else setBanner({ variant: 'error', messageKey: 'networkError' })
     } finally {
       setIsLoading(false)
     }
@@ -153,9 +209,9 @@ export function ForgotPasswordPage() {
         </h1>
         {step === 'email' && <p className="forgot-password-page__subtitle">{t.auth.forgot.subtitleEmail}</p>}
         {step === 'code' && <p className="forgot-password-page__subtitle">{t.auth.forgot.subtitleCode(email)}</p>}
-        {banner && <Alert variant={banner.variant} message={banner.message} className="forgot-password-page__alert" />}
+        {banner && <Alert variant={banner.variant} message={getBannerMessage(banner.messageKey, t)} className="forgot-password-page__alert" />}
         {step === 'email' && <EmailStep defaultEmail={email} isLoading={isLoading} onSubmit={submitEmail} />}
-        {step === 'code' && <CodeStep isLoading={isLoading} onSubmit={submitCode} onChangeEmail={resetToEmail} onRequestNewCode={resetToEmail} tooManyAttempts={tooManyAttempts} fieldError={codeFieldError} />}
+        {step === 'code' && <CodeStep isLoading={isLoading} onSubmit={submitCode} onChangeEmail={resetToEmail} onRequestNewCode={handleResendCode} tooManyAttempts={tooManyAttempts} fieldError={codeFieldError} devCode={devCode} resendTimer={resendTimer} />}
         {step === 'newPassword' && <NewPasswordStep isLoading={isLoading} onSubmit={submitNewPassword} fieldErrors={passwordFieldErrors} />}
         <div className="forgot-password-page__links">
           <Link to="/login" className="forgot-password-page__link">{t.auth.forgot.backToSignIn}</Link>

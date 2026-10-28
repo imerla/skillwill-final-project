@@ -20,10 +20,6 @@
   margin-bottom: var(--spacing-6);
 }
 
-.catalog-page__sort {
-  width: 220px;
-}
-
 .catalog-page__content {
   display: flex;
   flex-direction: column;

@@ -6,6 +6,12 @@ import type { Translations } from './LanguageContext'
  */
 export function translateApiData(text: string, t: Translations): string {
   const translations: Record<string, string> = {
+    'Password is required': 'validation.passwordRequired',
+    'password is required': 'validation.passwordRequired',
+    'New password is required': 'validation.passwordRequired',
+    'new password is required': 'validation.passwordRequired',
+    'პაროლი აუცილებელია': 'validation.passwordRequired',
+    'ახალი პაროლი აუცილებელია': 'validation.passwordRequired',
     'ტანსაცმელი და ფეხსაცმელი': 'api.clothingAndFootwear',
     'ყოველდღიური და სპორტული ტანსაცმელი ქალებისა და მამაკაცებისთვის.': 'api.clothingAndFootwearDesc',
     'ვისთვის': 'api.forWhom',

@@ -31,9 +31,11 @@ interface CodeStepProps {
   onRequestNewCode(): void
   tooManyAttempts: boolean
   fieldError?: string | null
+  devCode?: string | null
+  resendTimer?: number | null
 }
 
-export function CodeStep({ isLoading, onSubmit, onChangeEmail, onRequestNewCode, tooManyAttempts, fieldError }: CodeStepProps) {
+export function CodeStep({ isLoading, onSubmit, onChangeEmail, onRequestNewCode, tooManyAttempts, fieldError, devCode, resendTimer }: CodeStepProps) {
   const { t } = useLanguage()
   const {
     register,
@@ -85,6 +87,12 @@ export function CodeStep({ isLoading, onSubmit, onChangeEmail, onRequestNewCode,
           )}
         </FormField>
 
+        {devCode && (
+          <div className="forgot-password-page__dev-code">
+            {t.auth.forgot.devCode}: <strong>{devCode}</strong>
+          </div>
+        )}
+
         <div className="forgot-password-page__actions">
           <Button
             type="submit"
@@ -103,13 +111,16 @@ export function CodeStep({ isLoading, onSubmit, onChangeEmail, onRequestNewCode,
           >
             {t.auth.forgot.changeEmail}
           </button>
-          {tooManyAttempts && (
+          {(tooManyAttempts || resendTimer === null) && (
             <button
               type="button"
               onClick={onRequestNewCode}
+              disabled={resendTimer !== null}
               className="forgot-password-page__link"
             >
-              {t.auth.forgot.requestNewCode}
+              {resendTimer !== null
+                ? t.auth.forgot.resendTimer(resendTimer!)
+                : t.auth.forgot.requestNewCode}
             </button>
           )}
         </div>
