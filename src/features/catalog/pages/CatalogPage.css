@@ -70,6 +70,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-8);
+  contain-intrinsic-size: auto 1000px;
 }
 
 .catalog-page__filters {
@@ -104,6 +105,7 @@
 .catalog-page__products {
   margin-bottom: var(--spacing-8);
   flex: 1;
+  contain-intrinsic-size: auto 800px;
 }
 
 .catalog-page__products--fetching {
@@ -218,6 +220,7 @@
 
   .catalog-page__filters {
     display: none;
+    min-height: 300px;
   }
 
   .catalog-page__filters--open {
