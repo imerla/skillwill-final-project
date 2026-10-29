@@ -6,7 +6,9 @@
 
 .app__main {
   flex: 1;
-  contain-intrinsic-size: auto 600px;
+  min-height: 600px;
+  contain-intrinsic-size: auto 800px;
+  content-visibility: auto;
 }
 
 .app__skeleton {
