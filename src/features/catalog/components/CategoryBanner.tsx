@@ -13,7 +13,7 @@ export function CategoryBanner({ category }: CategoryBannerProps) {
     <div className="category-banner">
       <div className="category-banner__background">
         <img
-          src={category.image}
+          src="/clothing.webp"
           alt=""
           className="category-banner__image"
           width={1200}
