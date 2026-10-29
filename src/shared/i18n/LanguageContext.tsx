@@ -45,8 +45,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [translations, setTranslations] = useState<Translations>(ka)
 
   useEffect(() => {
-    if (language !== 'ka') {
-      loadTranslations(language).then(setTranslations)
+    if (language === 'en') {
+      loadTranslations('en').then(setTranslations)
     }
   }, [language])
 
