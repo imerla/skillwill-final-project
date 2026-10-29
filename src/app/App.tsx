@@ -2,9 +2,6 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { SessionProvider, ProtectedRoute } from '../shared/auth'
 import { LanguageProvider } from '../shared/i18n/LanguageContext'
-import { LoginPage } from '../features/auth/pages/LoginPage'
-import { RegisterPage } from '../features/auth/pages/RegisterPage'
-import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage'
 import { HomePage } from '../features/home/pages/HomePage'
 import { CatalogPage } from '../features/catalog/pages/CatalogPage'
 import { Nav } from './layout/Nav/Nav'
@@ -13,6 +10,9 @@ import { LegacyCatalogRedirect } from './LegacyCatalogRedirect'
 import { ROUTES } from './routes'
 import { UiDemoPage } from './UiDemoPage'
 
+const LoginPage = lazy(() => import('../features/auth/pages/LoginPage').then(m => ({ default: m.LoginPage })))
+const RegisterPage = lazy(() => import('../features/auth/pages/RegisterPage').then(m => ({ default: m.RegisterPage })))
+const ForgotPasswordPage = lazy(() => import('../features/auth/pages/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })))
 const AboutUsPage = lazy(() => import('../features/about/pages/AboutUsPage').then(m => ({ default: m.AboutUsPage })))
 const ProductDetailsPage = lazy(() => import('../features/catalog/pages/ProductDetailsPage').then(m => ({ default: m.ProductDetailsPage })))
 const CartPage = lazy(() => import('../features/cart/pages/CartPage').then(m => ({ default: m.CartPage })))
