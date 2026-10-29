@@ -23,6 +23,7 @@ import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { translateCategoryName, translateSpecKey, translateSpecValue } from '../../../shared/i18n/apiTranslations'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
+import { generateImageSrcset } from '../../../shared/lib/imageUtils'
 import './ProductDetailsPage.css'
 
 function usePreloadImage(src: string | null) {
@@ -399,6 +400,11 @@ export function ProductDetailsPage() {
             {currentImage ? (
               <img
                 src={currentImage}
+                srcSet={generateImageSrcset(currentImage, [
+                  { width: 400, quality: 75 },
+                  { width: 600, quality: 80 },
+                  { width: 800, quality: 85 }
+                ])}
                 alt={t.product.imageAlt(title, selectedImageIndex + 1)}
                 width={800}
                 height={800}
@@ -435,6 +441,10 @@ export function ProductDetailsPage() {
                 >
                   <img
                     src={image}
+                    srcSet={generateImageSrcset(image, [
+                      { width: 80, quality: 70 },
+                      { width: 120, quality: 75 }
+                    ])}
                     alt={t.product.thumbAlt(title, index + 1)}
                     width={120}
                     height={120}
