@@ -62,8 +62,8 @@
 }
 
 .nav__logo {
-  width: 45px;
-  height: 66px;
+  width: 42px;
+  height: 62px;
   display: block;
   object-fit: contain;
 }
@@ -207,8 +207,8 @@
   }
 
   .nav__logo {
-    width: 36px;
-    height: 53px;
+    width: 34px;
+    height: 50px;
   }
 
   .nav__search {
@@ -322,8 +322,8 @@
 /* მობილური ვერსია და მენიუს ანიმაცია/განლაგება */
 @media (max-width: 1024px) {
   .nav__logo {
-    width: 36px;
-    height: 53px;
+    width: 34px;
+    height: 50px;
   }
 
   .nav__search {
@@ -406,8 +406,8 @@
   }
 
   .nav__logo {
-    width: 32px;
-    height: 47px;
+    width: 30px;
+    height: 44px;
   }
 
   .nav__search {
@@ -422,8 +422,8 @@
   }
 
   .nav__logo {
-    width: 28px;
-    height: 41px;
+    width: 26px;
+    height: 38px;
   }
 
   .nav__search {

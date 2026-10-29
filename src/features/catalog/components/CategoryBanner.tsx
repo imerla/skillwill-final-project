@@ -14,12 +14,11 @@ export function CategoryBanner({ category }: CategoryBannerProps) {
       <div className="category-banner__background">
         <img
           src="/clothing.webp"
-          srcSet="/clothing.webp 1200w"
-          sizes="(max-width: 768px) 100vw, 1200px"
           alt=""
           className="category-banner__image"
-          width={1200}
-          height={500}
+          width={720}
+          height={300}
+          sizes="(max-width: 768px) 100vw, 720px"
           fetchPriority="high"
         />
         <div className="category-banner__overlay" />

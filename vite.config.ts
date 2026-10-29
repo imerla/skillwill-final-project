@@ -12,8 +12,8 @@ export default defineConfig({
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
               return 'react-vendor';
             }
-            if (id.includes('@tanstack')) {
-              return 'query-vendor';
+            if (id.includes('@tanstack') || id.includes('axios')) {
+              return 'api-vendor';
             }
             return 'vendor';
           }
