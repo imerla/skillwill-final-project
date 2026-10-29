@@ -5,14 +5,12 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   build: {
+    cssMinify: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules/react/')) {
-            return 'react-core'
-          }
-          if (id.includes('node_modules/react-dom/')) {
-            return 'react-dom'
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'react-vendor'
           }
           if (id.includes('node_modules/react-router-dom/')) {
             return 'router-vendor'
