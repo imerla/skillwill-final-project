@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://skillwill-final-project-eight.vercel.app/sitemap.xml

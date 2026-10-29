@@ -13,7 +13,6 @@ import { LegacyCatalogRedirect } from './LegacyCatalogRedirect'
 import { ROUTES } from './routes'
 import { UiDemoPage } from './UiDemoPage'
 
-// Lazy load heavy pages
 const AboutUsPage = lazy(() => import('../features/about/pages/AboutUsPage').then(m => ({ default: m.AboutUsPage })))
 const ProductDetailsPage = lazy(() => import('../features/catalog/pages/ProductDetailsPage').then(m => ({ default: m.ProductDetailsPage })))
 const CartPage = lazy(() => import('../features/cart/pages/CartPage').then(m => ({ default: m.CartPage })))
@@ -28,8 +27,9 @@ function App() {
       <SessionProvider>
         <BrowserRouter>
           <Nav />
-          <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
-            <Routes>
+          <main id="main-content">
+            <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
+              <Routes>
             <Route path={ROUTES.home} element={<HomePage />} />
             <Route path={ROUTES.about} element={<AboutUsPage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -88,7 +88,8 @@ function App() {
             />
             {import.meta.env.DEV && <Route path="/ui" element={<UiDemoPage />} />}
             </Routes>
-          </Suspense>
+            </Suspense>
+          </main>
           <Footer />
         </BrowserRouter>
       </SessionProvider>

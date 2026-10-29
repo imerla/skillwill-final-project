@@ -145,7 +145,7 @@
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-primary);
+  color: #333333;
   margin: 0;
 }
 
@@ -160,6 +160,10 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-height: var(--line-height-tight);
+}
+
+.product-card__title:-webkit-any(h3, h4, h5, h6) {
+  margin: 0;
 }
 
 .product-card__rating {
