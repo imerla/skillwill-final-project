@@ -80,6 +80,8 @@ export function ProductCard({ product, onQuickAdd, t: propT }: ProductCardProps)
         <img
           src={currentImage}
           alt={title}
+          width={700}
+          height={700}
           loading="lazy"
           className="product-card__img"
         />

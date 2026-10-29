@@ -15,7 +15,7 @@ export function useCheckout() {
   return useQuery<CheckoutSummary>({
     queryKey: CHECKOUT_QUERY_KEY,
     queryFn: ({ signal }) => getCheckout(signal),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 1000 * 60 * 2,
     refetchOnWindowFocus: false,
   })
 }

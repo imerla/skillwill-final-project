@@ -8,6 +8,7 @@ export function useCategory(slug: string | undefined) {
     queryKey: ['category', slug],
     queryFn: ({ signal }) => getCategory(slug!, signal),
     enabled: !!slug,
+    staleTime: 1000 * 60 * 10,
   })
 }
 
@@ -76,6 +77,7 @@ export function useProduct(slug: string | undefined) {
     queryKey: ['product', slug],
     queryFn: ({ signal }) => getProduct(slug!, signal),
     enabled: !!slug,
+    staleTime: 1000 * 60 * 5,
   })
 }
 

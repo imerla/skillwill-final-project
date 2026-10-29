@@ -12,7 +12,7 @@ export function useCart() {
     queryKey: CART_QUERY_KEY,
     queryFn: ({ signal }) => getCart(signal),
     enabled: isAuthenticated && !isSessionLoading,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 1000 * 60 * 2,
   })
 }
 

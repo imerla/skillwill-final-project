@@ -70,7 +70,7 @@ export function useFavorites() {
       }
     },
     enabled: isAuthenticated && !isSessionLoading,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 1000 * 60 * 2,
   })
 }
 

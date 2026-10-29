@@ -381,6 +381,9 @@ export function ProductDetailsPage() {
               <img
                 src={currentImage}
                 alt={t.product.imageAlt(title, selectedImageIndex + 1)}
+                width={800}
+                height={800}
+                fetchPriority="high"
                 className="product-details-page__main-image-img"
                 onClick={() => handleLightboxOpen(selectedImageIndex)}
                 style={{ cursor: 'zoom-in' }}
@@ -413,6 +416,9 @@ export function ProductDetailsPage() {
                   <img
                     src={image}
                     alt={t.product.thumbAlt(title, index + 1)}
+                    width={120}
+                    height={120}
+                    loading="lazy"
                     className="product-details-page__thumbnail-img"
                   />
                 </button>
@@ -570,6 +576,8 @@ export function ProductDetailsPage() {
           <img
             src={images[lightboxIndex]}
             alt={`${title} - ${lightboxIndex + 1}`}
+            width={800}
+            height={800}
             className="product-details-page__lightbox-image"
             onClick={(e) => e.stopPropagation()}
           />

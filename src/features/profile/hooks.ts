@@ -58,7 +58,7 @@ export function useAddresses() {
   return useQuery({
     queryKey: ADDRESSES_QUERY_KEY,
     queryFn: ({ signal }) => getAddresses(signal),
-    staleTime: 0,
+    staleTime: 1000 * 60 * 2,
   })
 }
 
