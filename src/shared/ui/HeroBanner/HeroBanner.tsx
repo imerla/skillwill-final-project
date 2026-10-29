@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { generateImageSrcset } from '../../lib/imageUtils'
 import './HeroBanner.css'
 
 interface HeroBannerProps {
@@ -16,11 +15,6 @@ export function HeroBanner({ title, subtitle, image, children, height = 'medium'
       <div className="hero-banner__background">
         <img
           src={image}
-          srcSet={generateImageSrcset(image, [
-            { width: 800, quality: 75 },
-            { width: 1200, quality: 80 },
-            { width: 1920, quality: 85 }
-          ])}
           alt=""
           width={1920}
           height={1080}

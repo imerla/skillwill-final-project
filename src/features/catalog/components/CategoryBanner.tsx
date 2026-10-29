@@ -1,7 +1,6 @@
 import type { Category } from '../types'
 import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { translateCategoryName, translateCategoryDescription } from '../../../shared/i18n/apiTranslations'
-import { generateImageSrcset } from '../../../shared/lib/imageUtils'
 import './CategoryBanner.css'
 
 interface CategoryBannerProps {
@@ -15,11 +14,7 @@ export function CategoryBanner({ category }: CategoryBannerProps) {
       <div className="category-banner__background">
         <img
           src="/clothing.webp"
-          srcSet={generateImageSrcset("/clothing.webp", [
-            { width: 600, quality: 75 },
-            { width: 900, quality: 80 },
-            { width: 1200, quality: 85 }
-          ])}
+          srcSet="/clothing.webp 1200w"
           sizes="(max-width: 768px) 100vw, 1200px"
           alt=""
           className="category-banner__image"

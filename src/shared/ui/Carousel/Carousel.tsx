@@ -7,9 +7,10 @@ interface CarouselProps {
   children: React.ReactNode
   itemsPerView?: number
   gap?: number
+  showNavigation?: boolean
 }
 
-export function Carousel({ children, itemsPerView = 4, gap = 24 }: CarouselProps) {
+export function Carousel({ children, itemsPerView = 4, gap = 24, showNavigation = true }: CarouselProps) {
   const { t } = useLanguage()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [responsiveItemsPerView, setResponsiveItemsPerView] = useState(itemsPerView)
@@ -64,14 +65,16 @@ export function Carousel({ children, itemsPerView = 4, gap = 24 }: CarouselProps
 
   return (
     <div className="carousel" onKeyDown={handleKeyDown} tabIndex={0}>
-      <button
-        className="carousel__nav carousel__nav--prev"
-        onClick={handlePrev}
-        disabled={!canScrollLeft}
-        aria-label={t.common.previous}
-      >
-        <ChevronLeft size={24} />
-      </button>
+      {showNavigation && (
+        <button
+          className="carousel__nav carousel__nav--prev"
+          onClick={handlePrev}
+          disabled={!canScrollLeft}
+          aria-label={t.common.previous}
+        >
+          <ChevronLeft size={24} />
+        </button>
+      )}
 
       <div className="carousel__container">
         <div
@@ -94,14 +97,16 @@ export function Carousel({ children, itemsPerView = 4, gap = 24 }: CarouselProps
         </div>
       </div>
 
-      <button
-        className="carousel__nav carousel__nav--next"
-        onClick={handleNext}
-        disabled={!canScrollRight}
-        aria-label={t.common.next}
-      >
-        <ChevronRight size={24} />
-      </button>
+      {showNavigation && (
+        <button
+          className="carousel__nav carousel__nav--next"
+          onClick={handleNext}
+          disabled={!canScrollRight}
+          aria-label={t.common.next}
+        >
+          <ChevronRight size={24} />
+        </button>
+      )}
     </div>
   )
 }

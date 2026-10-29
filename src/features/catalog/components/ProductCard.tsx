@@ -7,7 +7,6 @@ import { Badge } from '../../../shared/ui/Badge/Badge'
 import { useLanguage, type Translations } from '../../../shared/i18n/LanguageContext'
 import { ROUTES } from '../../../app/routes'
 import { useFavorites, useAddToFavorites, useRemoveFromFavorites } from '../../favorites/hooks'
-import { generateImageSrcset } from '../../../shared/lib/imageUtils'
 import './ProductCard.css'
 
 interface ProductCardProps {
@@ -80,11 +79,6 @@ export function ProductCard({ product, onQuickAdd, t: propT }: ProductCardProps)
       <div className="product-card__image">
         <img
           src={currentImage}
-          srcSet={generateImageSrcset(currentImage, [
-            { width: 280, quality: 75 },
-            { width: 400, quality: 75 },
-            { width: 700, quality: 80 }
-          ])}
           alt={title}
           width={700}
           height={700}

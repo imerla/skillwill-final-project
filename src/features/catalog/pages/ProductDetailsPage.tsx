@@ -19,11 +19,11 @@ import { Skeleton } from '../../../shared/ui/Skeleton/Skeleton'
 import { EmptyState } from '../../../shared/ui/EmptyState/EmptyState'
 import { ErrorState } from '../../../shared/ui/ErrorState/ErrorState'
 import { QuantityStepper } from '../../../shared/ui/QuantityStepper/QuantityStepper'
+import { Carousel } from '../../../shared/ui/Carousel/Carousel'
 import { useLanguage } from '../../../shared/i18n/LanguageContext'
 import { translateCategoryName, translateSpecKey, translateSpecValue } from '../../../shared/i18n/apiTranslations'
 import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
-import { generateImageSrcset } from '../../../shared/lib/imageUtils'
 import './ProductDetailsPage.css'
 
 function usePreloadImage(src: string | null) {
@@ -400,11 +400,6 @@ export function ProductDetailsPage() {
             {currentImage ? (
               <img
                 src={currentImage}
-                srcSet={generateImageSrcset(currentImage, [
-                  { width: 400, quality: 75 },
-                  { width: 600, quality: 80 },
-                  { width: 800, quality: 85 }
-                ])}
                 alt={t.product.imageAlt(title, selectedImageIndex + 1)}
                 width={800}
                 height={800}
@@ -441,10 +436,6 @@ export function ProductDetailsPage() {
                 >
                   <img
                     src={image}
-                    srcSet={generateImageSrcset(image, [
-                      { width: 80, quality: 70 },
-                      { width: 120, quality: 75 }
-                    ])}
                     alt={t.product.thumbAlt(title, index + 1)}
                     width={120}
                     height={120}
@@ -576,13 +567,13 @@ export function ProductDetailsPage() {
         {related && related.length > 0 && (
           <div className="product-details-page__related">
             <h2 className="product-details-page__section-title">{t.product.related}</h2>
-            <div className="product-details-page__related-grid">
+            <Carousel itemsPerView={4} gap={24}>
               {related
                 .filter((relatedProduct) => relatedProduct.category.slug === CATALOG_CATEGORY_SLUG)
                 .map((relatedProduct) => (
                   <ProductCard key={relatedProduct.id} product={relatedProduct} />
                 ))}
-            </div>
+            </Carousel>
           </div>
         )}
       </div>
