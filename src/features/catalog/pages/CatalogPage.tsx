@@ -151,6 +151,13 @@ export function CatalogPage() {
             <h3 className="catalog-page__filter-title">{t.catalog.filters}</h3>
             {categoryError ? (
               <ErrorState onAction={() => refetchCategory()} />
+            ) : categoryLoading ? (
+              <>
+                <Skeleton variant="text" style={{ width: '100%', height: '60px', marginBottom: 'var(--spacing-4)' }} />
+                <Skeleton variant="text" style={{ width: '100%', height: '60px', marginBottom: 'var(--spacing-4)' }} />
+                <Skeleton variant="text" style={{ width: '100%', height: '60px', marginBottom: 'var(--spacing-4)' }} />
+                <Skeleton variant="text" style={{ width: '100%', height: '60px' }} />
+              </>
             ) : category?.filters?.sort((a, b) => {
               const aTranslated = translateFilterLabel(a.label, t)
               const bTranslated = translateFilterLabel(b.label, t)
