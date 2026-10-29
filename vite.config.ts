@@ -8,17 +8,14 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
-            return 'react-vendor'
-          }
-          if (id.includes('node_modules/react-router-dom/')) {
-            return 'router-vendor'
-          }
-          if (id.includes('node_modules/@tanstack/react-query/')) {
-            return 'query-vendor'
-          }
-          if (id.includes('node_modules/lucide-react/')) {
-            return 'ui-vendor'
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@tanstack')) {
+              return 'query-vendor';
+            }
+            return 'vendor';
           }
         },
       },
