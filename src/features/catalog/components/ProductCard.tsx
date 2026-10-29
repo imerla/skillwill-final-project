@@ -9,19 +9,6 @@ import { ROUTES } from '../../../app/routes'
 import { useFavorites, useAddToFavorites, useRemoveFromFavorites } from '../../favorites/hooks'
 import './ProductCard.css'
 
-function getOptimizedImageSrc(image: string, width: 360 | 640) {
-  const marker = '/images/products/'
-
-  if (!image.includes(marker)) {
-    return image
-  }
-
-  const relativePath = image.split(marker)[1]
-  const fileName = relativePath.replace(/\.[^.]+$/, '')
-
-  return `/images/products/${fileName}-${width}.webp`
-}
-
 interface ProductCardProps {
   product: Product
   onQuickAdd?: (product: Product) => void
@@ -91,17 +78,12 @@ export function ProductCard({ product, onQuickAdd, t: propT }: ProductCardProps)
     >
       <div className="product-card__image">
         <img
-          src={getOptimizedImageSrc(currentImage, 360)}
-          srcSet={`
-            ${getOptimizedImageSrc(currentImage, 360)} 360w,
-            ${getOptimizedImageSrc(currentImage, 640)} 640w
-          `}
+          src={currentImage}
           alt={title}
           width={700}
           height={700}
           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           loading="lazy"
-          decoding="async"
           className="product-card__img"
         />
         {discountPercent && discountPercent > 0 && (
