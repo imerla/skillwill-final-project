@@ -9,6 +9,7 @@ import { Footer } from '../shared/ui/Footer/Footer'
 import { LegacyCatalogRedirect } from './LegacyCatalogRedirect'
 import { ROUTES } from './routes'
 import { UiDemoPage } from './UiDemoPage'
+import './App.css'
 
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage').then(m => ({ default: m.LoginPage })))
 const RegisterPage = lazy(() => import('../features/auth/pages/RegisterPage').then(m => ({ default: m.RegisterPage })))
@@ -26,71 +27,73 @@ function App() {
     <LanguageProvider>
       <SessionProvider>
         <BrowserRouter>
-          <Nav />
-          <main>
-            <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
-              <Routes>
-              <Route path={ROUTES.home} element={<HomePage />} />
-              <Route path={ROUTES.about} element={<AboutUsPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/products" element={<LegacyCatalogRedirect />} />
-              <Route path={ROUTES.catalog} element={<CatalogPage />} />
-              <Route path={ROUTES.product(':slug')} element={<ProductDetailsPage />} />
-              <Route
-                path={ROUTES.cart}
-                element={
-                  <ProtectedRoute>
-                    <CartPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.checkout}
-                element={
-                  <ProtectedRoute>
-                    <CheckoutPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.orders}
-                element={
-                  <ProtectedRoute>
-                    <OrdersPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={`${ROUTES.orders}/:id`}
-                element={
-                  <ProtectedRoute>
-                    <OrdersPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.profile}
-                element={
-                  <ProtectedRoute>
-                    <ProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path={ROUTES.favorites}
-                element={
-                  <ProtectedRoute>
-                    <FavoritesPage />
-                  </ProtectedRoute>
-                }
-              />
-              {import.meta.env.DEV && <Route path="/ui" element={<UiDemoPage />} />}
-              </Routes>
-            </Suspense>
-          </main>
-          <Footer />
+          <div className="app">
+            <Nav />
+            <main className="app__main">
+              <Suspense fallback={<div className="app__skeleton" />}>
+                <Routes>
+                <Route path={ROUTES.home} element={<HomePage />} />
+                <Route path={ROUTES.about} element={<AboutUsPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/products" element={<LegacyCatalogRedirect />} />
+                <Route path={ROUTES.catalog} element={<CatalogPage />} />
+                <Route path={ROUTES.product(':slug')} element={<ProductDetailsPage />} />
+                <Route
+                  path={ROUTES.cart}
+                  element={
+                    <ProtectedRoute>
+                      <CartPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.checkout}
+                  element={
+                    <ProtectedRoute>
+                      <CheckoutPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.orders}
+                  element={
+                    <ProtectedRoute>
+                      <OrdersPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={`${ROUTES.orders}/:id`}
+                  element={
+                    <ProtectedRoute>
+                      <OrdersPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.profile}
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.favorites}
+                  element={
+                    <ProtectedRoute>
+                      <FavoritesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                {import.meta.env.DEV && <Route path="/ui" element={<UiDemoPage />} />}
+                </Routes>
+              </Suspense>
+            </main>
+            <Footer />
+          </div>
         </BrowserRouter>
       </SessionProvider>
     </LanguageProvider>
