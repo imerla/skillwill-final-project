@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo } from 'react'
+import { useCallback, useRef, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useCategory, useProducts } from '../hooks'
 import { CATALOG_CATEGORY_SLUG } from '../config'
@@ -24,6 +24,7 @@ export function CatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const categorySlug = CATALOG_CATEGORY_SLUG
   const { data: category, isLoading: categoryLoading, error: categoryError, refetch: refetchCategory } = useCategory(categorySlug)
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
 
   const params = parseUrlParams(searchParams, category?.filters)
 
@@ -145,8 +146,18 @@ export function CatalogPage() {
 
       <ActiveFilters category={category} params={params} onClearFilter={handleFilterClear} onClearAll={handleClearAll} t={t} />
 
+      <button
+        type="button"
+        className={`catalog-page__filters-toggle ${isFiltersOpen ? 'catalog-page__filters-toggle--open' : ''}`}
+        onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+        aria-expanded={isFiltersOpen}
+        aria-controls="catalog-filters"
+      >
+        {t.catalog.filters}
+      </button>
+
       <div className="catalog-page__content">
-        <div className="catalog-page__filters">
+        <div id="catalog-filters" className={`catalog-page__filters ${isFiltersOpen ? 'catalog-page__filters--open' : ''}`}>
           <div className="catalog-page__filter-section">
             <h3 className="catalog-page__filter-title">{t.catalog.filters}</h3>
             {categoryError ? (
