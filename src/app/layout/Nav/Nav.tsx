@@ -91,7 +91,7 @@ export function Nav() {
             onClick={() => navigate(ROUTES.home)}
             aria-label={t.nav.brand}
           >
-            <img src="/image_75788823.png" alt={t.nav.brand} className="nav__logo" />
+            <img src="/image_75788823.png" alt={t.nav.brand} className="nav__logo" width={37} height={54} />
           </button>
 
           {/* Search input - only show on catalog page */}
@@ -117,12 +117,11 @@ export function Nav() {
               aria-label={t.common.switchLanguage}
             >
               <img
-                src={language === 'ka' 
-                  ? 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Flag_of_Georgia.svg/1280px-Flag_of_Georgia.svg.png'
-                  : 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1280px-Flag_of_the_United_Kingdom_%281-2%29.svg.png'
-                }
+                src={language === 'ka' ? '/flags/ge.svg' : '/flags/gb.svg'}
                 alt={language === 'ka' ? 'Georgian' : 'English'}
                 className="nav__language-flag"
+                width={24}
+                height={16}
               />
             </button>
 
@@ -202,12 +201,11 @@ export function Nav() {
                   aria-label={t.common.switchLanguage}
                 >
                   <img
-                    src={language === 'ka' 
-                      ? 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Flag_of_Georgia.svg/1280px-Flag_of_Georgia.svg.png'
-                      : 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1280px-Flag_of_the_United_Kingdom_%281-2%29.svg.png'
-                    }
+                    src={language === 'ka' ? '/flags/ge.svg' : '/flags/gb.svg'}
                     alt={language === 'ka' ? 'Georgian' : 'English'}
                     className="nav__language-flag"
+                    width={24}
+                    height={16}
                   />
                   <span className="nav__language-text">{language === 'ka' ? 'EN' : 'KA'}</span>
                 </button>
@@ -234,12 +232,11 @@ export function Nav() {
                   aria-label={t.common.switchLanguage}
                 >
                   <img
-                    src={language === 'ka' 
-                      ? 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0f/Flag_of_Georgia.svg/1280px-Flag_of_Georgia.svg.png'
-                      : 'https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_United_Kingdom_%281-2%29.svg/1280px-Flag_of_the_United_Kingdom_%281-2%29.svg.png'
-                    }
+                    src={language === 'ka' ? '/flags/ge.svg' : '/flags/gb.svg'}
                     alt={language === 'ka' ? 'Georgian' : 'English'}
                     className="nav__language-flag"
+                    width={24}
+                    height={16}
                   />
                   <span className="nav__language-text">{language === 'ka' ? 'EN' : 'KA'}</span>
                 </button>

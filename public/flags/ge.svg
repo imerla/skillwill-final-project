@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="16" viewBox="0 0 300 200">
+  <defs>
+    <!-- Precise geometric path for the Bolnur-Katskhuri cross arms -->
+    <g id="bolnur-cross">
+      <path id="arm" d="M-6.81-19.417a104 104 0 0 1 0 38.834 55 55 0 0 1 13.62 0 104 104 0 0 1 0-38.834 55 55 0 0 1-13.62 0z"/>
+      <use href="#arm" transform="rotate(90)"/>
+    </g>
+  </defs>
+
+  <!-- White Background -->
+  <rect width="300" height="200" fill="#fff"/>
+  
+  <!-- Central St. George's Cross -->
+  <path d="M130 0h40v200h-40zM0 80h300v40H0z" fill="#da291c"/>
+  
+  <!-- Placement of the Four Inner Crosses -->
+  <g fill="#da291c">
+    <use href="#bolnur-cross" x="65" y="40"/>
+    <use href="#bolnur-cross" x="235" y="40"/>
+    <use href="#bolnur-cross" x="65" y="160"/>
+    <use href="#bolnur-cross" x="235" y="160"/>
+  </g>
+</svg>

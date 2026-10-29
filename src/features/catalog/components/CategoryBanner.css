@@ -19,6 +19,8 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
+  aspect-ratio: 12 / 5;
+  display: block;
 }
 
 .category-banner__overlay {

@@ -16,6 +16,9 @@ export function CategoryBanner({ category }: CategoryBannerProps) {
           src={category.image}
           alt=""
           className="category-banner__image"
+          width={1200}
+          height={500}
+          fetchPriority="high"
         />
         <div className="category-banner__overlay" />
       </div>

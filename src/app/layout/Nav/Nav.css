@@ -62,10 +62,9 @@
 }
 
 .nav__logo {
-  height: 100px;
-  width: auto;
+  width: 37px;
+  height: 54px;
   display: block;
-  max-width: 100%;
   object-fit: contain;
 }
 
@@ -155,6 +154,7 @@
   object-fit: cover;
   border-radius: 2px;
   border: 1px solid var(--color-border);
+  display: block;
 }
 
 .nav__language-text {
@@ -207,7 +207,8 @@
   }
 
   .nav__logo {
-    height: 80px;
+    width: 30px;
+    height: 44px;
   }
 
   .nav__search {
@@ -321,7 +322,8 @@
 /* მობილური ვერსია და მენიუს ანიმაცია/განლაგება */
 @media (max-width: 1024px) {
   .nav__logo {
-    height: 80px;
+    width: 30px;
+    height: 44px;
   }
 
   .nav__search {
@@ -404,7 +406,8 @@
   }
 
   .nav__logo {
-    height: 70px;
+    width: 28px;
+    height: 41px;
   }
 
   .nav__search {
@@ -419,7 +422,8 @@
   }
 
   .nav__logo {
-    height: 36px;
+    width: 26px;
+    height: 38px;
   }
 
   .nav__search {
