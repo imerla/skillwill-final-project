@@ -20,6 +20,12 @@ export default defineConfig({
           if (id.includes('node_modules/lucide-react/')) {
             return 'ui-vendor'
           }
+          if (id.includes('node_modules/react-hook-form/')) {
+            return 'form-vendor'
+          }
+          if (id.includes('node_modules/zod/')) {
+            return 'form-vendor'
+          }
         },
       },
     },
