@@ -26,23 +26,6 @@ import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
 import './ProductDetailsPage.css'
 
-function usePreloadImage(src: string | null) {
-  useEffect(() => {
-    if (!src) return
-
-    const link = document.createElement('link')
-    link.rel = 'preload'
-    link.as = 'image'
-    link.href = src
-    link.fetchPriority = 'high'
-    document.head.appendChild(link)
-
-    return () => {
-      document.head.removeChild(link)
-    }
-  }, [src])
-}
-
 export function ProductDetailsPage() {
   const { t } = useLanguage()
   const { slug } = useParams<{ slug: string }>()
@@ -76,7 +59,6 @@ export function ProductDetailsPage() {
   const [quantity, setQuantity] = useState(1)
 
   const currentImage = product?.images?.[selectedImageIndex] || product?.image
-  usePreloadImage(currentImage || null)
 
   // Swipe gesture handling for mobile
   const touchStartRef = useRef<number>(0)
