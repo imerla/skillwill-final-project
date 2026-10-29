@@ -116,7 +116,7 @@ export function ProductCard({ product, onQuickAdd, t: propT }: ProductCardProps)
 
       <div className="product-card__content">
         <p className="product-card__brand">{brand}</p>
-        <h3 className="product-card__title">{title}</h3>
+        <div className="product-card__title">{title}</div>
 
         <Price
           value={price}
