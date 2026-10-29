@@ -1,13 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { ka } from './ka'
-import { en } from './en'
 import { setApiLanguage } from '../api/client'
 
 export type Language = 'ka' | 'en'
 
-export type Translations = typeof ka | typeof en
+export type Translations = typeof ka
 
 interface LanguageContextType {
   language: Language
@@ -17,9 +16,14 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
-const translations: Record<Language, Translations> = {
-  ka,
-  en: en as Translations,
+async function loadTranslations(lang: Language): Promise<Translations> {
+  if (lang === 'ka') {
+    const { ka } = await import('./ka')
+    return ka
+  } else {
+    const { en } = await import('./en')
+    return en as unknown as Translations
+  }
 }
 
 export function useLanguage() {
@@ -38,23 +42,30 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
     return 'ka'
   })
+  const [translations, setTranslations] = useState<Translations>(ka)
 
-  const setLanguage = (lang: Language) => {
+  useEffect(() => {
+    if (language !== 'ka') {
+      loadTranslations(language).then(setTranslations)
+    }
+  }, [language])
+
+  const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang)
     localStorage.setItem('language', lang)
     setApiLanguage(lang)
-  }
+  }, [])
 
   useEffect(() => {
     document.documentElement.lang = language
     setApiLanguage(language)
   }, [language])
 
-  const value: LanguageContextType = {
+  const value: LanguageContextType = useMemo(() => ({
     language,
     setLanguage,
-    t: translations[language],
-  }
+    t: translations,
+  }), [language, setLanguage, translations])
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
 }
