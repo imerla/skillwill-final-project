@@ -12,7 +12,7 @@ export function Footer() {
         <div className="footer__grid">
           {/* About Section */}
           <div className="footer__section">
-            <h3 className="footer__title">{t.nav.brand}</h3>
+            <div className="footer__title">{t.nav.brand}</div>
             <p className="footer__description">
               {t.footer.description}
             </p>
@@ -20,7 +20,7 @@ export function Footer() {
 
           {/* Quick Links */}
           <div className="footer__section">
-            <h3 className="footer__title">{t.footer.quickLinks}</h3>
+            <div className="footer__title">{t.footer.quickLinks}</div>
             <ul className="footer__links">
               <li>
                 <Link to={ROUTES.catalog} className="footer__link">
@@ -42,7 +42,7 @@ export function Footer() {
 
           {/* Contact Info */}
           <div className="footer__section">
-            <h3 className="footer__title">{t.footer.contact}</h3>
+            <div className="footer__title">{t.footer.contact}</div>
             <ul className="footer__contact">
               <li className="footer__contact-item">
                 <Phone size={18} className="footer__icon" />
@@ -61,7 +61,7 @@ export function Footer() {
 
           {/* Social Links */}
           <div className="footer__section">
-            <h3 className="footer__title">{t.footer.social}</h3>
+            <div className="footer__title">{t.footer.social}</div>
             <div className="footer__social">
               <a href="#" className="footer__social-link" aria-label={t.footer.facebook}>
                 <Facebook size={24} />
