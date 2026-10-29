@@ -383,6 +383,7 @@ export function ProductDetailsPage() {
                 alt={t.product.imageAlt(title, selectedImageIndex + 1)}
                 width={800}
                 height={800}
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 45vw"
                 fetchPriority="high"
                 className="product-details-page__main-image-img"
                 onClick={() => handleLightboxOpen(selectedImageIndex)}
@@ -418,6 +419,7 @@ export function ProductDetailsPage() {
                     alt={t.product.thumbAlt(title, index + 1)}
                     width={120}
                     height={120}
+                    sizes="120px"
                     loading="lazy"
                     className="product-details-page__thumbnail-img"
                   />
@@ -578,6 +580,7 @@ export function ProductDetailsPage() {
             alt={`${title} - ${lightboxIndex + 1}`}
             width={800}
             height={800}
+            sizes="100vw"
             className="product-details-page__lightbox-image"
             onClick={(e) => e.stopPropagation()}
           />

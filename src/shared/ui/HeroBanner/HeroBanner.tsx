@@ -18,6 +18,7 @@ export function HeroBanner({ title, subtitle, image, children, height = 'medium'
           alt=""
           width={1920}
           height={1080}
+          sizes="100vw"
           className="hero-banner__image"
         />
         <div className="hero-banner__overlay" />

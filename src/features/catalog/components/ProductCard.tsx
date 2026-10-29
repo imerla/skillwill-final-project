@@ -82,6 +82,7 @@ export function ProductCard({ product, onQuickAdd, t: propT }: ProductCardProps)
           alt={title}
           width={700}
           height={700}
+          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           loading="lazy"
           className="product-card__img"
         />

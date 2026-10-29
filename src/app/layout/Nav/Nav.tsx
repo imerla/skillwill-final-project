@@ -91,7 +91,16 @@ export function Nav() {
             onClick={() => navigate(ROUTES.home)}
             aria-label={t.nav.brand}
           >
-            <img src="/image_75788823.webp" alt={t.nav.brand} className="nav__logo" width={50} height={75} />
+            <img
+              src="/image_75788823.webp"
+              srcSet="/image_75788823.webp 50w"
+              sizes="50px"
+              alt={t.nav.brand}
+              className="nav__logo"
+              width={50}
+              height={75}
+              loading="eager"
+            />
           </button>
 
           {/* Search input - only show on catalog page */}
