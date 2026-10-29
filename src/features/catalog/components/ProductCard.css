@@ -45,7 +45,7 @@
   top: var(--spacing-3);
   left: var(--spacing-3);
   z-index: 2;
-  background-color: var(--color-primary);
+  background-color: #d35400;
   color: white;
   padding: var(--spacing-1) var(--spacing-3);
   border-radius: var(--radius-md);
@@ -145,7 +145,7 @@
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-primary);
+  color: var(--color-text);
   margin: 0;
 }
 

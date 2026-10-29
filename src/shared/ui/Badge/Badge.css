@@ -16,8 +16,8 @@
 }
 
 .badge--accent {
-  background-color: var(--color-accent);
-  color: var(--color-on-accent);
+  background-color: #d35400;
+  color: white;
 }
 
 .badge--success {
@@ -27,8 +27,8 @@
 }
 
 .badge--danger {
-  background-color: var(--color-error-bg);
-  color: var(--color-error);
-  border-color: var(--color-error);
+  background-color: #dc2626;
+  color: white;
+  border-color: #dc2626;
 }
 
