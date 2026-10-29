@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import './Select.css'
 
 interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
@@ -7,11 +8,14 @@ interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>
 }
 
 export function Select({ label, error, children, className = '', ...props }: SelectProps) {
+  const selectId = useId()
+
   return (
     <div className={`select-wrapper ${className}`}>
-      {label && <label className="select__label">{label}</label>}
+      {label && <label htmlFor={selectId} className="select__label">{label}</label>}
       <div className="select__container">
         <select
+          id={label ? selectId : props.id}
           className={`select ${error ? 'select--error' : ''}`}
           aria-invalid={!!error}
           {...props}
