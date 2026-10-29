@@ -20,38 +20,28 @@ export function Carousel({ children, itemsPerView = 4, gap = 24, showNavigation 
   const totalItems = items.length
 
   useEffect(() => {
-    const updateItemWidth = (containerWidth: number) => {
-      const width = window.innerWidth
-      let viewItems = itemsPerView
+    const updateItemWidth = () => {
+      if (trackRef.current) {
+        const containerWidth = trackRef.current.offsetWidth
+        const width = window.innerWidth
+        let viewItems = itemsPerView
 
-      if (width < 480) {
-        viewItems = 1
-      } else if (width < 768) {
-        viewItems = 2
-      } else if (width < 1024) {
-        viewItems = 3
+        if (width < 480) {
+          viewItems = 1
+        } else if (width < 768) {
+          viewItems = 2
+        } else if (width < 1024) {
+          viewItems = 3
+        }
+
+        setResponsiveItemsPerView(viewItems)
+        setItemWidth((containerWidth - gap * (viewItems - 1)) / viewItems)
       }
-
-      setResponsiveItemsPerView(viewItems)
-      setItemWidth((containerWidth - gap * (viewItems - 1)) / viewItems)
     }
 
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        requestAnimationFrame(() => {
-          updateItemWidth(entry.contentRect.width)
-        })
-      }
-    })
-
-    if (trackRef.current) {
-      resizeObserver.observe(trackRef.current)
-      updateItemWidth(trackRef.current.offsetWidth)
-    }
-
-    return () => {
-      resizeObserver.disconnect()
-    }
+    updateItemWidth()
+    window.addEventListener('resize', updateItemWidth)
+    return () => window.removeEventListener('resize', updateItemWidth)
   }, [itemsPerView, gap])
 
   const handleNext = () => {
