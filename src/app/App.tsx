@@ -27,9 +27,8 @@ function App() {
       <SessionProvider>
         <BrowserRouter>
           <Nav />
-          <main id="main-content">
-            <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
-              <Routes>
+          <Suspense fallback={<div style={{ minHeight: '60vh' }} />}>
+            <Routes>
             <Route path={ROUTES.home} element={<HomePage />} />
             <Route path={ROUTES.about} element={<AboutUsPage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -88,8 +87,7 @@ function App() {
             />
             {import.meta.env.DEV && <Route path="/ui" element={<UiDemoPage />} />}
             </Routes>
-            </Suspense>
-          </main>
+          </Suspense>
           <Footer />
         </BrowserRouter>
       </SessionProvider>

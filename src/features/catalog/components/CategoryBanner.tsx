@@ -16,8 +16,8 @@ export function CategoryBanner({ category }: CategoryBannerProps) {
           src="/clothing.webp"
           alt=""
           className="category-banner__image"
-          width={677}
-          height={282}
+          width={1200}
+          height={500}
           fetchPriority="high"
         />
         <div className="category-banner__overlay" />

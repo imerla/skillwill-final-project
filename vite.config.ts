@@ -5,18 +5,20 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   build: {
-    cssCodeSplit: false,
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'react-vendor';
-            }
-            if (id.includes('@tanstack') || id.includes('axios')) {
-              return 'api-vendor';
-            }
-            return 'vendor';
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+            return 'react-vendor'
+          }
+          if (id.includes('node_modules/react-router-dom/')) {
+            return 'router-vendor'
+          }
+          if (id.includes('node_modules/@tanstack/react-query/')) {
+            return 'query-vendor'
+          }
+          if (id.includes('node_modules/lucide-react/')) {
+            return 'ui-vendor'
           }
         },
       },

@@ -159,7 +159,7 @@ export function CatalogPage() {
       <div className="catalog-page__content">
         <div id="catalog-filters" className={`catalog-page__filters ${isFiltersOpen ? 'catalog-page__filters--open' : ''}`}>
           <div className="catalog-page__filter-section">
-            <h2 className="catalog-page__filter-title">{t.catalog.filters}</h2>
+            <h3 className="catalog-page__filter-title">{t.catalog.filters}</h3>
             {categoryError ? (
               <ErrorState onAction={() => refetchCategory()} />
             ) : categoryLoading ? (

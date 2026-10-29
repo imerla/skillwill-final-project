@@ -1,4 +1,4 @@
-import { useState, memo } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ShoppingCart, Star, Heart } from 'lucide-react'
 import type { Product } from '../types'
@@ -15,7 +15,7 @@ interface ProductCardProps {
   t?: Translations
 }
 
-function ProductCardComponent({ product, onQuickAdd, t: propT }: ProductCardProps) {
+export function ProductCard({ product, onQuickAdd, t: propT }: ProductCardProps) {
   const { t: hookT } = useLanguage()
   const t = propT || hookT
   const {
@@ -137,6 +137,4 @@ function ProductCardComponent({ product, onQuickAdd, t: propT }: ProductCardProp
     </Link>
   )
 }
-
-export const ProductCard = memo(ProductCardComponent)
 
