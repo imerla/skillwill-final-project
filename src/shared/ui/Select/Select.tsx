@@ -1,4 +1,3 @@
-import { useId } from 'react'
 import './Select.css'
 
 interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
@@ -7,19 +6,14 @@ interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>
   children: React.ReactNode
 }
 
-export function Select({ label, error, children, className = '', id: propId, ...props }: SelectProps) {
-  const generatedId = useId()
-  const selectId = propId || generatedId
-
+export function Select({ label, error, children, className = '', ...props }: SelectProps) {
   return (
     <div className={`select-wrapper ${className}`}>
-      {label && <label htmlFor={selectId} className="select__label">{label}</label>}
+      {label && <label className="select__label">{label}</label>}
       <div className="select__container">
         <select
-          id={selectId}
           className={`select ${error ? 'select--error' : ''}`}
           aria-invalid={!!error}
-          aria-label={!label ? props['aria-label'] : undefined}
           {...props}
         >
           {children}
