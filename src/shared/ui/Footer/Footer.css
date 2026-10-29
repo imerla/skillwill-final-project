@@ -3,9 +3,6 @@
   color: var(--color-gray-100);
   padding: var(--spacing-16) 0 var(--spacing-8);
   margin-top: auto;
-  min-height: 450px;
-  contain: layout;
-  contain-intrinsic-size: auto 450px;
 }
 
 /* No margin for auth pages */
@@ -44,13 +41,12 @@ body:has(.forgot-password-page) .footer {
   font-weight: var(--font-weight-semibold);
   color: var(--color-white);
   margin: 0;
-  line-height: 1.5;
 }
 
 .footer__description {
   font-family: var(--font-family);
   font-size: var(--font-size-sm);
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
   color: var(--color-gray-300);
   margin: 0;
   max-width: 300px;
@@ -71,7 +67,6 @@ body:has(.forgot-password-page) .footer {
   color: var(--color-gray-300);
   text-decoration: none;
   transition: color var(--duration-fast) var(--ease-out);
-  line-height: 1.5;
 }
 
 .footer__link:hover {
@@ -93,7 +88,6 @@ body:has(.forgot-password-page) .footer {
   gap: var(--spacing-3);
   font-size: var(--font-size-sm);
   color: var(--color-gray-300);
-  line-height: 1.5;
 }
 
 .footer__icon {
