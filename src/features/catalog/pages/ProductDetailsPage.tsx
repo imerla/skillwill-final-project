@@ -77,6 +77,26 @@ export function ProductDetailsPage() {
 
   const currentImage = product?.images?.[selectedImageIndex] || product?.image
   usePreloadImage(currentImage || null)
+
+  // Swipe gesture handling for mobile
+  const touchStartRef = useRef<number>(0)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const touchEnd = e.changedTouches[0].clientX
+    const diff = touchStartRef.current - touchEnd
+    const images = product?.images || []
+
+    if (Math.abs(diff) > 50) {
+      if (diff > 0 && selectedImageIndex < images.length - 1) {
+        setSelectedImageIndex((prev) => prev + 1)
+      } else if (diff < 0 && selectedImageIndex > 0) {
+        setSelectedImageIndex((prev) => prev - 1)
+      }
+    }
+  }
   const [addToCartMessageKey, setAddToCartMessageKey] = useState<'outOfStockMessage' | 'stockChanged' | 'added' | 'genericError' | 'networkError' | 'quantityUpdated' | 'itemGone' | 'remove' | 'outOfStock' | 'productGone' | 'qtyRange' | null>(null)
   const [addToCartMessageStock, setAddToCartMessageStock] = useState<number | undefined>(undefined)
 
@@ -407,6 +427,8 @@ export function ProductDetailsPage() {
                 fetchPriority="high"
                 className="product-details-page__main-image-img"
                 onClick={() => handleLightboxOpen(selectedImageIndex)}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
                 style={{ cursor: 'zoom-in' }}
               />
             ) : (

@@ -59,6 +59,12 @@
   padding: var(--spacing-2) 0;
 }
 
+@media (max-width: 768px) {
+  .product-details-page__thumbnails {
+    display: none;
+  }
+}
+
 .product-details-page__thumbnail {
   flex-shrink: 0;
   width: 80px;
