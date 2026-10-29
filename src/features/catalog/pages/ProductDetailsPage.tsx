@@ -26,6 +26,19 @@ import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
 import './ProductDetailsPage.css'
 
+function getOptimizedImageSrc(image: string, width: 360 | 640) {
+  const marker = '/images/products/'
+
+  if (!image.includes(marker)) {
+    return image
+  }
+
+  const relativePath = image.split(marker)[1]
+  const fileName = relativePath.replace(/\.[^.]+$/, '')
+
+  return `/images/products/${fileName}-${width}.webp`
+}
+
 export function ProductDetailsPage() {
   const { t } = useLanguage()
   const { slug } = useParams<{ slug: string }>()
@@ -401,7 +414,11 @@ export function ProductDetailsPage() {
           <div className="product-details-page__main-image">
             {currentImage ? (
               <img
-                src={currentImage}
+                src={getOptimizedImageSrc(currentImage, 640)}
+                srcSet={`
+                  ${getOptimizedImageSrc(currentImage, 360)} 360w,
+                  ${getOptimizedImageSrc(currentImage, 640)} 640w
+                `}
                 alt={t.product.imageAlt(title, selectedImageIndex + 1)}
                 width={800}
                 height={800}
