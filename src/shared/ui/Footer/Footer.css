@@ -5,6 +5,7 @@
   margin-top: auto;
   min-height: 300px;
   contain: layout paint;
+  contain-intrinsic-size: auto 400px;
 }
 
 /* No margin for auth pages */

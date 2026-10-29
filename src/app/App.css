@@ -6,8 +6,8 @@
 
 .app__main {
   flex: 1;
-  min-height: 600px;
-  contain-intrinsic-size: auto 800px;
+  min-height: 700px;
+  contain-intrinsic-size: auto 1000px;
   content-visibility: auto;
 }
 
