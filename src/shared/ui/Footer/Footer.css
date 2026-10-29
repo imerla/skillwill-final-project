@@ -3,8 +3,6 @@
   color: var(--color-gray-100);
   padding: var(--spacing-16) 0 var(--spacing-8);
   margin-top: var(--spacing-16);
-  min-height: 400px;
-  contain-intrinsic-size: auto 400px;
 }
 
 /* No margin for auth pages */

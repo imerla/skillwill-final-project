@@ -25,6 +25,23 @@ import { useDocumentTitle } from '../../../shared/lib/useDocumentTitle'
 import { ROUTES } from '../../../app/routes'
 import './ProductDetailsPage.css'
 
+function usePreloadImage(src: string | null) {
+  useEffect(() => {
+    if (!src) return
+
+    const link = document.createElement('link')
+    link.rel = 'preload'
+    link.as = 'image'
+    link.href = src
+    link.fetchPriority = 'high'
+    document.head.appendChild(link)
+
+    return () => {
+      document.head.removeChild(link)
+    }
+  }, [src])
+}
+
 export function ProductDetailsPage() {
   const { t } = useLanguage()
   const { slug } = useParams<{ slug: string }>()
@@ -56,6 +73,9 @@ export function ProductDetailsPage() {
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
+
+  const currentImage = product?.images?.[selectedImageIndex] || product?.image
+  usePreloadImage(currentImage || null)
   const [addToCartMessageKey, setAddToCartMessageKey] = useState<'outOfStockMessage' | 'stockChanged' | 'added' | 'genericError' | 'networkError' | 'quantityUpdated' | 'itemGone' | 'remove' | 'outOfStock' | 'productGone' | 'qtyRange' | null>(null)
   const [addToCartMessageStock, setAddToCartMessageStock] = useState<number | undefined>(undefined)
 
@@ -361,7 +381,6 @@ export function ProductDetailsPage() {
 
   // Safety check for empty images array
   const hasImages = images && images.length > 0
-  const currentImage = hasImages ? images[selectedImageIndex] : undefined
 
   return (
     <PageContainer size="page" as="section">
@@ -390,8 +409,8 @@ export function ProductDetailsPage() {
                 style={{ cursor: 'zoom-in' }}
               />
             ) : (
-              <div className="product-details-page__main-image-placeholder">
-                {t.product.noImage}
+              <div className="product-details-page__main-image--placeholder">
+                <Skeleton variant="rect" style={{ width: '100%', height: '100%' }} />
               </div>
             )}
             {/* Favorite Button */}

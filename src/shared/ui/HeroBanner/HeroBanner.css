@@ -4,7 +4,6 @@
   border-radius: var(--radius-xl);
   overflow: hidden;
   margin-bottom: var(--spacing-10);
-  contain-intrinsic-size: auto 500px;
 }
 
 .hero-banner--small {
