@@ -18,7 +18,7 @@ A full-featured e-commerce frontend built with React, TypeScript, and Vite as a 
 - **Catalog** — product grid with server-driven filters, sort, search, pagination — all state in URL
 - **Product page** — image gallery, specs table, related products, add to cart
 - **Cart** — server-side cart, quantity stepper, live totals
-- **Checkout** — shipping + card form, 3D-Secure-style code confirmation, order confirmation page
+- **Checkout** — shipping + card form, simulated 3D Secure-style code confirmation, order confirmation page
 - **Profile** — edit name, email, password; manage delivery addresses
 - **Favorites** — save and remove products
 - **Orders** — order history and order detail page
@@ -49,10 +49,12 @@ src/
 
 See [`docs/adr/`](docs/adr/) for recorded decisions:
 
-- [001 — Auth token storage](docs/adr/001-auth-token-storage.md)
-- [002 — Profile edit current password strategy](docs/adr/002-profile-edit.md)
-- [003 — Cart stepper rapid click handling](docs/adr/003-stepper-rapid-clicks.md)
-- [004 — Checkout order ID storage](docs/adr/004-checkout-order-id-storage.md)
+- [001 — Auth Token Storage](docs/adr/001-auth-token-storage.md)
+- [002 — Profile Edit Current Password Strategy](docs/adr/002-profile-edit.md)
+- [003 — Cart Stepper Rapid Click Strategy](docs/adr/003-stepper-rapid-clicks.md)
+- [004 — Checkout Order ID Storage](docs/adr/004-checkout-order-id-storage.md)
+- [005 — API Image Optimization](docs/adr/005-api-image-optimization.md)
+- [006 — Caching Strategy](docs/adr/006-caching-strategy.md)
 
 ## Getting Started
 
@@ -60,8 +62,8 @@ See [`docs/adr/`](docs/adr/) for recorded decisions:
 # Install dependencies
 npm install
 
-# Copy environment variables
-cp .env.example .env
+# Create environment variables file
+echo "VITE_API_URL=https://shop-api-kbe6.onrender.com/api" > .env
 
 # Start development server
 npm run dev
