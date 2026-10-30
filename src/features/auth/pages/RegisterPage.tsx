@@ -27,6 +27,7 @@ export function RegisterPage() {
   const { t } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [submitErrorKey, setSubmitErrorKey] = useState<'genericError' | 'networkError' | null>(null)
+  const [emailErrorKey, setEmailErrorKey] = useState<'emailTaken' | null>(null)
   const navigate = useNavigate()
   const { setUser } = useSession()
 
@@ -84,6 +85,7 @@ export function RegisterPage() {
   const onSubmit = async (values: RegisterFormData) => {
     if (isLoading) return
     setSubmitErrorKey(null)
+    setEmailErrorKey(null)
     setIsLoading(true)
 
     try {
@@ -98,7 +100,7 @@ export function RegisterPage() {
     } catch (error) {
       if (error instanceof ApiErrorClass) {
         if (error.code === 'EMAIL_TAKEN' || error.status === 409) {
-          setError('email', { message: t.auth.register.emailTaken })
+          setEmailErrorKey('emailTaken')
         } else if (error.status === 422) {
           const result = applyServerErrors(error, setError, ['name', 'email', 'password'])
           if (result.formError) {
@@ -148,7 +150,7 @@ export function RegisterPage() {
 
           <FormField
             label={t.auth.emailLabel}
-            error={errors.email?.message}
+            error={errors.email?.message || (emailErrorKey === 'emailTaken' ? t.auth.register.emailTaken : undefined)}
           >
             {({ id, 'aria-describedby': ariaDescribedby, 'aria-invalid': ariaInvalid }) => (
               <Input
