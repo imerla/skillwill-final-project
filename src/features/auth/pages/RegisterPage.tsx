@@ -97,7 +97,7 @@ export function RegisterPage() {
       navigate(ROUTES.catalog, { replace: true })
     } catch (error) {
       if (error instanceof ApiErrorClass) {
-        if (error.code === 'EMAIL_TAKEN') {
+        if (error.code === 'EMAIL_TAKEN' || error.status === 409) {
           setError('email', { message: t.auth.register.emailTaken })
         } else if (error.status === 422) {
           const result = applyServerErrors(error, setError, ['name', 'email', 'password'])
