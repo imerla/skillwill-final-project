@@ -173,7 +173,7 @@ export function FavoritesPage() {
                 <Button
                   variant="primary"
                   onClick={() => handleAddToCart(product.id)}
-                  disabled={isAnyMutationPending}
+                  disabled={isAnyMutationPending || !product.inStock || product.stock === 0}
                   className="favorites-page__add-to-cart"
                   aria-label={t.favorites.addToCart}
                 >
